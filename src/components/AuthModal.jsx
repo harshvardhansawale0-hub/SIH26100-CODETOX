@@ -1,0 +1,162 @@
+import React, { useState } from 'react';
+import { X, Lock, Mail, User, ShieldCheck } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
+
+export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess }) {
+  if (!isOpen) return null;
+
+  const { t, lang } = useLanguage();
+  const [authMode, setAuthMode] = useState(mode || 'signin');
+  const [role, setRole] = useState('officer'); // 'officer' or 'bidder'
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (onAuthSuccess) {
+      onAuthSuccess({ email, role });
+    }
+    onClose();
+  };
+
+  const getOfficerLabel = () => {
+    if (lang === 'hi') return '🏛️ खरीद अधिकारी';
+    if (lang === 'mr') return '🏛️ खरेदी अधिकारी';
+    return '🏛️ Procurement Officer';
+  };
+
+  const getBidderLabel = () => {
+    if (lang === 'hi') return '🏢 GeM विक्रेता / बोलीदाता';
+    if (lang === 'mr') return '🏢 GeM विक्रेता / निविदाकार';
+    return '🏢 GeM Vendor / Bidder';
+  };
+
+  return (
+    <div className="modal-overlay" onClick={onClose}>
+      <div className="modal-content-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '440px' }}>
+        <div className="modal-header">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span className="gem-badge-box" style={{ fontSize: '0.85rem', padding: '0.2rem 0.5rem' }}>GeM</span>
+            <h3 className="modal-title" style={{ fontSize: '1.2rem' }}>
+              {authMode === 'signin' ? t('signIn') : t('signUp')}
+            </h3>
+          </div>
+          <button className="modal-close-btn" onClick={onClose}>
+            <X size={20} />
+          </button>
+        </div>
+
+        <div className="modal-body">
+          {/* Role selector */}
+          <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem' }}>
+            <button
+              type="button"
+              onClick={() => setRole('officer')}
+              style={{
+                flex: 1,
+                padding: '0.5rem',
+                borderRadius: '6px',
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                border: role === 'officer' ? '1px solid #0b1a2d' : '1px solid #cbd5e1',
+                backgroundColor: role === 'officer' ? '#0b1a2d' : '#f8fafc',
+                color: role === 'officer' ? '#ffffff' : '#64748b',
+                cursor: 'pointer'
+              }}
+            >
+              {getOfficerLabel()}
+            </button>
+            <button
+              type="button"
+              onClick={() => setRole('bidder')}
+              style={{
+                flex: 1,
+                padding: '0.5rem',
+                borderRadius: '6px',
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                border: role === 'bidder' ? '1px solid #0b1a2d' : '1px solid #cbd5e1',
+                backgroundColor: role === 'bidder' ? '#0b1a2d' : '#f8fafc',
+                color: role === 'bidder' ? '#ffffff' : '#64748b',
+                cursor: 'pointer'
+              }}
+            >
+              {getBidderLabel()}
+            </button>
+          </div>
+
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
+                {t('emailLabel')} / NIC ID
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Mail size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input
+                  type="email"
+                  required
+                  placeholder="officer@nic.in or vendor@biz.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={{ width: '100%', padding: '0.55rem 0.75rem 0.55rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
+                Password / DSC Token PIN
+              </label>
+              <div style={{ position: 'relative' }}>
+                <Lock size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                <input
+                  type="password"
+                  required
+                  placeholder="••••••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  style={{ width: '100%', padding: '0.55rem 0.75rem 0.55rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                />
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              style={{
+                marginTop: '0.5rem',
+                padding: '0.7rem',
+                borderRadius: '8px',
+                backgroundColor: authMode === 'signin' ? '#0b1a2d' : '#f59e0b',
+                color: '#ffffff',
+                fontWeight: '700',
+                fontSize: '0.92rem',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              {authMode === 'signin' ? t('signIn') : t('signUp')}
+            </button>
+          </form>
+
+          <div style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.82rem', color: '#64748b' }}>
+            {authMode === 'signin' ? (
+              <span>
+                Don't have an account?{' '}
+                <strong style={{ color: '#f59e0b', cursor: 'pointer' }} onClick={() => setAuthMode('signup')}>
+                  {t('signUp')}
+                </strong>
+              </span>
+            ) : (
+              <span>
+                Already registered?{' '}
+                <strong style={{ color: '#0b1a2d', cursor: 'pointer' }} onClick={() => setAuthMode('signin')}>
+                  {t('signIn')}
+                </strong>
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
