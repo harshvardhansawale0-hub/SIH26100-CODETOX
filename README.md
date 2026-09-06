@@ -110,7 +110,21 @@ Full dynamic multi-language switching across the entire portal:
 - **Node.js** (v18.x or higher) & **npm**
 - **Python** (v3.10 or higher)
 
-### 1. Start the Backend API Server (FastAPI)
+### 1. Database Setup & Initialization
+
+```bash
+# Initialize SQLite database schema and seed initial mock records
+python init_db.py
+
+# Or reset & re-seed database from scratch at any time
+python init_db.py --reset
+
+# Check current record counts across all tables
+python init_db.py --stats
+```
+*The database file is stored at `backend/gem_procure.db`. You can also inspect the full ANSI SQL DDL schema in [schema.sql](file:///c:/Users/91749/Desktop/SIH/SIH26100-CODETOX/schema.sql).*
+
+### 2. Start the Backend API Server (FastAPI)
 
 ```bash
 # Install Python backend dependencies
@@ -123,14 +137,14 @@ python run_backend.py
 - **Interactive Swagger Docs**: `http://127.0.0.1:8000/docs`
 - **ReDoc UI**: `http://127.0.0.1:8000/redoc`
 
-### 2. Run Backend Automated Test Suite
+### 3. Run Backend Automated Test Suite
 
 ```bash
 python backend/test_api.py
 ```
 *Validates 11 core checks across Database persistence, GFR 2017 Rule Engine, OCR document forensics, Anti-Cartel Graph Detector, CRAC inspection, and live HTTP endpoints.*
 
-### 3. Start Frontend UI (Vite + React)
+### 4. Start Frontend UI (Vite + React)
 
 ```bash
 # Install frontend dependencies
@@ -141,7 +155,7 @@ npm run dev
 ```
 Open your browser and navigate to `http://localhost:5173/`.
 
-### 4. Build Production Bundle
+### 5. Build Production Bundle
 
 ```bash
 npm run build

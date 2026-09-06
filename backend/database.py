@@ -1,19 +1,40 @@
 import sqlite3
 import json
 import os
+import sys
+import argparse
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "gem_procure.db")
+SCHEMA_SQL_PATH = os.path.join(os.path.dirname(__file__), "schema.sql")
 
 def get_connection():
+    """
+    Returns a configured SQLite connection with row_factory enabled and PRAGMAs applied.
+    """
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON;")
+    conn.execute("PRAGMA journal_mode = WAL;")
     return conn
 
-def init_db():
+def init_db(force_recreate: bool = False):
+    """
+    Initializes database tables, indexes, and initial benchmark seed data.
+    If force_recreate is True, drops all existing tables and re-seeds from scratch.
+    """
     conn = get_connection()
     cursor = conn.cursor()
+
+    if force_recreate:
+        cursor.execute("DROP TABLE IF EXISTS audit_logs")
+        cursor.execute("DROP TABLE IF EXISTS cartel_reports")
+        cursor.execute("DROP TABLE IF EXISTS contracts")
+        cursor.execute("DROP TABLE IF EXISTS bids")
+        cursor.execute("DROP TABLE IF EXISTS tenders")
+        cursor.execute("DROP TABLE IF EXISTS vendors")
+        cursor.execute("DROP TABLE IF EXISTS users")
 
     # 1. Bids table
     cursor.execute("""
@@ -107,6 +128,48 @@ def init_db():
     )
     """)
 
+    # 6. Master Vendors Directory table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS vendors (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT UNIQUE NOT NULL,
+        gstin TEXT NOT NULL,
+        pan TEXT NOT NULL,
+        udyam_no TEXT,
+        category TEXT NOT NULL,
+        mii_classification TEXT NOT NULL,
+        compliance_score INTEGER DEFAULT 90,
+        risk_tier TEXT DEFAULT 'Low Risk',
+        blacklisted BOOLEAN DEFAULT 0,
+        created_at TEXT NOT NULL
+    )
+    """)
+
+    # 7. System Audit Logs table
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS audit_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        event_type TEXT NOT NULL,
+        entity_id TEXT NOT NULL,
+        user_agent TEXT NOT NULL,
+        details TEXT NOT NULL,
+        timestamp TEXT NOT NULL
+    )
+    """)
+
+    # Performance Indexes
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_bids_status ON bids(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_bids_category ON bids(category)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_bids_tender ON bids(tender_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_bids_vendor ON bids(vendor)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_tenders_status ON tenders(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_tenders_category ON tenders(category)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_contracts_tender ON contracts(tender_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_contracts_bid ON contracts(bid_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_vendors_name ON vendors(name)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_cartel_tender ON cartel_reports(tender_id)")
+
     # Seed initial bids if empty
     cursor.execute("SELECT COUNT(*) FROM bids")
     if cursor.fetchone()[0] == 0:
@@ -132,8 +195,19 @@ def init_db():
     if cursor.fetchone()[0] == 0:
         seed_initial_cartel_reports(cursor)
 
+    # Seed vendors if empty
+    cursor.execute("SELECT COUNT(*) FROM vendors")
+    if cursor.fetchone()[0] == 0:
+        seed_initial_vendors(cursor)
+
     conn.commit()
     conn.close()
+
+def reset_db():
+    """
+    Wipes the SQLite database completely and re-initializes all tables and seeds.
+    """
+    init_db(force_recreate=True)
 
 def seed_initial_bids(cursor):
     initial_bids = [
@@ -256,7 +330,7 @@ def seed_initial_bids(cursor):
             "panStatus": "PAN/GST Name Mismatch",
             "msmeStatus": "Invalid Certificate Number",
             "date": "06 Sep 2026, 08:15 AM",
-            "riskLevel": "High Risk (Critical)",
+            "riskLevel": "Critical High Risk",
             "ocrConfidence": "81.0%",
             "flags": [
                 "CRITICAL: GSTIN status on GST Portal returned CANCELLED / SUSPENDED.",
@@ -341,7 +415,7 @@ def seed_initial_bids(cursor):
 
     for b in initial_bids:
         cursor.execute("""
-        INSERT INTO bids (
+        INSERT OR IGNORE INTO bids (
             id, vendor, category, item, tender_id, tender_value, bid_amount,
             status, score, mii_content, turnover, experience, gst_status, pan_status,
             msme_status, date, risk_level, ocr_confidence, flags, extracted_docs, audit_trail
@@ -362,7 +436,7 @@ def seed_initial_users(cursor):
     ]
     for u in demo_users:
         cursor.execute("""
-        INSERT INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
+        INSERT OR IGNORE INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (u[0], u[1], u[2], u[3], u[4], u[5], datetime.now().isoformat()))
 
@@ -443,7 +517,7 @@ def seed_initial_tenders(cursor):
     ]
     for t in tenders:
         cursor.execute("""
-        INSERT INTO tenders (
+        INSERT OR IGNORE INTO tenders (
             id, title, ministry, department, category, estimated_value,
             emd_amount, published_date, closing_date, status, mii_min_requirement, boq_items, created_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -488,7 +562,7 @@ def seed_initial_contracts(cursor):
     ]
     for c in contracts:
         cursor.execute("""
-        INSERT INTO contracts (
+        INSERT OR IGNORE INTO contracts (
             id, tender_id, bid_id, vendor, buyer_org, contract_value, po_date,
             dsc_signed, crac_status, crac_date, payment_status, payment_due_date, disbursement_ref
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -501,6 +575,7 @@ def seed_initial_contracts(cursor):
 def seed_initial_cartel_reports(cursor):
     reports = [
         {
+            "id": 1,
             "tender_id": "GEM/2026/B/891244",
             "severity": "CRITICAL",
             "title": "Shared IP Subnet & Digital Signature Collusion",
@@ -509,6 +584,7 @@ def seed_initial_cartel_reports(cursor):
             "detected_at": "06 Sep 2026, 02:45 PM"
         },
         {
+            "id": 2,
             "tender_id": "GEM/2026/B/891244",
             "severity": "WARNING",
             "title": "Artificial Price Clustering (Variance: 1.4%)",
@@ -519,9 +595,24 @@ def seed_initial_cartel_reports(cursor):
     ]
     for r in reports:
         cursor.execute("""
-        INSERT INTO cartel_reports (tender_id, severity, title, description, flagged_vendors, detected_at)
-        VALUES (?, ?, ?, ?, ?, ?)
-        """, (r["tender_id"], r["severity"], r["title"], r["description"], r["flagged_vendors"], r["detected_at"]))
+        INSERT OR IGNORE INTO cartel_reports (id, tender_id, severity, title, description, flagged_vendors, detected_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (r["id"], r["tender_id"], r["severity"], r["title"], r["description"], r["flagged_vendors"], r["detected_at"]))
+
+def seed_initial_vendors(cursor):
+    vendors = [
+        ("Apex Supplies Ltd.", "27AABCB1234F1Z5", "AABCB1234F", "UDYAM-MH-03-0019284", "IT Hardware", "Class-I Local Supplier (68%)", 96, "Low Risk", 0),
+        ("Kaveri Infotech", "27KAVRI5678B1Z2", "KAVRI5678B", "UDYAM-MH-03-0044192", "IT Hardware", "Class-I Local Supplier (72%)", 94, "Low Risk", 0),
+        ("TechForce Pvt Ltd", "07TFPL9912C1Z4", "TFPL9912C", "UDYAM-DL-02-0048123", "Software", "Class-I Local Supplier (85%)", 91, "Low Risk", 0),
+        ("Balaji Enterprises", "27BLEP4411D1Z8", "BLEP4411D", "UDYAM-MH-03-0099812", "Furniture", "Class-II Local Supplier (42%)", 61, "Medium Risk", 0),
+        ("Shree Ganesh Networks", "27SGNT8823E1Z9", "SGNT8823E", "UDYAM-MH-03-0071234", "IT Hardware", "Class-II Local Supplier (50%)", 54, "Medium Risk (Cartel Alert)", 0),
+        ("UniVend Solutions", "06UNIV0000Z1Z0", "ABCDE1234F", "UDYAM-HR-00-INVALID", "Stationery", "Non-Compliant (<20%)", 22, "Critical High Risk", 1)
+    ]
+    for v in vendors:
+        cursor.execute("""
+        INSERT OR IGNORE INTO vendors (name, gstin, pan, udyam_no, category, mii_classification, compliance_score, risk_tier, blacklisted, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], datetime.now().isoformat()))
 
 # =========================================================================
 # Query Helpers
@@ -654,7 +745,7 @@ def delete_bid(bid_id: str) -> bool:
     return deleted
 
 # =========================================================================
-# Tenders & Contracts Helpers
+# Tenders, Contracts & Vendors Helpers
 # =========================================================================
 
 def get_all_tenders() -> List[Dict[str, Any]]:
@@ -760,7 +851,6 @@ def update_contract_crac(po_id: str, crac_status: str, notes: Optional[str] = No
     conn.commit()
     conn.close()
     
-    # Return updated
     for c in get_all_contracts():
         if c["id"] == po_id:
             return c
@@ -783,3 +873,100 @@ def update_contract_payment(po_id: str, payment_status: str, disbursement_ref: O
         if c["id"] == po_id:
             return c
     return None
+
+def get_all_vendors() -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM vendors ORDER BY compliance_score DESC")
+    rows = cursor.fetchall()
+    vendors = []
+    for r in rows:
+        vendors.append({
+            "id": r["id"],
+            "name": r["name"],
+            "gstin": r["gstin"],
+            "pan": r["pan"],
+            "udyamNo": r["udyam_no"],
+            "category": r["category"],
+            "miiClassification": r["mii_classification"],
+            "complianceScore": r["compliance_score"],
+            "riskTier": r["risk_tier"],
+            "blacklisted": bool(r["blacklisted"])
+        })
+    conn.close()
+    return vendors
+
+def get_all_cartel_reports() -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM cartel_reports ORDER BY id DESC")
+    rows = cursor.fetchall()
+    reports = []
+    for r in rows:
+        reports.append({
+            "id": r["id"],
+            "tenderId": r["tender_id"],
+            "severity": r["severity"],
+            "title": r["title"],
+            "description": r["description"],
+            "flaggedVendors": json.loads(r["flagged_vendors"]) if r["flagged_vendors"] else [],
+            "detectedAt": r["detected_at"]
+        })
+    conn.close()
+    return reports
+
+def log_audit_event(event_type: str, entity_id: str, user_agent: str, details: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("""
+    INSERT INTO audit_logs (event_type, entity_id, user_agent, details, timestamp)
+    VALUES (?, ?, ?, ?, ?)
+    """, (event_type, entity_id, user_agent, details, datetime.now().isoformat()))
+    conn.commit()
+    conn.close()
+
+def get_db_stats() -> Dict[str, int]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    stats = {}
+    tables = ["bids", "tenders", "contracts", "vendors", "users", "cartel_reports", "audit_logs"]
+    for t in tables:
+        try:
+            cursor.execute(f"SELECT COUNT(*) FROM {t}")
+            stats[t] = cursor.fetchone()[0]
+        except Exception:
+            stats[t] = 0
+    conn.close()
+    return stats
+
+# =========================================================================
+# CLI Entry Point
+# =========================================================================
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="GeM AI Procurement Compliance - Database Manager")
+    parser.add_argument("--init", action="store_true", help="Initialize tables and seeds if not already created")
+    parser.add_argument("--reset", action="store_true", help="Drop and re-create all tables with fresh seeds")
+    parser.add_argument("--stats", action="store_true", help="Display record counts for all database tables")
+    args = parser.parse_args()
+
+    print("=======================================================================")
+    print("🏛️  GeM AI PROCUREMENT DATABASE MANAGER (SIH26100 - TEAM CODETOX)")
+    print(f"[*] Database file: {DB_PATH}")
+    print("=======================================================================")
+
+    if args.reset:
+        print("[*] Resetting and re-seeding database from scratch...")
+        reset_db()
+        print("[✓] Database reset successfully!")
+    else:
+        print("[*] Initializing database...")
+        init_db()
+        print("[✓] Database initialized successfully!")
+
+    stats = get_db_stats()
+    print("\n📊 Database Summary:")
+    print("--------------------------------------------------")
+    for tbl, count in stats.items():
+        print(f"  • {tbl.ljust(18)} : {count} records")
+    print("--------------------------------------------------\n")

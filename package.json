@@ -6,7 +6,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:init": "python init_db.py",
+    "db:reset": "python init_db.py --reset",
+    "db:stats": "python init_db.py --stats",
+    "backend": "python run_backend.py"
   },
   "dependencies": {
     "react": "^18.3.1",
