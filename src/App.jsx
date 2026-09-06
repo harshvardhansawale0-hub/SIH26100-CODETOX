@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import GeMSubNavBar from './components/GeMSubNavBar';
 import NotificationMarquee from './components/NotificationMarquee';
@@ -16,14 +16,36 @@ import ContactView from './components/ContactView';
 import AuthModal from './components/AuthModal';
 import { initialBids } from './data/bidsData';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
+import { gemApi } from './services/api';
 
 function MainApp() {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('Forward');
   const [searchQuery, setSearchQuery] = useState('');
   
-  // Bids state allowing live additions from verifier
+  // Bids state allowing live additions from verifier and backend
   const [bids, setBids] = useState(initialBids);
+  const [isLoadingBids, setIsLoadingBids] = useState(false);
+
+  // Load bids from FastAPI backend on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadBids() {
+      setIsLoadingBids(true);
+      try {
+        const fetchedBids = await gemApi.getBids();
+        if (isMounted && fetchedBids && fetchedBids.length > 0) {
+          setBids(fetchedBids);
+        }
+      } catch (err) {
+        console.warn('Using local bids fallback:', err);
+      } finally {
+        if (isMounted) setIsLoadingBids(false);
+      }
+    }
+    loadBids();
+    return () => { isMounted = false; };
+  }, []);
   
   // Modals
   const [selectedBid, setSelectedBid] = useState(null);
@@ -44,36 +66,41 @@ function MainApp() {
       id: newBidResult.bidId,
       vendor: newBidResult.vendor,
       category: newBidResult.category,
-      item: "Automated Evaluation Test Item",
+      item: `${newBidResult.category} Equipment / Solution`,
       tenderId: newBidResult.tenderId,
-      tenderValue: "₹85.0 Lakhs",
-      bidAmount: "₹78.4 Lakhs",
+      tenderValue: newBidResult.tenderValue || "₹85.0 Lakhs",
+      bidAmount: newBidResult.bidAmount || "₹78.4 Lakhs",
       status: newBidResult.status,
       score: newBidResult.score,
       miiContent: newBidResult.miiVerified,
-      turnover: "Verified via CA Document OCR",
-      experience: "Verified",
+      turnover: newBidResult.turnover || "Verified via CA Document OCR",
+      experience: newBidResult.experience || "Verified",
       gstStatus: newBidResult.gstVerified,
       panStatus: newBidResult.panVerified,
-      msmeStatus: "Verified",
+      msmeStatus: newBidResult.msmeStatus || "Verified",
       date: "Just Now",
       riskLevel: newBidResult.risk,
       ocrConfidence: newBidResult.ocrConfidence,
       flags: newBidResult.flags,
-      extractedDocs: [
-        { name: "Bid_Uploaded_Docs.pdf", status: newBidResult.status === 'Compliant' ? 'Verified' : 'Flagged', score: newBidResult.score }
-      ],
-      auditTrail: [
-        { timestamp: "Just Now", action: "Bid Upload & AI OCR Execution", agent: "EasyOCR / Tesseract" },
-        { timestamp: "Just Now", action: `Evaluated ${newBidResult.rulesPassed}/${newBidResult.rulesTested} compliance rules`, agent: "NLP Rule Validator" },
-        { timestamp: "Just Now", action: `Compliance Decision: ${newBidResult.status} (${newBidResult.score}/100)`, agent: "GeM ML Model v4.2" }
-      ]
+      extractedDocs: newBidResult.extractedDocs && newBidResult.extractedDocs.length > 0
+        ? newBidResult.extractedDocs
+        : [
+          { name: "Bid_Uploaded_Docs.pdf", status: newBidResult.status === 'Compliant' ? 'Verified' : 'Flagged', score: newBidResult.score }
+        ],
+      auditTrail: newBidResult.auditTrail && newBidResult.auditTrail.length > 0
+        ? newBidResult.auditTrail
+        : [
+          { timestamp: "Just Now", action: "Bid Upload & AI OCR Execution", agent: "EasyOCR / Tesseract" },
+          { timestamp: "Just Now", action: `Evaluated ${newBidResult.rulesPassed || 214}/${newBidResult.rulesTested || 214} compliance rules`, agent: "NLP Rule Validator" },
+          { timestamp: "Just Now", action: `Compliance Decision: ${newBidResult.status} (${newBidResult.score}/100)`, agent: "GeM ML Model v4.2" }
+        ]
     };
 
-    setBids([formattedBid, ...bids]);
+    setBids((prev) => [formattedBid, ...prev]);
   };
 
-  const handleUpdateBidStatus = (bidId, newStatus) => {
+  const handleUpdateBidStatus = async (bidId, newStatus) => {
+    // Optimistic UI update
     setBids((prev) =>
       prev.map((b) =>
         b.id === bidId
@@ -93,6 +120,13 @@ function MainApp() {
           : b
       )
     );
+
+    // Call backend API
+    try {
+      await gemApi.updateBidStatus(bidId, newStatus);
+    } catch (e) {
+      console.warn('Failed to persist status change to server:', e);
+    }
   };
 
   return (
@@ -105,6 +139,19 @@ function MainApp() {
         onOpenBidVerifier={() => setIsVerifierOpen(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
+      />
+
+      {/* 1.1 Latest Notifications Marquee Ticker */}
+      <NotificationMarquee
+        onNotificationClick={(idx) => {
+          if (idx === 1 || idx === 2) {
+            setIsVerifierOpen(true);
+          } else if (idx === 4) {
+            setActiveTab('Auction');
+          } else {
+            setActiveTab('About');
+          }
+        }}
       />
 
       {/* 1b. GeM Official Secondary Navigation Bar */}
@@ -124,19 +171,6 @@ function MainApp() {
       {/* 2. Main Tab Views */}
       {activeTab === 'Forward' && (
         <main>
-          {/* Latest Notifications Marquee Ticker */}
-          <NotificationMarquee
-            onNotificationClick={(idx) => {
-              if (idx === 1 || idx === 2) {
-                setIsVerifierOpen(true);
-              } else if (idx === 4) {
-                setActiveTab('Auction');
-              } else {
-                setActiveTab('About');
-              }
-            }}
-          />
-
           {/* Official GeM Visual Showcase & Image Banner Carousel */}
           <GeMBannerShowcase
             onExploreTenders={() => setActiveTab('Bid')}

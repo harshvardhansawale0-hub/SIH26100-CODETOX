@@ -1,13 +1,15 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { X, Upload, CheckCircle2, AlertTriangle, XCircle, FileText, Cpu, ShieldCheck, Download, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { samplePreloads } from '../data/bidsData';
 import { useLanguage } from '../context/LanguageContext';
+import { gemApi } from '../services/api';
 
 export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid }) {
   if (!isOpen) return null;
 
   const { t } = useLanguage();
+  const fileInputRef = useRef(null);
   const [bidForm, setBidForm] = useState(samplePreloads.perfectBid);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -29,72 +31,53 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     setScanStep(0);
   };
 
-  const handleStartVerification = () => {
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+      try {
+        const uploadRes = await gemApi.uploadDocument(file);
+        console.log('[GeM OCR Forensics] Document parsed:', uploadRes);
+      } catch (err) {
+        console.warn('OCR upload inspection:', err);
+      }
+    }
+  };
+
+  const handleStartVerification = async () => {
     setIsProcessing(true);
     setScanStep(1);
     setResult(null);
 
-    // Simulate real AI processing steps
-    setTimeout(() => setScanStep(2), 700);
-    setTimeout(() => setScanStep(3), 1400);
-    setTimeout(() => {
+    // Step animations
+    setTimeout(() => setScanStep(2), 600);
+    setTimeout(() => setScanStep(3), 1200);
+
+    try {
+      // Call live FastAPI backend verification
+      const evalResult = await gemApi.verifyBid(bidForm);
+
+      setTimeout(() => {
+        setIsProcessing(false);
+        setScanStep(4);
+        setResult(evalResult);
+
+        if (evalResult.status === 'Compliant') {
+          confetti({
+            particleCount: 70,
+            spread: 60,
+            origin: { y: 0.6 }
+          });
+        }
+
+        if (onAddVerifiedBid) {
+          onAddVerifiedBid(evalResult);
+        }
+      }, 1800);
+    } catch (err) {
+      console.warn('Verification error, fallback:', err);
       setIsProcessing(false);
-      setScanStep(4);
-
-      // Determine result based on input values
-      let status = "Compliant";
-      let score = 96;
-      let risk = "Low Risk";
-      let flags = [];
-
-      const miiNum = parseInt(bidForm.miiDeclared) || 0;
-      if (miiNum < 20 || bidForm.pan.includes("ABCDE") || bidForm.gstin.includes("ZZZZZ")) {
-        status = "Rejected";
-        score = 22;
-        risk = "Critical High Risk";
-        flags = [
-          "GSTIN validation failed with GST Portal (Suspended/Invalid).",
-          "Local content < 20% violates DPIIT Public Procurement Order 2017.",
-          "Document forensic analysis detected font inconsistency on turnover certificate."
-        ];
-      } else if (miiNum < 50 || bidForm.turnoverClaim.includes("1.4")) {
-        status = "Flagged";
-        score = 61;
-        risk = "Medium Risk";
-        flags = [
-          "Declared turnover (₹1.4 Cr) does not satisfy mandatory tender minimum criteria of ₹2.0 Cr.",
-          "Local content classified as Class-II Local Supplier (41%), requires CA verification."
-        ];
-      } else {
-        confetti({
-          particleCount: 70,
-          spread: 60,
-          origin: { y: 0.6 }
-        });
-      }
-
-      const evalResult = {
-        bidId: `BID-${Math.floor(10000 + Math.random() * 90000)}`,
-        vendor: bidForm.vendorName,
-        category: bidForm.category,
-        tenderId: bidForm.tenderId,
-        score,
-        status,
-        risk,
-        flags,
-        miiVerified: `${bidForm.miiDeclared} (${status === 'Compliant' ? 'Class-I Local' : status === 'Flagged' ? 'Class-II Local' : 'Non-Compliant'})`,
-        ocrConfidence: status === 'Compliant' ? '99.4%' : status === 'Flagged' ? '94.8%' : '81.2%',
-        gstVerified: status === 'Rejected' ? 'FAILED (Defaulter Record)' : 'ACTIVE & 3B Compliant',
-        panVerified: status === 'Rejected' ? 'FAILED (Name Mismatch)' : 'VERIFIED (NSDL API)',
-        rulesTested: 214,
-        rulesPassed: status === 'Compliant' ? 214 : status === 'Flagged' ? 209 : 188
-      };
-
-      setResult(evalResult);
-      if (onAddVerifiedBid) {
-        onAddVerifiedBid(evalResult);
-      }
-    }, 2200);
+    }
   };
 
   return (
@@ -282,9 +265,20 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                   transition: 'border-color 0.2s ease'
                 }}
                 onClick={() => {
-                  setSelectedFile({ name: `${bidForm.vendorName.replace(/\s+/g, '_')}_Docs_Bundle.pdf`, size: "4.8 MB" });
+                  if (fileInputRef.current) {
+                    fileInputRef.current.click();
+                  } else {
+                    setSelectedFile({ name: `${bidForm.vendorName.replace(/\s+/g, '_')}_Docs_Bundle.pdf`, size: "4.8 MB" });
+                  }
                 }}
               >
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  onChange={handleFileChange}
+                  style={{ display: 'none' }}
+                  accept=".pdf,.png,.jpg,.jpeg"
+                />
                 <Upload size={32} color="#0f2847" style={{ marginBottom: '0.5rem' }} />
                 <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>
                   {selectedFile ? selectedFile.name : 'Click to Upload or Drag & Drop'}

@@ -94,11 +94,12 @@ Full dynamic multi-language switching across the entire portal:
 | Layer | Technologies |
 |---|---|
 | **Frontend UI/UX** | React.js (v18), HTML5, CSS3 Design System, JavaScript (ES6+), Vite |
-| **Backend API** | Python, FastAPI, Uvicorn, RESTful Endpoints |
-| **Database** | SQL / MySQL (Structured bid tables, audit trails, vendor databases) |
-| **AI / ML & NLP** | OCR (Tesseract / EasyOCR), NLP Rule Validator, OpenCV, Pandas |
-| **Styling & Icons** | Custom Glassmorphism & Vanilla CSS, HSL Curated Color Palette, Google Fonts |
-| **Code Quality & CI/CD** | Git, GitHub, ESLint |
+| **Backend API** | Python (v3.10+ / 3.14), FastAPI, Uvicorn, RESTful Endpoints |
+| **Database** | SQLite 3 (Structured bid tables, tenders, contracts, audit trails) |
+| **AI / ML & NLP** | OCR Forensics, GFR 2017 & DPIIT Rule Engine (200+ checks), Graph Cartel Detector |
+| **Styling & Icons** | Custom Glassmorphism & Vanilla CSS, HSL Curated Color Palette, Lucide Icons |
+| **Interactive API Docs** | Swagger UI (`/docs`) & ReDoc (`/redoc`) |
+| **Code Quality & CI/CD** | Git, GitHub, ESLint, Python Automated Test Suite |
 | **Cloud Deployment** | AWS / Azure Ready |
 
 ---
@@ -106,32 +107,69 @@ Full dynamic multi-language switching across the entire portal:
 ## 💻 Local Setup & Installation
 
 ### Prerequisites
-- **Node.js** (v18.x or higher)
-- **npm** (v9.x or higher)
+- **Node.js** (v18.x or higher) & **npm**
+- **Python** (v3.10 or higher)
 
-### Installation Steps
+### 1. Start the Backend API Server (FastAPI)
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/harshvardhansawale0-hub/SIH26100-CODETOX.git
-   cd SIH26100-CODETOX
-   ```
+```bash
+# Install Python backend dependencies
+pip install -r backend/requirements.txt
 
-2. **Install frontend dependencies:**
-   ```bash
-   npm install
-   ```
+# Start FastAPI server on http://127.0.0.1:8000
+python run_backend.py
+```
+- **API Server**: `http://127.0.0.1:8000`
+- **Interactive Swagger Docs**: `http://127.0.0.1:8000/docs`
+- **ReDoc UI**: `http://127.0.0.1:8000/redoc`
 
-3. **Start the local development server:**
-   ```bash
-   npm run dev
-   ```
-   Open your browser and navigate to `http://localhost:5173/`.
+### 2. Run Backend Automated Test Suite
 
-4. **Build production bundle:**
-   ```bash
-   npm run build
-   ```
+```bash
+python backend/test_api.py
+```
+*Validates 11 core checks across Database persistence, GFR 2017 Rule Engine, OCR document forensics, Anti-Cartel Graph Detector, CRAC inspection, and live HTTP endpoints.*
+
+### 3. Start Frontend UI (Vite + React)
+
+```bash
+# Install frontend dependencies
+npm install
+
+# Start Vite development server
+npm run dev
+```
+Open your browser and navigate to `http://localhost:5173/`.
+
+### 4. Build Production Bundle
+
+```bash
+npm run build
+```
+
+---
+
+## 📡 Backend API Endpoints Reference
+
+| Method | Endpoint | Description |
+|---|---|---|
+| `GET` | `/api/health` | Service health status and database connectivity |
+| `GET` | `/api/bids` | List all bids with filters (`status`, `category`, `search`) |
+| `GET` | `/api/bids/{bid_id}` | Detailed compliance dossier and immutable audit trail |
+| `POST` | `/api/bids` | Ingest or upsert a bid into the database |
+| `PATCH` | `/api/bids/{bid_id}/status` | Procurement Officer manual override with audit logging |
+| `POST` | `/api/verify/bid` | AI compliance screening against 200+ GFR 2017 & DPIIT rules |
+| `POST` | `/api/verify/upload` | Document upload & OCR tampering forensic analysis |
+| `GET` | `/api/auction/analysis` | L1-L4 price benchmarking & graph-based cartel ring detection |
+| `POST` | `/api/auction/reverse-auction/round` | Dynamic Reverse Auction (RA) bidding simulation |
+| `GET` | `/api/tenders` | List published public procurement tenders with BOQ specs |
+| `GET` | `/api/contracts` | List awarded purchase orders, CRAC status, and payments |
+| `PATCH` | `/api/contracts/{id}/crac` | Consignee Receipt and Acceptance Certificate (CRAC) inspection |
+| `PATCH` | `/api/contracts/{id}/payment` | 10-day guaranteed digital payment settlement |
+| `GET` | `/api/stats/overview` | Platform KPI metrics and compliance breakdown |
+| `POST` | `/api/auth/login` | SSO login for Officers, Buyers, and Sellers |
+| `POST` | `/api/auth/register` | User and vendor registration |
+
 
 ---
 

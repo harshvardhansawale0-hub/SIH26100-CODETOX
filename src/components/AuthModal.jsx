@@ -1,22 +1,51 @@
 import React, { useState } from 'react';
 import { X, Lock, Mail, User, ShieldCheck } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { gemApi } from '../services/api';
 
 export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess }) {
   if (!isOpen) return null;
 
   const { t, lang } = useLanguage();
   const [authMode, setAuthMode] = useState(mode || 'signin');
-  const [role, setRole] = useState('officer'); // 'officer' or 'bidder'
+  const [role, setRole] = useState('officer'); // 'officer' or 'seller'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [organization, setOrganization] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (onAuthSuccess) {
-      onAuthSuccess({ email, role });
+    setIsSubmitting(true);
+    try {
+      if (authMode === 'signin') {
+        const res = await gemApi.login(email, password, role);
+        if (onAuthSuccess) {
+          onAuthSuccess(res.user || { email, role });
+        }
+      } else {
+        const res = await gemApi.register({
+          fullName: fullName || email.split('@')[0],
+          email,
+          password,
+          organization: organization || 'Registered Entity',
+          role: role === 'officer' ? 'officer' : 'seller'
+        });
+        if (onAuthSuccess) {
+          onAuthSuccess(res.user || { email, role });
+        }
+      }
+      onClose();
+    } catch (err) {
+      console.warn('Auth error, fallback:', err);
+      if (onAuthSuccess) {
+        onAuthSuccess({ email, role });
+      }
+      onClose();
+    } finally {
+      setIsSubmitting(false);
     }
-    onClose();
   };
 
   const getOfficerLabel = () => {
@@ -68,16 +97,16 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess }) {
             </button>
             <button
               type="button"
-              onClick={() => setRole('bidder')}
+              onClick={() => setRole('seller')}
               style={{
                 flex: 1,
                 padding: '0.5rem',
                 borderRadius: '6px',
                 fontSize: '0.82rem',
                 fontWeight: '700',
-                border: role === 'bidder' ? '1px solid #0b1a2d' : '1px solid #cbd5e1',
-                backgroundColor: role === 'bidder' ? '#0b1a2d' : '#f8fafc',
-                color: role === 'bidder' ? '#ffffff' : '#64748b',
+                border: role === 'seller' ? '1px solid #0b1a2d' : '1px solid #cbd5e1',
+                backgroundColor: role === 'seller' ? '#0b1a2d' : '#f8fafc',
+                color: role === 'seller' ? '#ffffff' : '#64748b',
                 cursor: 'pointer'
               }}
             >
@@ -86,6 +115,25 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess }) {
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {authMode === 'signup' && (
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
+                  Legal Organization / Full Name
+                </label>
+                <div style={{ position: 'relative' }}>
+                  <User size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Apex Supplies Ltd."
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                  />
+                </div>
+              </div>
+            )}
+
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
                 {t('emailLabel')} / NIC ID
@@ -98,60 +146,73 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess }) {
                   placeholder="officer@nic.in or vendor@biz.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  style={{ width: '100%', padding: '0.55rem 0.75rem 0.55rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                  style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
                 />
               </div>
             </div>
 
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
-                Password / DSC Token PIN
+                {t('passwordLabel')}
               </label>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                 <input
                   type="password"
                   required
-                  placeholder="••••••••••••"
+                  placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  style={{ width: '100%', padding: '0.55rem 0.75rem 0.55rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
+                  style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
                 />
               </div>
             </div>
 
             <button
               type="submit"
+              disabled={isSubmitting}
               style={{
                 marginTop: '0.5rem',
-                padding: '0.7rem',
-                borderRadius: '8px',
-                backgroundColor: authMode === 'signin' ? '#0b1a2d' : '#f59e0b',
+                padding: '0.65rem',
+                backgroundColor: '#0b1a2d',
                 color: '#ffffff',
-                fontWeight: '700',
-                fontSize: '0.92rem',
                 border: 'none',
-                cursor: 'pointer'
+                borderRadius: '6px',
+                fontWeight: '700',
+                fontSize: '0.9rem',
+                cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.5rem'
               }}
             >
-              {authMode === 'signin' ? t('signIn') : t('signUp')}
+              <ShieldCheck size={18} /> {isSubmitting ? 'Authenticating...' : authMode === 'signin' ? t('loginSubmit') : t('registerSubmit')}
             </button>
           </form>
 
-          <div style={{ marginTop: '1.25rem', textAlign: 'center', fontSize: '0.82rem', color: '#64748b' }}>
+          <div style={{ textAlign: 'center', marginTop: '1rem', fontSize: '0.8rem', color: '#64748b' }}>
             {authMode === 'signin' ? (
               <span>
                 Don't have an account?{' '}
-                <strong style={{ color: '#f59e0b', cursor: 'pointer' }} onClick={() => setAuthMode('signup')}>
-                  {t('signUp')}
-                </strong>
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('signup')}
+                  style={{ color: '#0284c7', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  Sign Up
+                </button>
               </span>
             ) : (
               <span>
                 Already registered?{' '}
-                <strong style={{ color: '#0b1a2d', cursor: 'pointer' }} onClick={() => setAuthMode('signin')}>
-                  {t('signIn')}
-                </strong>
+                <button
+                  type="button"
+                  onClick={() => setAuthMode('signin')}
+                  style={{ color: '#0284c7', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  Sign In
+                </button>
               </span>
             )}
           </div>

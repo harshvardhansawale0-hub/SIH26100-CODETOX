@@ -1,29 +1,78 @@
-import React, { useState } from 'react';
-import { Network, AlertOctagon, TrendingDown, ShieldAlert, Cpu, Eye, CheckCircle2 } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Network, AlertOctagon, TrendingDown, ShieldAlert, Cpu, Eye, CheckCircle2, RefreshCw } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { gemApi } from '../services/api';
 
 export default function AuctionAnalysisView({ onSelectBid }) {
   const { t } = useLanguage();
   const [selectedTender, setSelectedTender] = useState('GEM/2026/B/891244');
+  const [analysisData, setAnalysisData] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const auctionBids = [
+  useEffect(() => {
+    let isMounted = true;
+    async function fetchAuction() {
+      setIsLoading(true);
+      try {
+        const data = await gemApi.getAuctionAnalysis(selectedTender);
+        if (isMounted && data) {
+          setAnalysisData(data);
+        }
+      } catch (err) {
+        console.warn('Failed to fetch auction analysis:', err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    }
+    fetchAuction();
+    return () => { isMounted = false; };
+  }, [selectedTender]);
+
+  const defaultBids = [
     { rank: "L1", vendor: "Apex Supplies Ltd.", amount: "₹1,38,00,000", diffL1: "0.0% (Lowest)", flag: "Clean", risk: "Low" },
     { rank: "L2", vendor: "Kaveri Infotech", amount: "₹1,42,00,000", diffL1: "+2.8%", flag: "IP Overlap Suspect", risk: "Medium" },
     { rank: "L3", vendor: "Shree Ganesh Networks", amount: "₹1,44,00,000", diffL1: "+4.3%", flag: "Cartel Ring Flagged", risk: "High" },
     { rank: "L4", vendor: "Zenith Tech Systems", amount: "₹1,48,50,000", diffL1: "+7.6%", flag: "Clean", risk: "Low" }
   ];
 
+  const bids = analysisData?.bids || defaultBids;
+  const cartelAlert = analysisData?.cartelAlerts?.[0];
+
   return (
     <div style={{ backgroundColor: '#0b1a2d', minHeight: '80vh', padding: '2.5rem 1.5rem', color: '#ffffff' }}>
       <div className="container-custom">
-        <div style={{ marginBottom: '2rem' }}>
-          <span className="section-tag" style={{ marginBottom: '0.25rem' }}>{t('auctionTag')}</span>
-          <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: 0 }}>
-            {t('auctionTitle')}
-          </h1>
-          <p style={{ color: '#94a3b8', fontSize: '0.95rem', marginTop: '0.25rem' }}>
-            {t('auctionSubtitle')}
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
+          <div>
+            <span className="section-tag" style={{ marginBottom: '0.25rem' }}>{t('auctionTag')}</span>
+            <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: 0 }}>
+              {t('auctionTitle')}
+            </h1>
+            <p style={{ color: '#94a3b8', fontSize: '0.95rem', marginTop: '0.25rem' }}>
+              {t('auctionSubtitle')}
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Select Tender:</span>
+            <select
+              value={selectedTender}
+              onChange={(e) => setSelectedTender(e.target.value)}
+              style={{
+                backgroundColor: '#0f2238',
+                color: '#ffffff',
+                border: '1px solid #1e385b',
+                borderRadius: '6px',
+                padding: '0.5rem 0.85rem',
+                fontSize: '0.85rem',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="GEM/2026/B/891244">GEM/2026/B/891244 (DRDO IT Hardware)</option>
+              <option value="GEM/2026/B/890412">GEM/2026/B/890412 (Northern Railway Furniture)</option>
+              <option value="GEM/2026/B/889105">GEM/2026/B/889105 (Smart City GIS Software)</option>
+              <option value="GEM/2026/B/882100">GEM/2026/B/882100 (AIIMS Medical Oxygen)</option>
+            </select>
+          </div>
         </div>
 
         {/* Anomaly Banner */}
@@ -31,10 +80,10 @@ export default function AuctionAnalysisView({ onSelectBid }) {
           <AlertOctagon size={24} color="#f87171" style={{ flexShrink: 0, marginTop: '2px' }} />
           <div>
             <h4 style={{ color: '#f87171', fontSize: '1rem', fontWeight: '800', margin: '0 0 0.3rem 0' }}>
-              {t('cartelBannerTitle')}
+              {cartelAlert?.title || t('cartelBannerTitle')}
             </h4>
             <p style={{ color: '#cbd5e1', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>
-              Bidders <strong>Kaveri Infotech</strong> and <strong>Shree Ganesh Networks</strong> submitted bids within 4 minutes from identical IP subnet <code>192.168.4.x</code> with identical BOQ calculation formula structures.
+              {cartelAlert?.description || 'Bidders Kaveri Infotech and Shree Ganesh Networks submitted bids within 4 minutes from identical IP subnet 192.168.4.x with identical BOQ calculation formula structures.'}
             </p>
           </div>
         </div>
@@ -48,7 +97,7 @@ export default function AuctionAnalysisView({ onSelectBid }) {
             </h3>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              {auctionBids.map((b) => (
+              {bids.map((b) => (
                 <div
                   key={b.rank}
                   style={{
@@ -111,9 +160,9 @@ export default function AuctionAnalysisView({ onSelectBid }) {
                 3 Shared Entities Found Across 2 Bidders
               </h4>
               <ul style={{ listStyle: 'none', padding: 0, fontSize: '0.8rem', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.4rem', textAlign: 'left' }}>
-                <li>🔗 <strong>Common Director / DSC:</strong> Sh. R. Sharma linked to GSTINs</li>
-                <li>🌐 <strong>Common IP / Gateway:</strong> 117.218.42.10 (Mumbai BSNL Leased Line)</li>
-                <li>📑 <strong>Identical PDF Metadata:</strong> Created by same Word template author "admin_kaveri"</li>
+                <li>🔗 <strong>Common Director / DSC:</strong> Signatory linked to Capricorn CA</li>
+                <li>🌐 <strong>Common IP / Gateway:</strong> 192.168.4.x / 24 Subnet</li>
+                <li>📑 <strong>Identical PDF Metadata:</strong> Created with synchronized markup formulas</li>
               </ul>
             </div>
 
