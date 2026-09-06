@@ -1,10 +1,10 @@
-// Multi-language translation dictionary for GeM Comply
+// Multi-language translation dictionary for GeM
 // Supported Languages: English (en), Hindi (hi), Marathi (mr)
 
 export const translations = {
   en: {
     // Navbar
-    brandTitle: "GeM Comply",
+    brandTitle: "GeM",
     brandSubtitle: "Procurement Intelligence",
     searchPlaceholder: "Search bids, vendors, ...",
     tabForward: "Forward",
@@ -61,7 +61,7 @@ export const translations = {
 
     // Process Section
     processTag: "PROCESS",
-    processTitle: "How GeM Comply Works",
+    processTitle: "How GeM Works",
     step1Num: "01",
     step1Title: "Bid Submitted",
     step1Desc: "Vendor submits bid on GeM portal — data captured in real time.",
@@ -79,7 +79,7 @@ export const translations = {
     dashboardTag: "DASHBOARD PREVIEW",
     dashboardTitle: "Real-Time Compliance Monitoring",
     dashboardSubtitle: "A unified control room for procurement officers to track, audit, and act on AI-generated compliance insights.",
-    dashboardHeader: "GeM Comply — Compliance Dashboard v4.2",
+    dashboardHeader: "GeM — Compliance Dashboard v4.2",
     
     activeBids: "Active Bids",
     compliant: "Compliant",
@@ -119,7 +119,7 @@ export const translations = {
     apiReference: "API Reference",
     contactUs: "Contact Us",
     grievance: "Grievance",
-    copyright: "© 2026 GeM Comply — SIH Project. Ministry of Commerce & Industry, GoI.",
+    copyright: "© 2026 GeM — SIH Project. Ministry of Commerce & Industry, GoI.",
     privacy: "Privacy",
     terms: "Terms",
     rti: "RTI",
@@ -198,7 +198,7 @@ export const translations = {
 
     // Contact View
     contactTag: "PROCUREMENT HELPDESK & GRIEVANCES",
-    contactTitle: "Get in Touch with GeM Comply",
+    contactTitle: "Get in Touch with GeM",
     contactSubtitle: "Have questions regarding bid compliance rules, GFR 2017 interpretations, or need support? Reach out to our team.",
     fullNameLabel: "Your Full Name / Designation",
     emailLabel: "Official Email Address",
@@ -209,7 +209,7 @@ export const translations = {
 
   hi: {
     // Navbar
-    brandTitle: "GeM Comply",
+    brandTitle: "GeM",
     brandSubtitle: "खरीद आसूचना (Procurement Intelligence)",
     searchPlaceholder: "बोली, विक्रेता खोजें...",
     tabForward: "मुख्य पृष्ठ",
@@ -266,7 +266,7 @@ export const translations = {
 
     // Process Section
     processTag: "प्रक्रिया",
-    processTitle: "GeM Comply कैसे काम करता है",
+    processTitle: "GeM कैसे काम करता है",
     step1Num: "01",
     step1Title: "बोली जमा",
     step1Desc: "विक्रेता GeM पोर्टल पर बोली जमा करता है — डेटा रीयल-टाइम में कैप्चर होता है।",
@@ -284,7 +284,7 @@ export const translations = {
     dashboardTag: "डैशबोर्ड पूर्वावलोकन",
     dashboardTitle: "रीयल-टाइम अनुपालन निगरानी",
     dashboardSubtitle: "खरीद अधिकारियों के लिए AI-जनित अनुपालन अंतर्दृष्टि को ट्रैक, ऑडिट और प्रबंधित करने हेतु एकीकृत नियंत्रण कक्ष।",
-    dashboardHeader: "GeM Comply — अनुपालन डैशबोर्ड v4.2",
+    dashboardHeader: "GeM — अनुपालन डैशबोर्ड v4.2",
     
     activeBids: "सक्रिय बोलियां",
     compliant: "अनुपालन पूर्ण",
@@ -324,7 +324,7 @@ export const translations = {
     apiReference: "API संदर्भ",
     contactUs: "संपर्क करें",
     grievance: "शिकायत निवारण",
-    copyright: "© 2026 GeM Comply — SIH प्रोजेक्ट। वाणिज्य एवं उद्योग मंत्रालय, भारत सरकार।",
+    copyright: "© 2026 GeM — SIH प्रोजेक्ट। वाणिज्य एवं उद्योग मंत्रालय, भारत सरकार।",
     privacy: "गोपनीयता",
     terms: "नियम व शर्तें",
     rti: "आरटीआई (RTI)",
@@ -403,7 +403,7 @@ export const translations = {
 
     // Contact View
     contactTag: "खरीद हेल्पडेस्क और शिकायतें",
-    contactTitle: "GeM Comply से संपर्क करें",
+    contactTitle: "GeM से संपर्क करें",
     contactSubtitle: "क्या आपके पास बोली अनुपालन नियमों, GFR 2017 की व्याख्या से संबंधित प्रश्न हैं? हमारी टीम से संपर्क करें।",
     fullNameLabel: "आपका पूरा नाम / पद",
     emailLabel: "आधिकारिक ईमेल पता",
@@ -414,7 +414,7 @@ export const translations = {
 
   mr: {
     // Navbar
-    brandTitle: "GeM Comply",
+    brandTitle: "GeM",
     brandSubtitle: "खरेदी बुद्धिमत्ता (Procurement Intelligence)",
     searchPlaceholder: "निविदा, विक्रेते शोधा...",
     tabForward: "मुख्यपृष्ठ",
@@ -471,7 +471,7 @@ export const translations = {
 
     // Process Section
     processTag: "कार्यप्रणाली",
-    processTitle: "GeM Comply कसे कार्य करते",
+    processTitle: "GeM कसे कार्य करते",
     step1Num: "01",
     step1Title: "निविदा सादर केली",
     step1Desc: "विक्रेता GeM पोर्टलवर निविदा सादर करतो — डेटा रीयल-टाइममध्ये नोंदवला जातो.",
@@ -489,7 +489,7 @@ export const translations = {
     dashboardTag: "डॅशबोर्ड पूर्वावलोकन",
     dashboardTitle: "रीयल-टाइम अनुपालन नियंत्रण कक्ष",
     dashboardSubtitle: "खरेदी अधिकाऱ्यांसाठी AI-निर्मित अनुपालन माहिती ट्रॅक, ऑडिट आणि हाताळण्यासाठी एकात्मिक नियंत्रण कक्ष.",
-    dashboardHeader: "GeM Comply — अनुपालन डॅशबोर्ड v4.2",
+    dashboardHeader: "GeM — अनुपालन डॅशबोर्ड v4.2",
     
     activeBids: "सक्रिय निविदा",
     compliant: "नियम पूर्ण (Compliant)",
@@ -529,7 +529,7 @@ export const translations = {
     apiReference: "API संदर्भ",
     contactUs: "आमच्याशी संपर्क साधा",
     grievance: "तक्रार निवारण",
-    copyright: "© 2026 GeM Comply — SIH प्रकल्प. वाणिज्य आणि उद्योग मंत्रालय, भारत सरकार.",
+    copyright: "© 2026 GeM — SIH प्रकल्प. वाणिज्य आणि उद्योग मंत्रालय, भारत सरकार.",
     privacy: "गोपनीयता",
     terms: "नियम व अटी",
     rti: "माहिती अधिकार (RTI)",
@@ -608,7 +608,7 @@ export const translations = {
 
     // Contact View
     contactTag: "खरेदी मदत कक्ष आणि तक्रारी",
-    contactTitle: "GeM Comply शी संपर्क साधा",
+    contactTitle: "GeM शी संपर्क साधा",
     contactSubtitle: "निविदा अनुपालन नियम, GFR 2017 चा अर्थ लावणे याबाबत काही प्रश्न आहेत का? आमच्या टीमशी संपर्क साधा.",
     fullNameLabel: "आपले पूर्ण नाव / पद",
     emailLabel: "अधिकृत ईमेल पत्ता",

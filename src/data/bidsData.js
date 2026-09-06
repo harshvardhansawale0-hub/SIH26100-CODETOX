@@ -31,7 +31,7 @@ export const initialBids = [
       { timestamp: "06 Sep 2026, 11:20:04", action: "Bid Ingestion via GeM API", agent: "System (Webhook)" },
       { timestamp: "06 Sep 2026, 11:20:06", action: "OCR & Document Parsing Complete", agent: "EasyOCR / Tesseract Engine" },
       { timestamp: "06 Sep 2026, 11:20:07", action: "GFR 2017 & MII Rule Engine Checked (210 Rules)", agent: "NLP Rule Validator" },
-      { timestamp: "06 Sep 2026, 11:20:08", action: "Scored 96/100 -> Auto Approved", agent: "GeMComply ML Model v4.2" }
+      { timestamp: "06 Sep 2026, 11:20:08", action: "Scored 96/100 -> Auto Approved", agent: "GeM ML Model v4.2" }
     ]
   },
   {
@@ -100,7 +100,7 @@ export const initialBids = [
     auditTrail: [
       { timestamp: "06 Sep 2026, 09:30:02", action: "Bid Received", agent: "GeM Gateway" },
       { timestamp: "06 Sep 2026, 09:30:05", action: "Automated Document Validation Successful", agent: "OCR + NLP Engine" },
-      { timestamp: "06 Sep 2026, 09:30:06", action: "Score 91/100 -> Compliance Verified", agent: "GeMComply Engine" }
+      { timestamp: "06 Sep 2026, 09:30:06", action: "Score 91/100 -> Compliance Verified", agent: "GeM Engine" }
     ]
   },
   {
@@ -165,7 +165,7 @@ export const initialBids = [
       { name: "CA_Turnover.pdf", status: "Verified", score: 96 }
     ],
     auditTrail: [
-      { timestamp: "05 Sep 2026, 04:10:00", action: "Bid Ingested & Approved", agent: "GeMComply Engine" }
+      { timestamp: "05 Sep 2026, 04:10:00", action: "Bid Ingested & Approved", agent: "GeM Engine" }
     ]
   },
   {

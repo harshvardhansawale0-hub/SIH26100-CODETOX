@@ -47,7 +47,7 @@ export default function ContactView() {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <Mail size={18} color="#f5a623" />
-                  <span>support@gemcomply.gov.in</span>
+                  <span>support@gem.gov.in</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                   <Phone size={18} color="#f5a623" />

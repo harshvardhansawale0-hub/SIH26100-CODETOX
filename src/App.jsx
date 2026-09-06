@@ -65,7 +65,7 @@ function MainApp() {
       auditTrail: [
         { timestamp: "Just Now", action: "Bid Upload & AI OCR Execution", agent: "EasyOCR / Tesseract" },
         { timestamp: "Just Now", action: `Evaluated ${newBidResult.rulesPassed}/${newBidResult.rulesTested} compliance rules`, agent: "NLP Rule Validator" },
-        { timestamp: "Just Now", action: `Compliance Decision: ${newBidResult.status} (${newBidResult.score}/100)`, agent: "GeMComply ML Model v4.2" }
+        { timestamp: "Just Now", action: `Compliance Decision: ${newBidResult.status} (${newBidResult.score}/100)`, agent: "GeM ML Model v4.2" }
       ]
     };
 
@@ -198,12 +198,12 @@ function MainApp() {
         <div className="modal-overlay" onClick={() => setIsHelpOpen(false)}>
           <div className="modal-content-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px' }}>
             <div className="modal-header">
-              <h3 className="modal-title" style={{ fontSize: '1.2rem' }}>🤖 GeM Comply Assistant</h3>
+              <h3 className="modal-title" style={{ fontSize: '1.2rem' }}>🤖 GeM Assistant</h3>
               <button className="modal-close-btn" onClick={() => setIsHelpOpen(false)}>✕</button>
             </div>
             <div className="modal-body" style={{ fontSize: '0.9rem', color: '#334155' }}>
               <p style={{ marginBottom: '1rem', lineHeight: 1.6 }}>
-                Welcome to <strong>GeM Comply</strong> — Smart India Hackathon 2026 solution for autonomous tender compliance verification.
+                Welcome to <strong>GeM</strong> — Smart India Hackathon 2026 solution for autonomous tender compliance verification.
               </p>
               <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '1rem' }}>
                 <strong style={{ display: 'block', color: '#0b1a2d', marginBottom: '0.4rem' }}>Quick Actions:</strong>
