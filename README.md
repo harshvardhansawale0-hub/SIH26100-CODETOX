@@ -1,95 +1,151 @@
-# AI-Powered Integrated Bid Compliance Verification Platform for GeM Procurement
+# 🏛️ GeM — AI-Powered Procurement Compliance & Intelligence Platform
 
-**Smart India Hackathon 2026**
+<p align="center">
+  <img src="https://img.shields.io/badge/SIH%202026-Problem%20ID%3A%20SIH26100-0284c7?style=for-the-badge&logo=gov.uk" alt="SIH 2026" />
+  <img src="https://img.shields.io/badge/Team-Codetox-f59e0b?style=for-the-badge" alt="Team Codetox" />
+  <img src="https://img.shields.io/badge/Theme-Smart%20Automation-10b981?style=for-the-badge" alt="Smart Automation" />
+  <img src="https://img.shields.io/badge/License-Government%20of%20India-0b1a2d?style=for-the-badge" alt="GoI" />
+</p>
 
-| | |
-|---|---|
-| **Problem Statement ID** | SIH26100 |
-| **Theme** | Smart Automation |
-| **PS Category** | Software |
-| **Team Name** | Codetox |
+---
 
-## Team Members
+## 📌 Executive Summary
 
-- Devika Patil
-- Harshvardhan Sawale
-- Aniket Sawarkar
-- Krushnaprakash Bhende
-- Sumit Deshmukh
-- Namrata Pawar
+The **GeM AI Procurement Compliance Platform** is an end-to-end intelligent compliance, document verification, and anti-cartel vigilance system built for India's **Government e-Marketplace (GeM)** under **Smart India Hackathon 2026 (Problem Statement: SIH26100)**.
 
-## Problem Statement
+In conventional public procurement, reviewing bidder eligibility, CA financial turnover certificates, GST/PAN authenticity, Make-in-India declarations, and DPIIT regulations is a manual, labor-intensive, and error-prone process. Our platform automates the entire evaluation cycle using **OCR (Tesseract / EasyOCR)**, **NLP Rule Validators**, and **Graph Neural Networks for Cartel Detection**, cutting verification turnaround from days to under **4 seconds**.
 
-Verifying bidder compliance for GeM (Government e-Marketplace) tenders is currently a manual, time-consuming, and error-prone process. Procurement officers must cross-check numerous bidder documents against tender eligibility requirements, making it difficult to consistently detect missing information, discrepancies, or non-compliant bids.
+---
 
-## Proposed Solution
+## 👥 Team Codetox
 
-An AI-driven platform that automatically:
-- **Extracts** data from bidder documents (using OCR/NLP)
-- **Validates** documents against GeM tender requirements
-- **Cross-verifies** submitted information for consistency
-- **Scores** bids based on compliance and risk
-- **Detects** discrepancies and missing/non-compliant documents
-- **Generates** transparent, auditable compliance reports for procurement officers
+- **Devika Patil**
+- **Harshvardhan Sawale**
+- **Aniket Sawarkar**
+- **Krushnaprakash Bhende**
+- **Sumit Deshmukh**
+- **Namrata Pawar**
 
-### Bidder User Journey (Integrated Flow)
+---
 
-1. Access e-Procurement Portal → Search Tenders & Read Requirements
-2. Prepare Bid Documents → Navigate to Bid Submission Panel
-3. Upload Mandatory Bid Documents
-4. Receive Preliminary Compliance Feedback (AI-generated)
-5. Missing/Non-compliant Documents Detected → Correct or Obtain Missing Documents
-6. Score & Generate Report
-7. Confirm Final Bid Submission → Receive Final Submission Confirmation
-8. Await Evaluation Results
+## 🚀 Key Implemented Modules & Architecture
 
-### Platform Lifecycle
+### 1. 🏛️ Authentic GeM Multi-Tier Portal Interface
+- **Primary GeM Navbar**: Integrated with search, role-based Login / Sign-Up modals, and multi-tier dropdowns for *Forward Auction*, *Bids (List of Bids, Railways, PBP Notices)*, *GRA / VA*.
+- **Secondary Sub-Navbar Strip**: Features `☰ Categories` mega-menu, `Features & Benefits ▾` (red-accented), `Business Opportunities`, `Seller On GeM ▾`, `View Contracts ▾`, `CPPP ▾`, `💥 New on GeM`, and interactive `🔔 (03)` notification alerts.
+- **Live Notification Marquee**: Real-time ticker broadcasting mandatory GFR 2017 advisory updates, DPIIT Make-in-India guidelines, and vigilance alerts.
+- **Interactive Image Carousel**: High-resolution showcase highlighting national initiatives (*Make in India*, *Womaniya MSME*, *Startup Runway*).
 
-**Tender Initiation** → **Document Submission & Processing** (Bidder Document Upload, OCR + AI Document Processing, Data & Eligibility Extraction, Cross-Verification) → **Cross-Verification & Compliance** (Rule-Based Compliance Engine, AI Risk & Compliance Scoring, Discrepancy/Missing Document Detection) → **Analysis & Dashboard** (Officer Dashboard: Risk Scoring, Discrepancy Detection) → **Reporting & Finalization** (Final Compliance Report)
+---
 
-## Technical Approach
+### 2. 🔄 End-to-End Procurement Lifecycle (Tender Upload ➔ Payment)
+A 6-stage autonomous procurement pipeline governing public procurement under **GFR 2017 Rule 149**:
+
+```
+[01. Tender Upload] ➔ [02. Bidder Submission & OCR] ➔ [03. AI Compliance Screening] ➔ [04. Financial Evaluation & RA] ➔ [05. Digital Contract & PO] ➔ [06. CRAC & 10-Day Payment]
+```
+
+1. **📝 01. Tender / Bid Upload**: Buyer defines technical specs, BOQ, and eligibility rules; publishes tender notice.
+2. **📤 02. Bidder Submission & OCR Ingestion**: Sellers submit financial bids; CA certificates, GSTN, PAN, and UDYAM documents are ingested automatically.
+3. **🤖 03. AI Compliance Screening**: OCR extracts text; NLP validates 200+ GFR 2017 & DPIIT parameters with instant risk scoring.
+4. **⚖️ 04. Financial Evaluation & Reverse Auction (RA)**: Automated L1 price benchmarking, cartel anomaly checks, and dynamic RA bidding.
+5. **📄 05. Digital Contract & PO Award**: Legally binding purchase orders issued instantly with DSC / e-Sign verification.
+6. **💳 06. CRAC Inspection & 10-Day Payment**: Consignee Receipt and Acceptance Certificate (CRAC) triggers guaranteed digital payment within 10 days.
+
+---
+
+### 3. 🛍️ Popular Product Categories & AI Assistant
+- **6 Studio Product Catalog Cards**: High-res isolated product showcases matching the official GeM portal:
+  - *Oxygen Gas & Accessories*
+  - *Medical Equipment & Supplies*
+  - *SARAS Rural Artisan Handicrafts*
+  - *Office Furniture & Ergonomics*
+  - *Fire Safety & Protection Systems*
+  - *Computers, Laptops & IT Hardware*
+- **Floating "Ask GeMMy (Powered by AI)"**: One-click AI conversational assistant launching the Live Verification Sandbox.
+- **Quick-Access Social Media Dock**: Persistent navigation for official government social handles.
+
+---
+
+### 4. 🌐 Tri-Language Internationalization (i18n)
+Full dynamic multi-language switching across the entire portal:
+- **English (EN)**
+- **हिन्दी (Hindi - HI)**
+- **मराठी (Marathi - MR)**
+
+---
+
+### 5. 🔍 Live AI Bid Verification Sandbox & Officer Dossier
+- **Scenario Simulator**: Test compliant bids (96 score), flagged shortfall bids, and forged/suspicious bids (22 score).
+- **OCR Engine Simulation**: Multi-file document upload parser extracting text from PAN cards, GST certificates, CA turnover sheets, and UDYAM registrations.
+- **GFR & Policy Engine**: Automated evaluation of GFR Rule 144(xi), Rule 153, DPIIT Make-in-India local content %, and MSE purchase preferences.
+- **Officer Audit Dossier**: Printable court-admissible audit sheet with immutable timestamps and manual officer override/approval controls.
+
+---
+
+### 6. 📊 AI Auction, Price Benchmarking & Cartel Detection
+- **Graph-Based Neural Network**: Discovers hidden vendor collusions, shared digital signature certificates (DSC), identical IP subnets, and synchronized price clustering.
+- **L1 to L7 Price Benchmarking**: Compares historical price baselines to identify predatory pricing or cartel inflation.
+
+---
+
+## 🛠️ Technology Stack
 
 | Layer | Technologies |
 |---|---|
-| **Frontend** | React.js, HTML5, CSS, JavaScript |
-| **Backend** | Python, FastAPI |
-| **Database** | SQL / MySQL |
-| **AI/ML** | OCR (Tesseract / EasyOCR), NLP/LLM, Pandas, OpenCV |
-| **Integration** | REST APIs |
-| **Deployment** | AWS / Azure (cloud); no special hardware required — a standard computer with internet access is sufficient |
-| **Code Quality & Security** | Git / GitHub |
+| **Frontend UI/UX** | React.js (v18), HTML5, CSS3 Design System, JavaScript (ES6+), Vite |
+| **Backend API** | Python, FastAPI, Uvicorn, RESTful Endpoints |
+| **Database** | SQL / MySQL (Structured bid tables, audit trails, vendor databases) |
+| **AI / ML & NLP** | OCR (Tesseract / EasyOCR), NLP Rule Validator, OpenCV, Pandas |
+| **Styling & Icons** | Custom Glassmorphism & Vanilla CSS, HSL Curated Color Palette, Google Fonts |
+| **Code Quality & CI/CD** | Git, GitHub, ESLint |
+| **Cloud Deployment** | AWS / Azure Ready |
 
-## Feasibility and Viability
+---
 
-**Feasibility:**
-- Uses existing, proven AI, OCR, and database technologies
-- Can automate document verification and compliance scoring
-- Easily scalable through cloud-based web architecture
+## 💻 Local Setup & Installation
 
-**Challenges:**
-- Inaccurate or incomplete document data
-- Integration with government verification portals
+### Prerequisites
+- **Node.js** (v18.x or higher)
+- **npm** (v9.x or higher)
 
-**Mitigations:**
-- Combine AI validation with human review
-- Develop secure APIs and modular integrations
+### Installation Steps
 
-## Impact and Benefits
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/harshvardhansawale0-hub/SIH26100-CODETOX.git
+   cd SIH26100-CODETOX
+   ```
 
-**Potential Impact:**
-- Significantly reduces time required for bid verification and evaluation
-- Minimizes human errors while checking multiple bidder documents
-- Improves transparency, accuracy, and consistency in procurement decisions
-- Helps procurement officers quickly identify non-compliant or suspicious bids
+2. **Install frontend dependencies:**
+   ```bash
+   npm install
+   ```
 
-**Benefits:**
-- **Economic:** Saves administrative costs and reduces manual workload
-- **Social:** Ensures fair, transparent, and consistent bidder evaluation
-- **Environmental:** Reduces paper usage through digital document processing
+3. **Start the local development server:**
+   ```bash
+   npm run dev
+   ```
+   Open your browser and navigate to `http://localhost:5173/`.
 
-## Research and References
+4. **Build production bundle:**
+   ```bash
+   npm run build
+   ```
 
-1. An Automated Approach to Contractual Compliance Analysis in Public Bidding Contracts — Correia & Dornelles, 2026
-2. Dataset and Baseline Implementation for Retrieval-Augmented Procurement Validation — Skadiņš et al., 2026
-3. Inherent Risks Identification in a Contract Document through Automated Rule Generation — Kim et al., 2025
-4. An Automated Framework for Detection and Resolution of Cross References in Legal Texts — Sannier et al., 2017
+---
+
+## 📋 Research & Policy Citations
+
+1. **General Financial Rules (GFR) 2017**: Rules 144, 149, 153, and 161 governing public procurement for Central & State Government entities.
+2. **DPIIT Public Procurement Order**: Make in India (Preference to Make in India) Order for Class-I (≥ 50%) and Class-II (≥ 20%) suppliers.
+3. **Public Procurement Policy for Micro and Small Enterprises (MSEs) Order, 2012**.
+4. *An Automated Approach to Contractual Compliance Analysis in Public Bidding Contracts* — Correia & Dornelles, 2026.
+5. *Dataset and Baseline Implementation for Retrieval-Augmented Procurement Validation* — Skadiņš et al., 2026.
+
+---
+
+## 📜 License & Acknowledgments
+
+Developed by **Team Codetox** for **Smart India Hackathon (SIH) 2026**.  
+*Ministry of Commerce and Industry, Government of India.*

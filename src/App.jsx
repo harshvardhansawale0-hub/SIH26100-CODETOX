@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
-import StatsBar from './components/StatsBar';
-import Capabilities from './components/Capabilities';
+import GeMSubNavBar from './components/GeMSubNavBar';
+import NotificationMarquee from './components/NotificationMarquee';
+import GeMBannerShowcase from './components/GeMBannerShowcase';
 import ProcessSection from './components/ProcessSection';
-import DashboardPreview from './components/DashboardPreview';
+import PopularProductCategories from './components/PopularProductCategories';
 import CtaBanner from './components/CtaBanner';
 import Footer from './components/Footer';
 import BidVerificationModal from './components/BidVerificationModal';
@@ -106,34 +107,61 @@ function MainApp() {
         setSearchQuery={setSearchQuery}
       />
 
+      {/* 1b. GeM Official Secondary Navigation Bar */}
+      <GeMSubNavBar
+        onNavigateTab={(tab) => {
+          setActiveTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenVerifier={() => setIsVerifierOpen(true)}
+        onNotificationClick={() => {}}
+        onCategorySelect={() => {
+          setActiveTab('Bid');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
+
       {/* 2. Main Tab Views */}
       {activeTab === 'Forward' && (
         <main>
-          {/* Top Highlight Stats Bar */}
-          <StatsBar />
-
-          {/* Platform Capabilities (6 Grid Cards) */}
-          <Capabilities
-            onCardClick={(id) => {
-              if (id === 'bid-analysis') setActiveTab('Auction');
-              else if (id === 'compliance-engine') setIsVerifierOpen(true);
-              else if (id === 'anti-fraud') setActiveTab('Auction');
-              else setActiveTab('Bid');
+          {/* Latest Notifications Marquee Ticker */}
+          <NotificationMarquee
+            onNotificationClick={(idx) => {
+              if (idx === 1 || idx === 2) {
+                setIsVerifierOpen(true);
+              } else if (idx === 4) {
+                setActiveTab('Auction');
+              } else {
+                setActiveTab('About');
+              }
             }}
           />
 
-          {/* Process Section (01 -> 02 -> 03 -> 04) */}
+          {/* Official GeM Visual Showcase & Image Banner Carousel */}
+          <GeMBannerShowcase
+            onExploreTenders={() => setActiveTab('Bid')}
+            onOpenVerifier={() => setIsVerifierOpen(true)}
+          />
+
+          {/* Process Section: End-to-End Procurement Lifecycle (01 Tender Upload -> 06 Payment) */}
           <ProcessSection
             onStepClick={(num) => {
-              if (num === '01' || num === '02') setIsVerifierOpen(true);
-              else if (num === '03' || num === '04') setActiveTab('Bid');
+              if (num === '01' || num === '02' || num === '03') {
+                setIsVerifierOpen(true);
+              } else if (num === '04') {
+                setActiveTab('Auction');
+              } else {
+                setActiveTab('Bid');
+              }
             }}
           />
 
-          {/* Real-Time Compliance Monitoring Dashboard Preview */}
-          <DashboardPreview
-            onSelectBid={(bid) => setSelectedBid(bid)}
-            onViewFullDashboard={() => setActiveTab('Bid')}
+          {/* Popular Product Categories Section matching GeM Portal */}
+          <PopularProductCategories
+            onCategoryClick={(catId) => {
+              setActiveTab('Bid');
+            }}
+            onOpenGemmy={() => setIsVerifierOpen(true)}
           />
 
           {/* Golden CTA Banner */}
