@@ -7,7 +7,6 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "gem_procure.db")
-SCHEMA_SQL_PATH = os.path.join(os.path.dirname(__file__), "schema.sql")
 
 def get_connection():
     """

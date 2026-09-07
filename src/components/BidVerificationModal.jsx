@@ -377,7 +377,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                 </div>
                 <div style={{ backgroundColor: '#0f2238', padding: '0.75rem', borderRadius: '6px', border: '1px solid #1e385b' }}>
                   <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>GST & Tax Standing</span>
-                  <span style={{ fontSize: '0.88rem', fontWeight: '700', color: result.gstVerified.includes('ACTIVE') ? '#34d399' : '#f87171' }}>{result.gstVerified}</span>
+                  <span style={{ fontSize: '0.88rem', fontWeight: '700', color: result.gstVerified?.includes('ACTIVE') ? '#34d399' : '#f87171' }}>{result.gstVerified}</span>
                 </div>
                 <div style={{ backgroundColor: '#0f2238', padding: '0.75rem', borderRadius: '6px', border: '1px solid #1e385b' }}>
                   <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>{t('ocrConfidence')}</span>

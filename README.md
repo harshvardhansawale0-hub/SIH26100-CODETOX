@@ -122,7 +122,7 @@ python init_db.py --reset
 # Check current record counts across all tables
 python init_db.py --stats
 ```
-*The database file is stored at `backend/gem_procure.db`. You can also inspect the full ANSI SQL DDL schema in [schema.sql](file:///c:/Users/91749/Desktop/SIH/SIH26100-CODETOX/schema.sql).*
+*The database file is stored at `backend/gem_procure.db`. You can also inspect the full ANSI SQL DDL schema in [schema.sql](./schema.sql).*
 
 ### 2. Start the Backend API Server (FastAPI)
 

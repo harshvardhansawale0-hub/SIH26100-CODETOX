@@ -27,6 +27,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.sqlite3
+*.db
+*.db-wal
+*.db-shm
 .pytest_cache/
 .coverage
 htmlcov/

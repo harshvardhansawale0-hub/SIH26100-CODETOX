@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Search, Filter, ShieldCheck, AlertTriangle, XCircle, FileSpreadsheet, PlusCircle, RefreshCw } from 'lucide-react';
-import { summaryMetrics } from '../data/bidsData';
 import { useLanguage } from '../context/LanguageContext';
 
 export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier, searchQuery, setSearchQuery }) {
@@ -8,12 +7,30 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [selectedCategory, setSelectedCategory] = useState('ALL');
 
+  const summaryMetrics = useMemo(() => {
+    const total = bids.length;
+    const compliant = bids.filter(b => (b.status || '').toUpperCase() === 'COMPLIANT').length;
+    const flagged = bids.filter(b => (b.status || '').toUpperCase() === 'FLAGGED').length;
+    const rejected = bids.filter(b => (b.status || '').toUpperCase() === 'REJECTED').length;
+    const pct = (n) => total > 0 ? `${Math.round((n / total) * 100)}%` : '0%';
+    return {
+      activeBids: total,
+      activeChange: `+${total}`,
+      compliant,
+      compliantPercent: pct(compliant),
+      flagged,
+      flaggedPercent: pct(flagged),
+      rejected,
+      rejectedPercent: pct(rejected),
+    };
+  }, [bids]);
+
   const filteredBids = bids.filter((bid) => {
     const matchesSearch =
-      bid.vendor.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      bid.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      bid.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      bid.tenderId.toLowerCase().includes(searchQuery.toLowerCase());
+      (bid.vendor || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (bid.id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (bid.category || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (bid.tenderId || '').toLowerCase().includes(searchQuery.toLowerCase());
 
     const matchesStatus =
       statusFilter === 'ALL' || bid.status.toUpperCase() === statusFilter;

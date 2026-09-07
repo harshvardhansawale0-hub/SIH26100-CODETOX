@@ -77,7 +77,7 @@ export default function BidDetailModal({ bid, onClose, onUpdateStatus }) {
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #1e385b' }}>
                 <span style={{ color: '#94a3b8' }}>GST Status & Returns:</span>
-                <span style={{ color: bid.gstStatus.includes('Active') ? '#34d399' : '#f87171', fontWeight: '600' }}>{bid.gstStatus}</span>
+                <span style={{ color: bid.gstStatus?.includes('Active') ? '#34d399' : '#f87171', fontWeight: '600' }}>{bid.gstStatus}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: '1px solid #1e385b' }}>
                 <span style={{ color: '#94a3b8' }}>PAN & Entity Verification:</span>
