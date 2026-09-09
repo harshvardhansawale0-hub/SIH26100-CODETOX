@@ -227,6 +227,14 @@ class ContractItem(BaseModel):
     paymentDueDate: str
     disbursementRef: Optional[str] = None
 
+class CracUpdateRequest(BaseModel):
+    cracStatus: str  # "Approved", "Rejected", "Pending Inspection"
+    inspectionNotes: Optional[str] = None
+
+class PaymentUpdateRequest(BaseModel):
+    paymentStatus: str  # "Processing (Day 4/10)", "Settled (100%)", "Withheld"
+    disbursementRef: Optional[str] = None
+
 
 # ==========================================
 # 5. Anti-Cartel Schemas
