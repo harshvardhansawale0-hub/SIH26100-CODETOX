@@ -1258,6 +1258,57 @@ def log_audit_event(event_type: str, entity_id: str, user_agent: str, details: s
     conn.commit()
     conn.close()
 
+def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
+    """Retrieve a user by email address (case-insensitive)."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    p = _p()
+    cursor.execute(f"SELECT * FROM users WHERE LOWER(email) = LOWER({p})", (email.strip().lower(),))
+    row = cursor.fetchone()
+    conn.close()
+    if not row:
+        return None
+    return dict(row)
+
+def create_user(full_name: str, email: str, password_hash: str, organization: str, gstin: Optional[str], role: str) -> Dict[str, Any]:
+    """Inserts a new user record supporting both PostgreSQL (Neon) and SQLite."""
+    conn = get_connection()
+    cursor = conn.cursor()
+    created_at = datetime.now().isoformat()
+    clean_email = email.strip().lower()
+
+    if _USE_PG:
+        cursor.execute("""
+        INSERT INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
+        RETURNING id, full_name, email, organization, gstin, role, created_at
+        """, (
+            full_name, clean_email, password_hash, organization, gstin, role, created_at
+        ))
+        row = cursor.fetchone()
+        conn.commit()
+        conn.close()
+        return dict(row)
+    else:
+        cursor.execute("""
+        INSERT INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, (
+            full_name, clean_email, password_hash, organization, gstin, role, created_at
+        ))
+        user_id = cursor.lastrowid
+        conn.commit()
+        conn.close()
+        return {
+            "id": user_id,
+            "full_name": full_name,
+            "email": clean_email,
+            "organization": organization,
+            "gstin": gstin,
+            "role": role,
+            "created_at": created_at
+        }
+
 def get_db_stats() -> Dict[str, int]:
     conn = get_connection()
     cursor = conn.cursor()

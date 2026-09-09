@@ -5,7 +5,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Header
 from typing import Dict, Any, Optional
 from ..models import UserLogin, UserRegister, AuthResponse
-from ..database import get_connection
+from ..database import get_user_by_email, create_user
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication & User Management"])
 
@@ -34,11 +34,7 @@ def login_user(payload: UserLogin):
     Authenticates a user session strictly as Buyer (Procuring Authority) or Bidder (Vendor/Company).
     Returns JWT-style token on success, or 401 on invalid credentials.
     """
-    conn = get_connection()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM users WHERE email = ?", (payload.email.strip().lower(),))
-    row = cursor.fetchone()
-    conn.close()
+    row = get_user_by_email(payload.email)
 
     if not row:
         raise HTTPException(
@@ -77,38 +73,49 @@ def register_user(payload: UserRegister):
     Registers a new Buyer or Bidder account with GSTIN and PAN validation with hashed password.
     """
     assigned_role = "buyer" if payload.role in ["buyer", "officer"] else "bidder"
+    clean_email = payload.email.strip().lower()
 
-    # Hash the password before storing
+    # 1. Check if an account with this email already exists
+    existing_user = get_user_by_email(clean_email)
+    if existing_user:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=f"An account with email '{clean_email}' already exists. Please log in instead."
+        )
+
+    # 2. Hash the password before storing
     hashed, salt = _hash_password(payload.password)
     stored_hash = f"{salt}${hashed}"
 
-    conn = get_connection()
-    cursor = conn.cursor()
+    # 3. Insert new user into database
     try:
-        cursor.execute("""
-        INSERT INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (
-            payload.fullName, payload.email.strip().lower(), stored_hash,
-            payload.organization, payload.gstin, assigned_role, datetime.now().isoformat()
-        ))
-        conn.commit()
-        user_id = cursor.lastrowid
-    except Exception as e:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=f"Registration failed. An account with this email may already exist."
+        new_user = create_user(
+            full_name=payload.fullName,
+            email=clean_email,
+            password_hash=stored_hash,
+            organization=payload.organization,
+            gstin=payload.gstin,
+            role=assigned_role
         )
-    finally:
-        if conn:
-            conn.close()
+    except Exception as e:
+        print(f"[AUTH ERROR] Registration failed: {e}")
+        err_str = str(e).lower()
+        if "unique" in err_str or "duplicate" in err_str or "already exists" in err_str:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"An account with this email already exists. Please log in instead."
+            )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database error during registration: {str(e)}"
+        )
 
     user_data = {
-        "id": user_id,
-        "fullName": payload.fullName,
-        "email": payload.email,
-        "organization": payload.organization,
-        "gstin": payload.gstin,
+        "id": new_user["id"],
+        "fullName": new_user["full_name"],
+        "email": new_user["email"],
+        "organization": new_user["organization"],
+        "gstin": new_user.get("gstin"),
         "role": assigned_role
     }
 
