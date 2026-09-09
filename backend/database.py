@@ -177,42 +177,24 @@ def init_db(force_recreate: bool = False):
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_vendors_name ON vendors(name)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_cartel_tender ON cartel_reports(tender_id)")
 
-    # Seed initial bids if empty
-    cursor.execute("SELECT COUNT(*) FROM bids")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_bids(cursor)
+    # Auto-seeding disabled to maintain clean database state
+    conn.commit()
+    conn.close()
 
-    # Seed initial users if empty
-    cursor.execute("SELECT COUNT(*) FROM users")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_users(cursor)
-
-    # Seed initial tenders if empty
-    cursor.execute("SELECT COUNT(*) FROM tenders")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_tenders(cursor)
-
-    # Seed initial contracts if empty
-    cursor.execute("SELECT COUNT(*) FROM contracts")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_contracts(cursor)
-
-    # Seed cartel reports if empty
-    cursor.execute("SELECT COUNT(*) FROM cartel_reports")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_cartel_reports(cursor)
-
-    # Seed vendors if empty
-    cursor.execute("SELECT COUNT(*) FROM vendors")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_vendors(cursor)
-
+def clear_all_data():
+    """
+    Deletes all records from all database tables (users, bids, tenders, contracts, vendors, cartel_reports, audit_logs).
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    for tbl in ["audit_logs", "cartel_reports", "contracts", "bids", "tenders", "vendors", "users"]:
+        cursor.execute(f"DELETE FROM {tbl}")
     conn.commit()
     conn.close()
 
 def reset_db():
     """
-    Wipes the SQLite database completely and re-initializes all tables and seeds.
+    Wipes the SQLite database completely and re-initializes clean empty tables.
     """
     init_db(force_recreate=True)
 
@@ -976,28 +958,33 @@ def get_db_stats() -> Dict[str, int]:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="GeM AI Procurement Compliance - Database Manager")
-    parser.add_argument("--init", action="store_true", help="Initialize tables and seeds if not already created")
-    parser.add_argument("--reset", action="store_true", help="Drop and re-create all tables with fresh seeds")
+    parser.add_argument("--init", action="store_true", help="Initialize tables without dummy data")
+    parser.add_argument("--clear", action="store_true", help="Clear all dummy data and delete all users")
+    parser.add_argument("--reset", action="store_true", help="Drop and re-create all tables (clean empty state)")
     parser.add_argument("--stats", action="store_true", help="Display record counts for all database tables")
     args = parser.parse_args()
 
     print("=======================================================================")
-    print("🏛️  GeM AI PROCUREMENT DATABASE MANAGER (SIH26100 - TEAM CODETOX)")
+    print("[*] GeM AI PROCUREMENT DATABASE MANAGER (SIH26100 - TEAM CODETOX)")
     print(f"[*] Database file: {DB_PATH}")
     print("=======================================================================")
 
-    if args.reset:
-        print("[*] Resetting and re-seeding database from scratch...")
+    if args.clear:
+        print("[*] Clearing all dummy data and deleting all users...")
+        clear_all_data()
+        print("[OK] All database records cleared!")
+    elif args.reset:
+        print("[*] Resetting database tables from scratch (clean empty state)...")
         reset_db()
-        print("[✓] Database reset successfully!")
+        print("[OK] Database reset successfully!")
     else:
-        print("[*] Initializing database...")
+        print("[*] Initializing database tables...")
         init_db()
-        print("[✓] Database initialized successfully!")
+        print("[OK] Database initialized successfully!")
 
     stats = get_db_stats()
-    print("\n📊 Database Summary:")
+    print("\nDatabase Record Counts:")
     print("--------------------------------------------------")
     for tbl, count in stats.items():
-        print(f"  • {tbl.ljust(18)} : {count} records")
+        print(f"  * {tbl.ljust(18)} : {count} records")
     print("--------------------------------------------------\n")

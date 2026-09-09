@@ -102,7 +102,7 @@ export default function BidderDashboard({
               {currentUser && (
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #1e385b', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <Building2 size={12} style={{ color: '#34d399' }} />
-                  <span>Authenticated: <strong style={{ color: '#34d399' }}>{currentUser.fullName}</strong> ({currentUser.organization || 'Apex Supplies Ltd.'})</span>
+                  <span>Authenticated: <strong style={{ color: '#34d399' }}>{currentUser.fullName}</strong> ({currentUser.organization || 'Vendor Enterprise'})</span>
                 </span>
               )}
             </div>
