@@ -10,6 +10,7 @@ const TendersView = ({ onSelectTender, currentUser }) => {
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [showPublishForm, setShowPublishForm] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(false);
   
   const [formData, setFormData] = useState({
     title: '', ministry: '', department: '', category: '', estimatedValue: '', emdAmount: '', closingDate: '', miiMinRequirement: ''
@@ -136,16 +137,52 @@ const TendersView = ({ onSelectTender, currentUser }) => {
               <input type="number" value={formData.emdAmount} onChange={e => setFormData({...formData, emdAmount: e.target.value})} style={{ backgroundColor: '#081729', border: '1px solid #1e385b', color: '#fff', padding: '0.5rem', borderRadius: '4px' }} required />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
-              <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>Closing Date</label>
-              <input type="date" value={formData.closingDate} onChange={e => setFormData({...formData, closingDate: e.target.value})} style={{ backgroundColor: '#081729', border: '1px solid #1e385b', color: '#fff', padding: '0.5rem', borderRadius: '4px' }} required />
+              <label style={{ fontSize: '0.85rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                <Clock size={13} color="#38bdf8" />
+                <span>Closing Date</span>
+              </label>
+              <input
+                type="date"
+                min={new Date().toISOString().split('T')[0]}
+                value={formData.closingDate}
+                onChange={e => setFormData({...formData, closingDate: e.target.value})}
+                style={{ backgroundColor: '#081729', border: '1px solid #1e385b', color: '#fff', padding: '0.5rem', borderRadius: '4px', cursor: 'pointer' }}
+                required
+              />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem' }}>
               <label style={{ fontSize: '0.85rem', color: '#94a3b8' }}>MII Min Requirement (%)</label>
               <input type="number" value={formData.miiMinRequirement} onChange={e => setFormData({...formData, miiMinRequirement: e.target.value})} style={{ backgroundColor: '#081729', border: '1px solid #1e385b', color: '#fff', padding: '0.5rem', borderRadius: '4px' }} required />
             </div>
+
+            {/* Terms and Conditions Checkbox */}
+            <div style={{
+              gridColumn: '1 / -1',
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '0.65rem',
+              padding: '0.75rem 1rem',
+              backgroundColor: acceptedTerms ? 'rgba(2, 132, 199, 0.12)' : 'rgba(15, 34, 56, 0.6)',
+              border: acceptedTerms ? '1px solid #0284c7' : '1px solid #1e385b',
+              borderRadius: '6px',
+              marginTop: '0.5rem'
+            }}>
+              <input
+                type="checkbox"
+                id="officerTermsCheck"
+                required
+                checked={acceptedTerms}
+                onChange={(e) => setAcceptedTerms(e.target.checked)}
+                style={{ marginTop: '0.2rem', width: '16px', height: '16px', cursor: 'pointer', accentColor: '#10b981' }}
+              />
+              <label htmlFor="officerTermsCheck" style={{ fontSize: '0.82rem', color: '#cbd5e1', cursor: 'pointer', lineHeight: '1.4' }}>
+                <strong style={{ color: '#fff' }}>Terms & Conditions:</strong> I hereby certify that this tender complies with <strong>GFR 2017 Rules</strong> and <strong>DPIIT Make-in-India guidelines</strong>, and technical specifications have been approved by the competent authority.
+              </label>
+            </div>
+
             <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', marginTop: '0.5rem' }}>
               <button type="button" onClick={() => setShowPublishForm(false)} style={{ backgroundColor: 'transparent', color: '#94a3b8', border: '1px solid #1e385b', borderRadius: '4px', padding: '0.5rem 1rem', marginRight: '0.5rem', cursor: 'pointer' }}>Cancel</button>
-              <button type="submit" style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.5rem 1.5rem', fontWeight: 'bold', cursor: 'pointer' }}>Submit</button>
+              <button type="submit" disabled={!acceptedTerms} style={{ backgroundColor: !acceptedTerms ? '#475569' : '#10b981', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.5rem 1.5rem', fontWeight: 'bold', cursor: !acceptedTerms ? 'not-allowed' : 'pointer' }}>Submit</button>
             </div>
           </form>
         </div>
