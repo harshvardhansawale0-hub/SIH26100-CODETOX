@@ -1,5 +1,6 @@
+import re
 from typing import List, Optional, Dict, Any
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # ==========================================
 # 1. Verification & Input Schemas
@@ -9,16 +10,40 @@ class BidVerifyRequest(BaseModel):
     vendorName: str = Field(..., example="Apex Supplies Ltd.")
     category: str = Field(default="IT Hardware", example="IT Hardware")
     tenderId: str = Field(..., example="GEM/2026/B/891244")
+    
+    @field_validator('tenderId')
+    @classmethod
+    def validate_tender_id(cls, v):
+        if not re.match(r'^GEM/[0-9]{4}/[A-Z]/[0-9]{6}$', v):
+            raise ValueError('Invalid Tender ID format. Expected GEM/YYYY/X/NNNNNN, e.g. GEM/2026/B/891244.')
+        return v
+        
     tenderValue: str = Field(default="₹1.45 Cr", example="₹1.45 Cr")
     bidAmount: str = Field(default="₹1.38 Cr", example="₹1.38 Cr")
     gstin: str = Field(..., example="27AABCB1234F1Z5")
+    
+    @field_validator('gstin')
+    @classmethod
+    def validate_gstin(cls, v):
+        if not re.match(r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$', v):
+            raise ValueError('Invalid GSTIN format. Enter a valid 15-character GSTIN.')
+        return v
+        
     pan: str = Field(..., example="AABCB1234F")
+    
+    @field_validator('pan')
+    @classmethod
+    def validate_pan(cls, v):
+        if not re.match(r'^[A-Z]{5}[0-9]{4}[A-Z]$', v):
+            raise ValueError('Invalid PAN format. Expected 5 letters, 4 digits, and 1 letter (e.g. ABCDE1234F).')
+        return v
     miiDeclared: str = Field(default="68%", example="68%")
     turnoverClaim: str = Field(default="₹12.4 Cr", example="₹12.4 Cr")
     experienceClaim: str = Field(default="5 Years", example="5 Years")
     msmeRegNo: str = Field(default="UDYAM-MH-03-0019284", example="UDYAM-MH-03-0019284")
     ipAddress: Optional[str] = Field(default="49.204.12.8", example="49.204.12.8")
     dscSerial: Optional[str] = Field(default="DSC-2026-APEX-001", example="DSC-2026-APEX-001")
+    fileId: Optional[str] = Field(default=None, description="UUID of the uploaded document to process")
 
 
 class RuleCheckResult(BaseModel):

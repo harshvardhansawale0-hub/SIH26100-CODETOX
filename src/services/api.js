@@ -30,7 +30,15 @@ async function request(endpoint, options = {}) {
     const response = await fetch(url, config);
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.detail || `API request failed with HTTP ${response.status}`);
+      let errMsg = `API request failed with HTTP ${response.status}`;
+      if (errorData.detail) {
+        if (Array.isArray(errorData.detail)) {
+          errMsg = errorData.detail.map(e => `${e.loc.join('.')}: ${e.msg}`).join(', ');
+        } else {
+          errMsg = errorData.detail;
+        }
+      }
+      throw new Error(errMsg);
     }
     return await response.json();
   } catch (error) {
@@ -108,58 +116,8 @@ export const gemApi = {
         body: JSON.stringify(payload)
       });
     } catch (err) {
-      console.warn('[GeM API] Offline rule evaluation fallback');
-      const miiNum = parseInt(payload.miiDeclared) || 0;
-      let status = 'Compliant';
-      let score = 96;
-      let risk = 'Low Risk';
-      let flags = [];
-
-      if (miiNum < 20 || (payload.pan && payload.pan.includes('ABCDE')) || (payload.gstin && payload.gstin.includes('ZZZZZ'))) {
-        status = 'Rejected';
-        score = 22;
-        risk = 'Critical High Risk';
-        flags = [
-          'GSTIN validation failed with GST Portal (Suspended/Invalid).',
-          'Local content < 20% violates DPIIT Public Procurement Order 2017.',
-          'Document forensic analysis detected font inconsistency on turnover certificate.'
-        ];
-      } else if (miiNum < 50 || (payload.turnoverClaim && payload.turnoverClaim.includes('1.4'))) {
-        status = 'Flagged';
-        score = 61;
-        risk = 'Medium Risk';
-        flags = [
-          'Declared turnover (₹1.4 Cr) does not satisfy mandatory tender minimum criteria of ₹2.0 Cr.',
-          'Local content classified as Class-II Local Supplier (41%), requires CA verification.'
-        ];
-      }
-
-      return {
-        bidId: `BID-${Math.floor(10000 + Math.random() * 90000)}`,
-        vendor: payload.vendorName,
-        category: payload.category,
-        tenderId: payload.tenderId,
-        tenderValue: payload.tenderValue || '₹1.45 Cr',
-        bidAmount: payload.bidAmount || '₹1.38 Cr',
-        score,
-        status,
-        risk,
-        flags,
-        miiVerified: `${payload.miiDeclared} (${status === 'Compliant' ? 'Class-I Local' : status === 'Flagged' ? 'Class-II Local' : 'Non-Compliant'})`,
-        ocrConfidence: status === 'Compliant' ? '99.4%' : status === 'Flagged' ? '94.8%' : '81.2%',
-        gstVerified: status === 'Rejected' ? 'FAILED (Defaulter Record)' : 'ACTIVE & 3B Compliant',
-        panVerified: status === 'Rejected' ? 'FAILED (Name Mismatch)' : 'VERIFIED (NSDL API)',
-        rulesTested: 214,
-        rulesPassed: status === 'Compliant' ? 214 : status === 'Flagged' ? 209 : 188,
-        ruleBreakdown: [],
-        extractedDocs: [
-          { name: "Bid_Uploaded_Docs.pdf", status: status === 'Compliant' ? 'Verified' : 'Flagged', score }
-        ],
-        auditTrail: [
-          { timestamp: "Just Now", action: "Bid Upload & AI OCR Execution", agent: "EasyOCR / Tesseract" },
-          { timestamp: "Just Now", action: "Compliance Evaluation Complete", agent: "NLP Rule Validator" }
-        ]
-      };
+      console.error('[GeM API] Verification request failed:', err);
+      throw err;
     }
   },
 
@@ -172,16 +130,8 @@ export const gemApi = {
         body: formData
       });
     } catch (err) {
-      return {
-        status: 'success',
-        file: {
-          fileName: file.name,
-          docType: 'Procurement Document',
-          confidence: '98.5%',
-          tamperingDetected: false,
-          details: 'Offline simulated OCR extraction.'
-        }
-      };
+      console.error('[GeM API] Upload service unavailable:', err);
+      throw new Error("Upload service unavailable. Please ensure backend is running.");
     }
   },
 

@@ -10,7 +10,18 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
 
   const { t } = useLanguage();
   const fileInputRef = useRef(null);
-  const [bidForm, setBidForm] = useState(samplePreloads.perfectBid);
+  const [bidForm, setBidForm] = useState({
+    vendorName: '',
+    tenderId: '',
+    category: '',
+    bidAmount: '',
+    gstin: '',
+    pan: '',
+    miiDeclared: '',
+    turnoverClaim: '',
+    msmeRegNo: '',
+    experienceClaim: ''
+  });
   const [selectedFile, setSelectedFile] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const [scanStep, setScanStep] = useState(0); // 0: Idle, 1: OCR, 2: Rule Engine, 3: Scored
@@ -38,13 +49,45 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
       try {
         const uploadRes = await gemApi.uploadDocument(file);
         console.log('[GeM OCR Forensics] Document parsed:', uploadRes);
+        if (uploadRes.fileId) {
+          setBidForm(prev => ({ ...prev, fileId: uploadRes.fileId }));
+        }
       } catch (err) {
         console.warn('OCR upload inspection:', err);
       }
     }
   };
 
+  const isValidPAN = (pan) => /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan);
+  const isValidGSTIN = (gstin) => /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$/.test(gstin);
+  const isValidTenderId = (tenderId) => /^GEM\/[0-9]{4}\/[A-Z]\/[0-9]{6}$/.test(tenderId);
+
+  const getValidationState = (value, validator) => {
+    if (!value) return null;
+    return validator(value) ? 'valid' : 'invalid';
+  };
+
+  const tenderIdState = getValidationState(bidForm.tenderId, isValidTenderId);
+  const gstinState = getValidationState(bidForm.gstin, isValidGSTIN);
+  const panState = getValidationState(bidForm.pan, isValidPAN);
+
+  const renderValidationMsg = (state, invalidMsg) => {
+    if (state === null) return <span style={{fontSize: '0.7rem', color: '#f59e0b', display: 'block', marginTop: '0.25rem'}}>⚠ Required</span>;
+    if (state === 'valid') return <span style={{fontSize: '0.7rem', color: '#10b981', display: 'block', marginTop: '0.25rem'}}>✓ Valid format</span>;
+    return <span style={{fontSize: '0.7rem', color: '#ef4444', display: 'block', marginTop: '0.25rem'}}>✕ {invalidMsg}</span>;
+  };
+
+  const isFormValid = bidForm.vendorName && tenderIdState === 'valid' && gstinState === 'valid' && panState === 'valid';
+
   const handleStartVerification = async () => {
+    if (!isFormValid) {
+      setResult({
+        error: true,
+        message: "Validation Error: Ensure all required fields have a valid format before proceeding."
+      });
+      return;
+    }
+
     setIsProcessing(true);
     setScanStep(1);
     setResult(null);
@@ -77,6 +120,16 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     } catch (err) {
       console.warn('Verification error, fallback:', err);
       setIsProcessing(false);
+      
+      let errorMsg = "Verification service unavailable. Please ensure backend is running.";
+      if (err.message && err.message !== "Failed to fetch") {
+        errorMsg = err.message;
+      }
+      
+      setResult({
+        error: true,
+        message: errorMsg
+      });
     }
   };
 
@@ -156,16 +209,30 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem' }}>
             {/* Left: Metadata Inputs */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <div>
-                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                  {t('vendorNameLabel')}
-                </label>
-                <input
-                  type="text"
-                  value={bidForm.vendorName}
-                  onChange={(e) => setBidForm({ ...bidForm, vendorName: e.target.value })}
-                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
-                />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div>
+                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                    {t('vendorNameLabel')} <span style={{color: '#ef4444'}}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={bidForm.vendorName}
+                    onChange={(e) => setBidForm({ ...bidForm, vendorName: e.target.value })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                    Tender ID <span style={{color: '#ef4444'}}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={bidForm.tenderId}
+                    onChange={(e) => setBidForm({ ...bidForm, tenderId: e.target.value.trim().toUpperCase() })}
+                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                  />
+                  {renderValidationMsg(tenderIdState, "Expected GEM/YYYY/X/NNNNNN, e.g. GEM/2026/B/891244")}
+                </div>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
@@ -196,25 +263,27 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    {t('gstinLabel')}
+                    {t('gstinLabel')} <span style={{color: '#ef4444'}}>*</span>
                   </label>
                   <input
                     type="text"
                     value={bidForm.gstin}
-                    onChange={(e) => setBidForm({ ...bidForm, gstin: e.target.value })}
+                    onChange={(e) => setBidForm({ ...bidForm, gstin: e.target.value.trim().toUpperCase() })}
                     style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontFamily: 'monospace' }}
                   />
+                  {renderValidationMsg(gstinState, "Enter a valid 15-character GSTIN")}
                 </div>
                 <div>
                   <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    {t('panLabel')}
+                    {t('panLabel')} <span style={{color: '#ef4444'}}>*</span>
                   </label>
                   <input
                     type="text"
                     value={bidForm.pan}
-                    onChange={(e) => setBidForm({ ...bidForm, pan: e.target.value })}
+                    onChange={(e) => setBidForm({ ...bidForm, pan: e.target.value.trim().toUpperCase() })}
                     style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontFamily: 'monospace' }}
                   />
+                  {renderValidationMsg(panState, "Expected 5 letters, 4 digits, and 1 letter (e.g. ABCDE1234F)")}
                 </div>
               </div>
 
@@ -340,8 +409,16 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
             </div>
           )}
 
+          {/* Error Message Panel */}
+          {result && result.error && !isProcessing && (
+            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', padding: '1.5rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <AlertTriangle size={24} />
+              <span style={{ fontSize: '0.95rem', fontWeight: '600' }}>{result.message}</span>
+            </div>
+          )}
+
           {/* Verification Results Panel */}
-          {result && !isProcessing && (
+          {result && !result.error && !isProcessing && (
             <div style={{ backgroundColor: '#081729', border: '1px solid #1e385b', borderRadius: '12px', padding: '1.5rem', color: '#ffffff' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #162c47', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
                 <div>
@@ -377,7 +454,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                 </div>
                 <div style={{ backgroundColor: '#0f2238', padding: '0.75rem', borderRadius: '6px', border: '1px solid #1e385b' }}>
                   <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>GST & Tax Standing</span>
-                  <span style={{ fontSize: '0.88rem', fontWeight: '700', color: result.gstVerified?.includes('ACTIVE') ? '#34d399' : '#f87171' }}>{result.gstVerified}</span>
+                  <span style={{ fontSize: '0.88rem', fontWeight: '700', color: result.gstVerified === 'LOCAL_VALIDATION_PASSED' || result.gstVerified === 'EXTERNAL_VERIFICATION_NOT_CONFIGURED' ? '#34d399' : result.gstVerified === 'MISSING_EVIDENCE' ? '#fbbf24' : '#f87171' }}>{result.gstVerified}</span>
                 </div>
                 <div style={{ backgroundColor: '#0f2238', padding: '0.75rem', borderRadius: '6px', border: '1px solid #1e385b' }}>
                   <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>{t('ocrConfidence')}</span>
