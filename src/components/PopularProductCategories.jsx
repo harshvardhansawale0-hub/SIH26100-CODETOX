@@ -168,21 +168,6 @@ export default function PopularProductCategories({ onCategoryClick, onOpenGemmy 
         </div>
       </div>
 
-      {/* Floating Bottom-Left "Ask GeMMy (Powered by AI)" Widget */}
-      <div
-        className="ask-gemmy-floating-widget"
-        onClick={onOpenGemmy}
-        title="Chat with GeMMy AI Assistant"
-      >
-        <div className="gemmy-avatar-circle">
-          <span className="gemmy-emoji">🤖</span>
-        </div>
-        <div className="gemmy-text-group">
-          <span className="gemmy-primary-text">{t('askGemmy')}</span>
-          <span className="gemmy-sub-text">({t('poweredByAi')})</span>
-        </div>
-      </div>
-
       {/* Right-Side Quick Social Floating Dock */}
       <aside className="gem-social-dock" aria-label="GeM Social Media and Navigation">
         <a

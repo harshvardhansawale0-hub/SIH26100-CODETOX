@@ -385,7 +385,26 @@ export const translations = {
     cracStatusCol: "CRAC Status",
     paymentStatusCol: "Payment Status",
     cracApprove: "Approve CRAC",
-    processPayment: "Process Payment"
+    processPayment: "Process Payment",
+
+    // Ask GeMMy AI Assistant
+    gemmyTitle: "Ask GeMMy",
+    gemmySubtitle: "AI Procurement & GFR Compliance Assistant",
+    gemmyOnlineStatus: "Online • Powered by Groq AI",
+    gemmyWelcomeTitle: "Namaste! How can I assist you with GeM procurement today?",
+    gemmyWelcomeDesc: "Ask me anything about GFR 2017 rules, DPIIT Make in India policies, MSME/Startup exemptions, Reverse Auctions, or Bid Verification.",
+    gemmyPlaceholder: "Ask GeMMy a question or click the microphone to speak...",
+    gemmyListening: "Listening... Speak now...",
+    gemmySend: "Send",
+    gemmyClear: "Clear Chat",
+    gemmyVoiceOn: "Voice Read-aloud ON",
+    gemmyVoiceOff: "Voice Read-aloud OFF",
+    gemmyQuickPrompts: "Suggested Topics",
+    gemmyClose: "Close Assistant",
+    gemmyMinimize: "Minimize",
+    gemmyMaximize: "Maximize",
+    gemmyCitRef: "Citations & Rules",
+    gemmyActions: "Suggested Actions"
   },
 
   hi: {
@@ -771,7 +790,26 @@ export const translations = {
     cracStatusCol: "CRAC स्थिति",
     paymentStatusCol: "भुगतान स्थिति",
     cracApprove: "CRAC स्वीकृत करें",
-    processPayment: "भुगतान प्रोसेस करें"
+    processPayment: "भुगतान प्रोसेस करें",
+
+    // Ask GeMMy AI Assistant (Hindi)
+    gemmyTitle: "Ask GeMMy",
+    gemmySubtitle: "AI अधिप्राप्ति व GFR अनुपालन सहायक",
+    gemmyOnlineStatus: "सक्रिय • Groq AI द्वारा संचालित",
+    gemmyWelcomeTitle: "नमस्ते! आज GeM सरकारी खरीद में मैं आपकी क्या सहायता कर सकता हूँ?",
+    gemmyWelcomeDesc: "मुझसे GFR 2017 नियमों, DPIIT मेक इन इंडिया, MSME/स्टार्टअप छूट, रिवर्स ऑक्शन या बिड सत्यापन के बारे में कुछ भी पूछें।",
+    gemmyPlaceholder: "अपना प्रश्न लिखें या बोलने के लिए माइक पर क्लिक करें...",
+    gemmyListening: "सुन रहा हूँ... अब बोलें...",
+    gemmySend: "भेजें",
+    gemmyClear: "चैट साफ करें",
+    gemmyVoiceOn: "वॉइस रीड-अलाउड चालू",
+    gemmyVoiceOff: "वॉइस रीड-अलाउड बंद",
+    gemmyQuickPrompts: "सुझाए गए विषय",
+    gemmyClose: "सहायक बंद करें",
+    gemmyMinimize: "छोटा करें",
+    gemmyMaximize: "बड़ा करें",
+    gemmyCitRef: "संदर्भ एवं नियम",
+    gemmyActions: "सुझाए गए कार्य"
   },
 
   mr: {
@@ -1157,6 +1195,25 @@ export const translations = {
     cracStatusCol: "CRAC स्थिती",
     paymentStatusCol: "देयक स्थिती",
     cracApprove: "CRAC मंजूर करा",
-    processPayment: "देयक प्रोसेस करा"
+    processPayment: "देयक प्रोसेस करा",
+
+    // Ask GeMMy AI Assistant (Marathi)
+    gemmyTitle: "Ask GeMMy",
+    gemmySubtitle: "AI खरेदी आणि GFR अनुपालन सहाय्यक",
+    gemmyOnlineStatus: "सक्रिय • Groq AI द्वारे समर्थित",
+    gemmyWelcomeTitle: "नमस्कार! आज GeM सरकारी खरेदीत मी आपली काय मदत करू शकतो?",
+    gemmyWelcomeDesc: "मला GFR 2017 नियम, मेक इन इंडिया धोरण, MSME/स्टार्टअप सवलती, रिव्हर्स ऑक्शन किंवा बिड पडताळणीबद्दल काहीही विचारा.",
+    gemmyPlaceholder: "आपला प्रश्न टाईप करा किंवा बोलण्यासाठी माईकवर क्लिक करा...",
+    gemmyListening: "ऐकत आहे... आता बोला...",
+    gemmySend: "पाठवा",
+    gemmyClear: "चॅट साफ करा",
+    gemmyVoiceOn: "आवाज वाचन चालू",
+    gemmyVoiceOff: "आवाज वाचन बंद",
+    gemmyQuickPrompts: "सुचवलेले विषय",
+    gemmyClose: "सहाय्यक बंद करा",
+    gemmyMinimize: "लहान करा",
+    gemmyMaximize: "मोठे करा",
+    gemmyCitRef: "नियम व संदर्भ",
+    gemmyActions: "सुचवलेल्या कृती"
   }
 };

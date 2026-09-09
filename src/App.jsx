@@ -25,6 +25,7 @@ import SchemePortalView from './components/SchemePortalView';
 import AuctionsView from './components/AuctionsView';
 import BusinessOpportunitiesView from './components/BusinessOpportunitiesView';
 import CategoryCatalogView from './components/CategoryCatalogView';
+import AskGemmyModal from './components/AskGemmyModal';
 import { initialBids, initialTenders } from './data/bidsData';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { gemApi } from './services/api';
@@ -85,6 +86,7 @@ function MainApp() {
     reasonMessage: null
   });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isGemmyOpen, setIsGemmyOpen] = useState(false);
 
   // Fetch live tenders & bids from FastAPI backend on mount
   const loadData = async () => {
@@ -499,7 +501,7 @@ function MainApp() {
               const mappedCategory = categoryMapping[catId] || itemName || 'Oxygen Gas & Accessories';
               handleCategorySelect(mappedCategory);
             }}
-            onOpenGemmy={() => handleOpenVerifierForTender(null)}
+            onOpenGemmy={() => setIsGemmyOpen(true)}
           />
 
           {/* Golden CTA Banner */}
@@ -776,6 +778,39 @@ function MainApp() {
           setActiveTab(tab);
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
+      />
+
+      {/* 4.8 Persistent Global Floating "Ask GeMMy (Powered by AI)" Launcher (Available Across All Pages) */}
+      {!isGemmyOpen && (
+        <button
+          className="ask-gemmy-floating-widget"
+          onClick={() => setIsGemmyOpen(true)}
+          title="Chat with GeMMy AI Assistant (GFR 2017, DPIIT & Procurement Intelligence)"
+          aria-label="Open Ask GeMMy AI Assistant"
+        >
+          <div className="gemmy-avatar-circle">
+            <span className="gemmy-emoji">🤖</span>
+            <span className="gemmy-pulse-ring"></span>
+          </div>
+          <div className="gemmy-text-group">
+            <span className="gemmy-primary-text">{t('askGemmy')}</span>
+            <span className="gemmy-sub-text">({t('poweredByAi')})</span>
+          </div>
+          <span className="gemmy-online-glow"></span>
+        </button>
+      )}
+
+      {/* 4.9 Ask GeMMy AI Assistant Modal / Window */}
+      <AskGemmyModal
+        isOpen={isGemmyOpen}
+        onClose={() => setIsGemmyOpen(false)}
+        onOpenVerifier={(tender) => handleOpenVerifierForTender(tender)}
+        onNavigateTab={(tab) => {
+          setActiveTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+        onOpenCreateBid={() => handleOpenCreateBid()}
+        onOpenCategory={(cat) => handleCategorySelect(cat)}
       />
     </div>
   );

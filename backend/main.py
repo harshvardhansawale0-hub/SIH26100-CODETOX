@@ -8,25 +8,39 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from .database import init_db
-from .routes import bids, verify, auction, tenders, contracts, stats, auth
+from .routes import bids, verify, auction, tenders, contracts, stats, auth, gemmy
 
 # Resolve paths relative to the project root (one level up from backend/)
 BACKEND_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BACKEND_DIR.parent
 DIST_DIR = PROJECT_ROOT / "dist"
 
+# Load environment variables from .env if present
+env_file = PROJECT_ROOT / ".env"
+if env_file.exists():
+    try:
+        with open(env_file, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    k, v = line.split("=", 1)
+                    os.environ.setdefault(k.strip(), v.strip())
+    except Exception as e:
+        print(f"[!] Warning reading .env file: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Initialize SQLite database and seeds on startup
     init_db()
     print("[*] GeM Procurement Compliance Database Initialized Successfully.")
+    print(f"[*] Ask GeMMy AI Router Loaded (Groq model: {os.environ.get('GROQ_MODEL', 'qwen/qwen3.8-27b')}).")
     print(f"[*] Serving frontend from: {DIST_DIR}")
     print(f"[*] Frontend dist exists: {DIST_DIR.exists()}")
     yield
 
 app = FastAPI(
     title="GeM AI Procurement Compliance & Intelligence Platform API",
-    description="Backend API engine for SIH 2026 (Problem Statement: SIH26100) — Automated GFR 2017 & DPIIT Rule Engine, Anti-Cartel Graph Detector, Tender & BOQ Ingestion, and Real-time OCR Forensics.",
+    description="Backend API engine for SIH 2026 (Problem Statement: SIH26100) — Automated GFR 2017 & DPIIT Rule Engine, Anti-Cartel Graph Detector, Tender & BOQ Ingestion, Real-time OCR Forensics, and Ask GeMMy AI Assistant.",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs",
@@ -50,6 +64,7 @@ app.include_router(tenders.router)
 app.include_router(contracts.router)
 app.include_router(stats.router)
 app.include_router(auth.router)
+app.include_router(gemmy.router)
 
 @app.get("/api/health", tags=["Health"])
 def health_check():
