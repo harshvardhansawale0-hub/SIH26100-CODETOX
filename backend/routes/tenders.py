@@ -3,21 +3,25 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Query
 from typing import List, Dict, Any, Optional
 from ..models import TenderItem, TenderCreateRequest
-from ..database import get_all_tenders, get_tender_by_id, create_tender
+from ..database import get_all_tenders, get_tender_by_id, create_tender, get_all_bids
 
-router = APIRouter(prefix="/api/tenders", tags=["Tenders & BOQ Management"])
+router = APIRouter(prefix="/api/tenders", tags=["Buyer Tenders & Compliance Criteria"])
 
 @router.get("", response_model=List[Dict[str, Any]])
 def list_tenders():
     """
-    Retrieve all published procurement tenders on GeM.
+    Retrieve all published procurement tenders created by Buyers.
     """
-    return get_all_tenders()
+    tenders = get_all_tenders()
+    all_bids = get_all_bids()
+    for t in tenders:
+        t["applicationsCount"] = len([b for b in all_bids if b.get("tenderId") == t.get("id")])
+    return tenders
 
 @router.get("/{tender_id}", response_model=Dict[str, Any])
 def get_tender_details(tender_id: str):
     """
-    Retrieve detailed tender specifications, BOQ requirements, and eligibility conditions.
+    Retrieve detailed tender specifications, compliance criteria, and BOQ requirements.
     """
     t = get_tender_by_id(tender_id)
     if not t:
@@ -25,12 +29,23 @@ def get_tender_details(tender_id: str):
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Tender '{tender_id}' not found."
         )
+    all_bids = get_all_bids()
+    t["applicationsCount"] = len([b for b in all_bids if b.get("tenderId") == tender_id])
     return t
+
+@router.get("/{tender_id}/applications", response_model=List[Dict[str, Any]])
+def get_tender_applications(tender_id: str):
+    """
+    Buyer retrieves all submitted bidder applications and AI compliance reports for this tender.
+    """
+    all_bids = get_all_bids()
+    tender_bids = [b for b in all_bids if b.get("tenderId") == tender_id]
+    return tender_bids
 
 @router.post("", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 def publish_tender(payload: TenderCreateRequest):
     """
-    Publish a new public procurement tender notice with technical BOQ items under GFR 2017.
+    Buyer creates and publishes a new bid/tender with defined compliance criteria.
     """
     random_id = f"GEM/2026/B/{random.randint(900000, 999999)}"
     pub_date = payload.publishedDate or datetime.now().strftime("%d %b %Y")
@@ -47,8 +62,13 @@ def publish_tender(payload: TenderCreateRequest):
         "closingDate": payload.closingDate,
         "status": "Active",
         "miiMinRequirement": payload.miiMinRequirement,
-        "boqItems": [item.model_dump() for item in payload.boqItems]
+        "minTurnoverRequirement": payload.minTurnoverRequirement,
+        "minExperienceYears": payload.minExperienceYears,
+        "mandatoryDocs": payload.mandatoryDocs,
+        "boqItems": [item.model_dump() for item in payload.boqItems],
+        "applicationsCount": 0
     }
     
     created = create_tender(new_tender)
     return created
+

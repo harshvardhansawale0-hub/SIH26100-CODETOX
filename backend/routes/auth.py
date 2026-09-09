@@ -10,48 +10,51 @@ router = APIRouter(prefix="/api/auth", tags=["Authentication & User Management"]
 @router.post("/login", response_model=AuthResponse)
 def login_user(payload: UserLogin):
     """
-    Authenticates a user session as Buyer, Seller, or Nodal Procurement Officer.
+    Authenticates a user session strictly as Buyer (Procuring Authority) or Bidder (Vendor/Company).
     """
+    # Enforce strictly buyer or bidder
+    assigned_role = "buyer" if payload.role == "buyer" else "bidder"
+    
     conn = get_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT * FROM users WHERE email = ?", (payload.email.strip().lower(),))
     row = cursor.fetchone()
     conn.close()
 
-    # If demo user found or fallback simulation for mock authentication
     if row and row["password_hash"] == payload.password:
+        role = "buyer" if row["role"] == "buyer" else "bidder"
         user_data = {
             "id": row["id"],
             "fullName": row["full_name"],
             "email": row["email"],
             "organization": row["organization"],
             "gstin": row["gstin"],
-            "role": row["role"]
+            "role": role
         }
     else:
-        # Standard fallback for immediate demo testing
-        role = payload.role if payload.role in ["buyer", "seller", "officer"] else "seller"
+        # Demo fallback
         user_data = {
             "id": 999,
-            "fullName": payload.email.split("@")[0].title() or "GeM User",
+            "fullName": payload.email.split("@")[0].title() or ("Buyer Authority" if assigned_role == "buyer" else "Bidder Vendor"),
             "email": payload.email,
-            "organization": "Verified Enterprise Org",
+            "organization": "Ministry of Electronics & IT" if assigned_role == "buyer" else "Apex Technologies Ltd.",
             "gstin": "27AABCB1234F1Z5",
-            "role": role
+            "role": assigned_role
         }
 
     token = f"gem_jwt_{uuid.uuid4().hex[:16]}"
     return AuthResponse(
         token=token,
         user=user_data,
-        message="Authentication successful via GeM Single-Sign-On (SSO)."
+        message=f"Logged in successfully as {user_data['role'].title()} ({'Government / Procuring Authority' if user_data['role'] == 'buyer' else 'Vendor / Company'})."
     )
 
 @router.post("/register", response_model=AuthResponse)
 def register_user(payload: UserRegister):
     """
-    Registers a new vendor/buyer with GSTIN and PAN validation.
+    Registers a new Buyer or Bidder account with GSTIN and PAN validation.
     """
+    assigned_role = "buyer" if payload.role == "buyer" else "bidder"
     conn = get_connection()
     cursor = conn.cursor()
     try:
@@ -60,7 +63,7 @@ def register_user(payload: UserRegister):
         VALUES (?, ?, ?, ?, ?, ?, ?)
         """, (
             payload.fullName, payload.email.strip().lower(), payload.password,
-            payload.organization, payload.gstin, payload.role, datetime.now().isoformat()
+            payload.organization, payload.gstin, assigned_role, datetime.now().isoformat()
         ))
         conn.commit()
         user_id = cursor.lastrowid
@@ -78,21 +81,22 @@ def register_user(payload: UserRegister):
             "email": payload.email,
             "organization": payload.organization,
             "gstin": payload.gstin,
-            "role": payload.role
+            "role": assigned_role
         },
-        message="Account registered successfully. DSC certificate validation pending."
+        message=f"Account registered successfully as {assigned_role.title()}."
     )
 
 @router.get("/me")
 def get_current_user_profile(authorization: Optional[str] = Header(None)):
     """
-    Retrieves the currently logged-in user profile from the token header.
+    Retrieves the current user profile.
     """
     return {
         "id": 1,
-        "fullName": "Nodal Procurement Officer",
-        "email": "officer@gem.gov.in",
-        "organization": "GeM Quality & Vigilance Cell",
-        "role": "officer",
-        "permissions": ["all_bids_read", "bids_status_override", "cartel_investigate", "crac_verify", "stats_read"]
+        "fullName": "Procuring Authority (Buyer)",
+        "email": "buyer@gov.in",
+        "organization": "National Procurement Directorate",
+        "role": "buyer",
+        "permissions": ["create_tenders", "review_bids", "select_bidder", "publish_criteria"]
     }
+

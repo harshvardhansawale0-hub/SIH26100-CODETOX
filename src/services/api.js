@@ -73,7 +73,7 @@ export const gemApi = {
     }
   },
 
-  async updateBidStatus(bidId, newStatus, officerNotes = '', officerName = 'Nodal Procurement Officer (Admin)') {
+  async updateBidStatus(bidId, newStatus, officerNotes = '', officerName = 'Government Procuring Authority (Buyer)') {
     try {
       return await request(`/api/bids/${bidId}/status`, {
         method: 'PATCH',
@@ -214,12 +214,61 @@ export const gemApi = {
     }
   },
 
-  // 5. Tenders & Contracts
+  // 5. Tenders & Contracts (Buyer & Bidder)
   async getTenders() {
     try {
       return await request('/api/tenders');
     } catch {
       return [];
+    }
+  },
+
+  async getTenderById(tenderId) {
+    try {
+      return await request(`/api/tenders/${tenderId}`);
+    } catch {
+      return null;
+    }
+  },
+
+  async createTender(tenderData) {
+    try {
+      return await request('/api/tenders', {
+        method: 'POST',
+        body: JSON.stringify(tenderData)
+      });
+    } catch (err) {
+      console.warn('[GeM API] Offline create tender fallback:', err);
+      return {
+        id: `GEM/2026/B/${Math.floor(100000 + Math.random() * 900000)}`,
+        ...tenderData,
+        status: 'Active',
+        publishedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        applicationsCount: 0
+      };
+    }
+  },
+
+  async getTenderApplications(tenderId) {
+    try {
+      return await request(`/api/tenders/${tenderId}/applications`);
+    } catch {
+      return [];
+    }
+  },
+
+  async selectWinningBidder(bidId, notes = '', buyerName = 'Government Procuring Authority') {
+    try {
+      return await request(`/api/bids/${bidId}/select`, {
+        method: 'POST',
+        body: JSON.stringify({ notes, buyerName })
+      });
+    } catch (err) {
+      console.warn('[GeM API] Offline select winning bidder fallback:', err);
+      return {
+        status: 'success',
+        message: `Bid '${bidId}' officially selected as winning vendor!`
+      };
     }
   },
 
@@ -242,8 +291,8 @@ export const gemApi = {
     }
   },
 
-  // 7. Authentication
-  async login(email, password, role = 'buyer') {
+  // 7. Authentication (Strictly Buyer & Bidder)
+  async login(email, password, role = 'bidder') {
     try {
       return await request('/api/auth/login', {
         method: 'POST',
@@ -256,10 +305,10 @@ export const gemApi = {
           id: 1,
           fullName: email.split('@')[0].toUpperCase(),
           email,
-          role,
-          organization: 'National Enterprise'
+          role: role === 'buyer' ? 'buyer' : 'bidder',
+          organization: role === 'buyer' ? 'National Procurement Directorate' : 'Apex Technologies Ltd.'
         },
-        message: 'Logged in (demo fallback).'
+        message: `Logged in as ${role === 'buyer' ? 'Buyer (Government Authority)' : 'Bidder (Vendor)'}.`
       };
     }
   },
@@ -273,9 +322,13 @@ export const gemApi = {
     } catch (err) {
       return {
         token: `mock_jwt_${Date.now()}`,
-        user: userData,
+        user: {
+          ...userData,
+          role: userData.role === 'buyer' ? 'buyer' : 'bidder'
+        },
         message: 'Registered successfully (demo fallback).'
       };
     }
   }
 };
+

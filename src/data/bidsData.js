@@ -274,3 +274,71 @@ export const samplePreloads = {
     msmeRegNo: "UDYAM-HR-00-INVALID"
   }
 };
+
+export const initialTenders = [
+  {
+    id: "GEM/2026/B/891244",
+    title: "Procurement of High-Performance AI Workstations & Edge Servers",
+    ministry: "Ministry of Defence",
+    department: "Defence Research & Development Organisation (DRDO)",
+    category: "IT Hardware",
+    estimatedValue: "₹1.45 Cr",
+    emdAmount: "₹2.90 Lakhs (MSE Exempted)",
+    closingDate: "28 Sep 2026",
+    status: "Active",
+    miiMinRequirement: "50% (Class-I)",
+    minTurnoverRequirement: "₹5.0 Cr",
+    minExperienceYears: 3,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "UDYAM MSME Certificate", "CA Audited Turnover", "Make in India Declaration"],
+    boqItems: [{ item: "High-Performance Workstations (RTX 6000)", qty: 250, unit: "Nos" }]
+  },
+  {
+    id: "GEM/2026/B/890412",
+    title: "Supply and Installation of Ergonomic Modular Office Furniture",
+    ministry: "Ministry of Railways",
+    department: "Railway Board & Northern Railway HQ",
+    category: "Furniture",
+    estimatedValue: "₹42.0 Lakhs",
+    emdAmount: "₹84,000",
+    closingDate: "22 Sep 2026",
+    status: "Active",
+    miiMinRequirement: "50% (Class-I)",
+    minTurnoverRequirement: "₹2.0 Cr",
+    minExperienceYears: 3,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "UDYAM MSME Certificate", "CA Audited Turnover"],
+    boqItems: [{ item: "Modular Office Workstations & Chairs", qty: 400, unit: "Sets" }]
+  },
+  {
+    id: "GEM/2026/B/889105",
+    title: "Cloud-Based GIS Geospatial Mapping & Telemetry Software Solution",
+    ministry: "Department of Space",
+    department: "Indian Space Research Organisation (ISRO)",
+    category: "Software",
+    estimatedValue: "₹2.10 Cr",
+    emdAmount: "₹4.20 Lakhs",
+    closingDate: "30 Sep 2026",
+    status: "Active",
+    miiMinRequirement: "50% (Class-I)",
+    minTurnoverRequirement: "₹8.0 Cr",
+    minExperienceYears: 4,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "CMMI Level 3+", "CA Audited Turnover", "Make in India Declaration"],
+    boqItems: [{ item: "GIS Enterprise License with API Gateway", qty: 1, unit: "License" }]
+  },
+  {
+    id: "GEM/2026/B/892301",
+    title: "Supply of High-Flow Oxygen Generation & Critical Medical Gear",
+    ministry: "Ministry of Health & Family Welfare",
+    department: "All India Institute of Medical Sciences (AIIMS)",
+    category: "Medical Equipment",
+    estimatedValue: "₹1.15 Cr",
+    emdAmount: "₹2.30 Lakhs",
+    closingDate: "18 Sep 2026",
+    status: "Active",
+    miiMinRequirement: "50% (Class-I)",
+    minTurnoverRequirement: "₹3.0 Cr",
+    minExperienceYears: 2,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "ISO 13485 Medical Device Cert", "CA Audited Turnover"],
+    boqItems: [{ item: "Medical Oxygen Generation Concentrators", qty: 80, unit: "Units" }]
+  }
+];
+

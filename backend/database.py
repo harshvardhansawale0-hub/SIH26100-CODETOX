@@ -58,11 +58,15 @@ def init_db(force_recreate: bool = False):
         ocr_confidence TEXT NOT NULL,
         flags TEXT NOT NULL, -- JSON array
         extracted_docs TEXT NOT NULL, -- JSON array
+        extracted_entities TEXT, -- JSON array
+        cross_doc_matches TEXT, -- JSON array
+        requirement_matches TEXT, -- JSON array
+        compliance_report TEXT, -- JSON object
         audit_trail TEXT NOT NULL -- JSON array
     )
     """)
 
-    # 2. Users table
+    # 2. Users table (Strictly Buyer and Bidder)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -71,12 +75,12 @@ def init_db(force_recreate: bool = False):
         password_hash TEXT NOT NULL,
         organization TEXT NOT NULL,
         gstin TEXT,
-        role TEXT NOT NULL DEFAULT 'seller',
+        role TEXT NOT NULL DEFAULT 'bidder', -- Strictly 'buyer' or 'bidder'
         created_at TEXT NOT NULL
     )
     """)
 
-    # 3. Tenders table
+    # 3. Tenders table (Buyer Published with Compliance Criteria)
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS tenders (
         id TEXT PRIMARY KEY,
@@ -90,7 +94,11 @@ def init_db(force_recreate: bool = False):
         closing_date TEXT NOT NULL,
         status TEXT NOT NULL, -- 'Active', 'Under Evaluation', 'Awarded', 'Closed'
         mii_min_requirement TEXT NOT NULL,
+        min_turnover_requirement TEXT DEFAULT '₹2.0 Cr',
+        min_experience_years INTEGER DEFAULT 3,
+        mandatory_docs TEXT DEFAULT '[]', -- JSON array
         boq_items TEXT NOT NULL, -- JSON array
+        selected_bidder_id TEXT,
         created_at TEXT NOT NULL
     )
     """)
@@ -428,10 +436,10 @@ def seed_initial_bids(cursor):
 
 def seed_initial_users(cursor):
     demo_users = [
-        ("Nodal Procurement Officer", "officer@gem.gov.in", "officer123", "GeM Quality & Vigilance Cell", "07GOVND0001A1Z1", "officer"),
-        ("Buyer Desk Officer", "buyer@drdo.gov.in", "buyer123", "DRDO Research Labs, Ministry of Defence", "07DRDO1234F1Z8", "buyer"),
-        ("Apex Supplies Vendor", "contact@apexsupplies.in", "seller123", "Apex Supplies Ltd.", "27AABCB1234F1Z5", "seller"),
-        ("Kaveri Infotech Manager", "contact@kaveri.in", "seller123", "Kaveri Infotech", "27KAVRI5678B1Z2", "seller")
+        ("National Procurement Authority", "buyer@gov.in", "buyer123", "Defence & Space Procurement Cell", "07GOVND0001A1Z1", "buyer"),
+        ("Smart Cities Mission Buyer", "buyer@smartcities.gov.in", "buyer123", "Ministry of Housing and Urban Affairs", "07DRDO1234F1Z8", "buyer"),
+        ("Apex Supplies Ltd. (Bidder)", "bidder@apex.in", "bidder123", "Apex Supplies Ltd.", "27AABCB1234F1Z5", "bidder"),
+        ("Kaveri Infotech (Bidder)", "bidder@kaveri.in", "bidder123", "Kaveri Infotech", "27KAVRI5678B1Z2", "bidder")
     ]
     for u in demo_users:
         cursor.execute("""
@@ -451,8 +459,11 @@ def seed_initial_tenders(cursor):
             "emd_amount": "₹2.90 Lakhs (MSE Exempted)",
             "published_date": "01 Sep 2026",
             "closing_date": "15 Sep 2026",
-            "status": "Under Evaluation",
+            "status": "Active",
             "mii_min_requirement": "50% (Class-I)",
+            "min_turnover_requirement": "₹2.0 Cr",
+            "min_experience_years": 3,
+            "mandatory_docs": json.dumps(["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"]),
             "boq_items": json.dumps([
                 {"item": "AI Workstations (RTX 6000 Ada, 128GB RAM)", "qty": 250, "unit": "Nos"},
                 {"item": "All-Flash SAN Storage 500TB", "qty": 2, "unit": "Units"}
@@ -469,8 +480,11 @@ def seed_initial_tenders(cursor):
             "emd_amount": "₹84,000 (MSE Exempted)",
             "published_date": "02 Sep 2026",
             "closing_date": "12 Sep 2026",
-            "status": "Under Evaluation",
+            "status": "Active",
             "mii_min_requirement": "50% (Class-I)",
+            "min_turnover_requirement": "₹50.0 Lakhs",
+            "min_experience_years": 2,
+            "mandatory_docs": json.dumps(["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement"]),
             "boq_items": json.dumps([
                 {"item": "Modular 4-Seater Linear Workstations", "qty": 50, "unit": "Sets"},
                 {"item": "Ergonomic High-Back Chairs", "qty": 200, "unit": "Nos"}
@@ -489,6 +503,9 @@ def seed_initial_tenders(cursor):
             "closing_date": "18 Sep 2026",
             "status": "Active",
             "mii_min_requirement": "50% (Class-I)",
+            "min_turnover_requirement": "₹3.0 Cr",
+            "min_experience_years": 4,
+            "mandatory_docs": json.dumps(["PAN Card", "GSTIN Certificate", "CMMI Level 3 / ISO 27001", "CA Audited Turnover Statement"]),
             "boq_items": json.dumps([
                 {"item": "Enterprise GIS Web Platform License (3 Years)", "qty": 1, "unit": "License"},
                 {"item": "Cloud Hosting & AI Analytics Module", "qty": 1, "unit": "Suite"}
@@ -507,6 +524,9 @@ def seed_initial_tenders(cursor):
             "closing_date": "19 Sep 2026",
             "status": "Active",
             "mii_min_requirement": "50% (Class-I)",
+            "min_turnover_requirement": "₹1.5 Cr",
+            "min_experience_years": 3,
+            "mandatory_docs": json.dumps(["PAN Card", "GSTIN Certificate", "Drug Controller License / ISO 13485", "CA Statement"]),
             "boq_items": json.dumps([
                 {"item": "D-Type High Pressure Medical Oxygen Cylinders (46.7L)", "qty": 400, "unit": "Units"},
                 {"item": "Digital Pressure Regulators & Flowmeters", "qty": 400, "unit": "Units"}
@@ -518,12 +538,14 @@ def seed_initial_tenders(cursor):
         cursor.execute("""
         INSERT OR IGNORE INTO tenders (
             id, title, ministry, department, category, estimated_value,
-            emd_amount, published_date, closing_date, status, mii_min_requirement, boq_items, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            emd_amount, published_date, closing_date, status, mii_min_requirement,
+            min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             t["id"], t["title"], t["ministry"], t["department"], t["category"],
             t["estimated_value"], t["emd_amount"], t["published_date"], t["closing_date"],
-            t["status"], t["mii_min_requirement"], t["boq_items"], t["created_at"]
+            t["status"], t["mii_min_requirement"], t["min_turnover_requirement"],
+            t["min_experience_years"], t["mandatory_docs"], t["boq_items"], t["created_at"]
         ))
 
 def seed_initial_contracts(cursor):
@@ -542,21 +564,6 @@ def seed_initial_contracts(cursor):
             "payment_status": "Processing (Day 4/10)",
             "payment_due_date": "16 Sep 2026",
             "disbursement_ref": "PFMS-TXN-2026-0906-8812"
-        },
-        {
-            "id": "PO-GEM-2026-9874",
-            "tender_id": "GEM/2026/B/889105",
-            "bid_id": "BID-20493",
-            "vendor": "TechForce Pvt Ltd",
-            "buyer_org": "Smart Cities Mission Directorate",
-            "contract_value": "₹1.95 Cr",
-            "po_date": "04 Sep 2026",
-            "dsc_signed": 1,
-            "crac_status": "Approved",
-            "crac_date": "05 Sep 2026, 11:00 AM",
-            "payment_status": "Settled (100%)",
-            "payment_due_date": "14 Sep 2026",
-            "disbursement_ref": "PFMS-TXN-2026-0905-1102"
         }
     ]
     for c in contracts:
@@ -581,15 +588,6 @@ def seed_initial_cartel_reports(cursor):
             "description": "Bidders Kaveri Infotech and Shree Ganesh Networks submitted bids within 4 minutes from identical IP subnet 192.168.4.x with shared DSC Signatory X and identical BOQ markup formulas.",
             "flagged_vendors": json.dumps(["Kaveri Infotech", "Shree Ganesh Networks"]),
             "detected_at": "06 Sep 2026, 02:45 PM"
-        },
-        {
-            "id": 2,
-            "tender_id": "GEM/2026/B/891244",
-            "severity": "WARNING",
-            "title": "Artificial Price Clustering (Variance: 1.4%)",
-            "description": "L2 and L3 bids are synchronized with fixed margin offsets against estimated tender baseline to ensure rotation without true price competition.",
-            "flagged_vendors": json.dumps(["Kaveri Infotech", "Shree Ganesh Networks"]),
-            "detected_at": "06 Sep 2026, 02:46 PM"
         }
     ]
     for r in reports:
@@ -604,8 +602,7 @@ def seed_initial_vendors(cursor):
         ("Kaveri Infotech", "27KAVRI5678B1Z2", "KAVRI5678B", "UDYAM-MH-03-0044192", "IT Hardware", "Class-I Local Supplier (72%)", 94, "Low Risk", 0),
         ("TechForce Pvt Ltd", "07TFPL9912C1Z4", "TFPL9912C", "UDYAM-DL-02-0048123", "Software", "Class-I Local Supplier (85%)", 91, "Low Risk", 0),
         ("Balaji Enterprises", "27BLEP4411D1Z8", "BLEP4411D", "UDYAM-MH-03-0099812", "Furniture", "Class-II Local Supplier (42%)", 61, "Medium Risk", 0),
-        ("Shree Ganesh Networks", "27SGNT8823E1Z9", "SGNT8823E", "UDYAM-MH-03-0071234", "IT Hardware", "Class-II Local Supplier (50%)", 54, "Medium Risk (Cartel Alert)", 0),
-        ("UniVend Solutions", "06UNIV0000Z1Z0", "ABCDE1234F", "UDYAM-HR-00-INVALID", "Stationery", "Non-Compliant (<20%)", 22, "Critical High Risk", 1)
+        ("UniVend Solutions", "06UNIV0000Z1Z0", "ABCDE1234F", "UDYAM-HR-00-INVALID", "Stationery", "Non-Compliant (<20%)", 22, "High Risk", 1)
     ]
     for v in vendors:
         cursor.execute("""
@@ -639,6 +636,10 @@ def row_to_bid_dict(row) -> Dict[str, Any]:
         "ocrConfidence": row["ocr_confidence"],
         "flags": json.loads(row["flags"]) if row["flags"] else [],
         "extractedDocs": json.loads(row["extracted_docs"]) if row["extracted_docs"] else [],
+        "extractedEntities": json.loads(row["extracted_entities"]) if "extracted_entities" in row.keys() and row["extracted_entities"] else [],
+        "crossDocMatches": json.loads(row["cross_doc_matches"]) if "cross_doc_matches" in row.keys() and row["cross_doc_matches"] else [],
+        "requirementMatches": json.loads(row["requirement_matches"]) if "requirement_matches" in row.keys() and row["requirement_matches"] else [],
+        "complianceReport": json.loads(row["compliance_report"]) if "compliance_report" in row.keys() and row["compliance_report"] else None,
         "auditTrail": json.loads(row["audit_trail"]) if row["audit_trail"] else []
     }
 
@@ -686,39 +687,45 @@ def insert_bid(bid: Dict[str, Any]) -> Dict[str, Any]:
     INSERT OR REPLACE INTO bids (
         id, vendor, category, item, tender_id, tender_value, bid_amount,
         status, score, mii_content, turnover, experience, gst_status, pan_status,
-        msme_status, date, risk_level, ocr_confidence, flags, extracted_docs, audit_trail
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        msme_status, date, risk_level, ocr_confidence, flags, extracted_docs,
+        extracted_entities, cross_doc_matches, requirement_matches, compliance_report, audit_trail
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         bid["id"], bid["vendor"], bid["category"], bid.get("item", f"{bid['category']} Procurement"),
         bid["tenderId"], bid["tenderValue"], bid["bidAmount"],
         bid["status"], bid["score"], bid["miiContent"], bid["turnover"], bid["experience"],
         bid["gstStatus"], bid["panStatus"], bid["msmeStatus"], bid["date"],
         bid["riskLevel"], bid["ocrConfidence"],
-        json.dumps(bid["flags"]), json.dumps(bid["extractedDocs"]), json.dumps(bid["auditTrail"])
+        json.dumps(bid["flags"]), json.dumps(bid["extractedDocs"]),
+        json.dumps(bid.get("extractedEntities", [])),
+        json.dumps(bid.get("crossDocMatches", [])),
+        json.dumps(bid.get("requirementMatches", [])),
+        json.dumps(bid.get("complianceReport", None)),
+        json.dumps(bid["auditTrail"])
     ))
     conn.commit()
     conn.close()
     return bid
 
-def update_bid_status(bid_id: str, new_status: str, officer_notes: Optional[str] = None, officer_name: Optional[str] = "GeM Vigilance Officer") -> Optional[Dict[str, Any]]:
+def update_bid_status(bid_id: str, new_status: str, buyer_notes: Optional[str] = None, buyer_name: Optional[str] = "Government Procuring Authority") -> Optional[Dict[str, Any]]:
     bid = get_bid_by_id(bid_id)
     if not bid:
         return None
     
     timestamp = datetime.now().strftime("%d %b %Y, %I:%M %p")
-    note = officer_notes if officer_notes else f"Status manually transitioned to '{new_status}'."
+    note = buyer_notes if buyer_notes else f"Buyer transitioned status to '{new_status}'."
     bid["status"] = new_status
-    if new_status == "Compliant":
-        bid["riskLevel"] = "Low Risk (Officer Approved)"
-    elif new_status == "Rejected":
-        bid["riskLevel"] = "Critical High Risk (Officer Rejected)"
+    if new_status == "Compliant" or new_status == "Selected":
+        bid["riskLevel"] = "Low Risk (Buyer Approved / Selected)"
+    elif new_status == "Non-Compliant" or new_status == "Rejected":
+        bid["riskLevel"] = "High Risk (Buyer Rejected)"
     elif new_status == "Flagged":
-        bid["riskLevel"] = "Medium Risk (Officer Review Required)"
+        bid["riskLevel"] = "Medium Risk (Buyer Clarification Requested)"
     
     bid["auditTrail"].append({
         "timestamp": timestamp,
-        "action": f"Officer Action: Marked as {new_status} - {note}",
-        "agent": officer_name
+        "action": f"Buyer Action: Marked as {new_status} - {note}",
+        "agent": buyer_name
     })
 
     conn = get_connection()
@@ -730,6 +737,16 @@ def update_bid_status(bid_id: str, new_status: str, officer_notes: Optional[str]
         audit_trail = ?
     WHERE id = ?
     """, (bid["status"], bid["riskLevel"], json.dumps(bid["auditTrail"]), bid_id))
+    
+    # If final selection / awarded, also update tender record
+    if new_status == "Selected":
+        cursor.execute("""
+        UPDATE tenders SET
+            status = 'Awarded',
+            selected_bidder_id = ?
+        WHERE id = ?
+        """, (bid_id, bid["tenderId"]))
+
     conn.commit()
     conn.close()
     return bid
@@ -744,7 +761,7 @@ def delete_bid(bid_id: str) -> bool:
     return deleted
 
 # =========================================================================
-# Tenders, Contracts & Vendors Helpers
+# Tenders Helpers
 # =========================================================================
 
 def get_all_tenders() -> List[Dict[str, Any]]:
@@ -766,7 +783,11 @@ def get_all_tenders() -> List[Dict[str, Any]]:
             "closingDate": r["closing_date"],
             "status": r["status"],
             "miiMinRequirement": r["mii_min_requirement"],
-            "boqItems": json.loads(r["boq_items"]) if r["boq_items"] else []
+            "minTurnoverRequirement": r["min_turnover_requirement"] if "min_turnover_requirement" in r.keys() and r["min_turnover_requirement"] else "₹2.0 Cr",
+            "minExperienceYears": r["min_experience_years"] if "min_experience_years" in r.keys() and r["min_experience_years"] else 3,
+            "mandatoryDocs": json.loads(r["mandatory_docs"]) if "mandatory_docs" in r.keys() and r["mandatory_docs"] else ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"],
+            "boqItems": json.loads(r["boq_items"]) if r["boq_items"] else [],
+            "selectedBidderId": r["selected_bidder_id"] if "selected_bidder_id" in r.keys() else None
         })
     conn.close()
     return tenders
@@ -791,7 +812,11 @@ def get_tender_by_id(tender_id: str) -> Optional[Dict[str, Any]]:
         "closingDate": r["closing_date"],
         "status": r["status"],
         "miiMinRequirement": r["mii_min_requirement"],
-        "boqItems": json.loads(r["boq_items"]) if r["boq_items"] else []
+        "minTurnoverRequirement": r["min_turnover_requirement"] if "min_turnover_requirement" in r.keys() and r["min_turnover_requirement"] else "₹2.0 Cr",
+        "minExperienceYears": r["min_experience_years"] if "min_experience_years" in r.keys() and r["min_experience_years"] else 3,
+        "mandatoryDocs": json.loads(r["mandatory_docs"]) if "mandatory_docs" in r.keys() and r["mandatory_docs"] else ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"],
+        "boqItems": json.loads(r["boq_items"]) if r["boq_items"] else [],
+        "selectedBidderId": r["selected_bidder_id"] if "selected_bidder_id" in r.keys() else None
     }
 
 def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
@@ -800,12 +825,17 @@ def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
     cursor.execute("""
     INSERT INTO tenders (
         id, title, ministry, department, category, estimated_value,
-        emd_amount, published_date, closing_date, status, mii_min_requirement, boq_items, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        emd_amount, published_date, closing_date, status, mii_min_requirement,
+        min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     """, (
         t["id"], t["title"], t["ministry"], t["department"], t["category"],
         t["estimatedValue"], t["emdAmount"], t["publishedDate"], t["closingDate"],
-        t.get("status", "Active"), t["miiMinRequirement"], json.dumps(t.get("boqItems", [])),
+        t.get("status", "Active"), t["miiMinRequirement"],
+        t.get("minTurnoverRequirement", "₹2.0 Cr"),
+        t.get("minExperienceYears", 3),
+        json.dumps(t.get("mandatoryDocs", ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"])),
+        json.dumps(t.get("boqItems", [])),
         datetime.now().isoformat()
     ))
     conn.commit()
