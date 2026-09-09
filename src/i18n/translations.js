@@ -15,6 +15,43 @@ export const translations = {
     signIn: "Login",
     signUp: "Sign Up",
     profileTitle: "Account Profile",
+    buyerRole: "Buyer (Govt)",
+    bidderRole: "Bidder (Vendor)",
+    tabBuyer: "Buyer Portal",
+    tabBidder: "Bidder Portal",
+    loginAsBuyer: "🏛️ Login as Buyer (Govt)",
+    loginAsBidder: "🏢 Login as Bidder (Vendor)",
+    registerAsBuyer: "🏛️ Register as Buyer Org",
+    registerAsBidder: "🏢 Register as Bidder Vendor",
+    logOut: "Log Out",
+
+    // Bidder Dashboard Keys
+    bidderPortalTitle: "Tender Selection & AI Document Verification",
+    bidderPortalDesc: "Select published government tenders and join active bidding. Participation strictly requires autonomous 8-stage AI document verification (PAN, GSTIN, UDYAM MSME, CA Turnover Statement & Make-in-India declarations).",
+    activeTendersTab: "1. Active Tenders",
+    atRiskTendersTab: "2. At Risk Tenders",
+    nonCompliantTab: "3. Non-Compliant",
+    pendingVerificationTab: "4. Pending Verification",
+    mySubmittedBidsTab: "My Submitted Bids",
+    joinBiddingBtn: "⚡ Join Bidding (Verify Documents via AI)",
+    inspectCriteriaBtn: "Inspect Full Criteria & BOQ",
+    allTenders: "All Tenders",
+    tenderEstimatedValue: "Tender Estimated Value",
+    mandatoryLocalContent: "Mandatory Local Content (MII)",
+    minTurnoverReq: "Min Turnover Requirement",
+    minExperienceReq: "Min Experience",
+    emdAmountLabel: "EMD Amount",
+    requiredDocsChecklist: "Required AI Verification Documents",
+    aiScore: "AI Score",
+
+    // Buyer Dashboard Keys
+    buyerPortalTitle: "Autonomous Procurement & Bidder Selection",
+    buyerPortalDesc: "Create tenders, define compliance requirements, review AI verification dossiers, and make final bidder awards.",
+    createNewBidBtn: "Create New Bid / Tender",
+    publishedTendersKPI: "Published Tenders",
+    totalApplicationsKPI: "Total Applications",
+    compliantBidsKPI: "Passed Compliance",
+    awardedContractsKPI: "Awarded Contracts",
 
     // Marquee Notifications
     latestNotificationsBadge: "LATEST NOTIFICATIONS",
@@ -389,7 +426,7 @@ export const translations = {
   },
 
   hi: {
-    // Navbar
+    // Navbar (Hindi)
     brandTitle: "GeM",
     brandSubtitle: "खरीद आसूचना (Procurement Intelligence)",
     searchPlaceholder: "बोली, विक्रेता खोजें...",
@@ -401,6 +438,43 @@ export const translations = {
     signIn: "लॉगिन",
     signUp: "साइन अप",
     profileTitle: "खाता प्रोफ़ाइल",
+    buyerRole: "क्रेता (सरकारी)",
+    bidderRole: "बोलीदाता (विक्रेता)",
+    tabBuyer: "क्रेता पोर्टल",
+    tabBidder: "बोलीदाता पोर्टल",
+    loginAsBuyer: "🏛️ क्रेता (सरकारी) के रूप में लॉगिन करें",
+    loginAsBidder: "🏢 बोलीदाता (विक्रेता) के रूप में लॉगिन करें",
+    registerAsBuyer: "🏛️ क्रेता संगठन पंजीकृत करें",
+    registerAsBidder: "🏢 बोलीदाता विक्रेता पंजीकृत करें",
+    logOut: "लॉग आउट",
+
+    // Bidder Dashboard Keys (Hindi)
+    bidderPortalTitle: "निविदा चयन और AI दस्तावेज़ सत्यापन",
+    bidderPortalDesc: "प्रकाशित सरकारी निविदाएं चुनें और सक्रिय बोली में भाग लें। भागीदारी के लिए 8-चरणीय स्वायत्त AI दस्तावेज़ सत्यापन (PAN, GSTIN, उद्यम MSME, CA टर्नओवर व मेक-इन-इंडिया घोषणा) अनिवार्य है।",
+    activeTendersTab: "१. सक्रिय निविदाएं",
+    atRiskTendersTab: "२. जोखीम वाली निविदाएं",
+    nonCompliantTab: "३. गैर-अनुपालन निविदाएं",
+    pendingVerificationTab: "४. लंबित सत्यापन",
+    mySubmittedBidsTab: "मेरी प्रस्तुत बोलियां",
+    joinBiddingBtn: "⚡ बोली में शामिल हों (AI दस्तावेज़ सत्यापन)",
+    inspectCriteriaBtn: "पूर्ण मापदंड और BOQ देखें",
+    allTenders: "सभी निविदाएं",
+    tenderEstimatedValue: "निविदा अनुमानित मूल्य",
+    mandatoryLocalContent: "अनिवार्य स्थानीय सामग्री (MII)",
+    minTurnoverReq: "न्यूनतम टर्नओवर आवश्यकता",
+    minExperienceReq: "न्यूनतम अनुभव",
+    emdAmountLabel: "ईएमडी राशि",
+    requiredDocsChecklist: "आवश्यक AI सत्यापन दस्तावेज़",
+    aiScore: "AI स्कोर",
+
+    // Buyer Dashboard Keys (Hindi)
+    buyerPortalTitle: "स्वायत्त खरीद और बोलीदाता चयन",
+    buyerPortalDesc: "निविदाएं बनाएं, अनुपालन मानदंड तय करें, AI सत्यापन रिपोर्ट की समीक्षा करें और अंतिम अनुबंध आवंटित करें।",
+    createNewBidBtn: "नई निविदा बनाएं",
+    publishedTendersKPI: "प्रकाशित निविदाएं",
+    totalApplicationsKPI: "कुल आवेदन",
+    compliantBidsKPI: "सत्यापित अनुपालन",
+    awardedContractsKPI: "आवंटित अनुबंध",
 
     // Marquee Notifications (Hindi)
     latestNotificationsBadge: "नवीनतम सूचनाएं",
@@ -775,7 +849,7 @@ export const translations = {
   },
 
   mr: {
-    // Navbar
+    // Navbar (Marathi)
     brandTitle: "GeM",
     brandSubtitle: "खरेदी बुद्धिमत्ता (Procurement Intelligence)",
     searchPlaceholder: "निविदा, विक्रेते शोधा...",
@@ -787,6 +861,43 @@ export const translations = {
     signIn: "लॉगिन",
     signUp: "नोंदणी करा",
     profileTitle: "खाते प्रोफाईल",
+    buyerRole: "खरेदीदार (शासकीय)",
+    bidderRole: "निविदाकार (विक्रेता)",
+    tabBuyer: "खरेदीदार पोर्टल",
+    tabBidder: "निविदाकार पोर्टल",
+    loginAsBuyer: "🏛️ खरेदीदार (शासकीय) म्हणून लॉगिन करा",
+    loginAsBidder: "🏢 निविदाकार (विक्रेता) म्हणून लॉगिन करा",
+    registerAsBuyer: "🏛️ खरेदीदार संस्था नोंदणी करा",
+    registerAsBidder: "🏢 निविदाकार विक्रेता नोंदणी करा",
+    logOut: "लॉग आउट",
+
+    // Bidder Dashboard Keys (Marathi)
+    bidderPortalTitle: "निविदा निवड आणि AI दस्तऐवज पडताळणी",
+    bidderPortalDesc: "प्रकाशित शासकीय निविदा निवडा आणि सक्रिय बोलीमध्ये सामील व्हा. सहभागासाठी 8-टप्प्यांची स्वायत्त AI दस्तऐवज पडताळणी (PAN, GSTIN, उद्यम MSME, CA उलाढाल व मेक-इन-इंडिया घोषणापत्र) अनिवार्य आहे.",
+    activeTendersTab: "१. सक्रिय निविदा",
+    atRiskTendersTab: "२. जोखीम असलेल्या निविदा",
+    nonCompliantTab: "३. गैर-अनुपालन निविदा",
+    pendingVerificationTab: "४. प्रलंबित पडताळणी",
+    mySubmittedBidsTab: "माझ्या सादर केलेल्या निविदा",
+    joinBiddingBtn: "⚡ बोलीत सामील व्हा (AI दस्तऐवज पडताळणी)",
+    inspectCriteriaBtn: "संपूर्ण निकष व BOQ पहा",
+    allTenders: "सर्व निविदा",
+    tenderEstimatedValue: "निविदा अंदाजित मूल्य",
+    mandatoryLocalContent: "अनिवार्य स्थानिक सामग्री (MII)",
+    minTurnoverReq: "किमान उलाढाल आवश्यकता",
+    minExperienceReq: "किमान अनुभव",
+    emdAmountLabel: "ईएमडी रक्कम",
+    requiredDocsChecklist: "आवश्यक AI पडताळणी दस्तऐवज",
+    aiScore: "AI गुण",
+
+    // Buyer Dashboard Keys (Marathi)
+    buyerPortalTitle: "स्वायत्त खरेदी आणि निविदाकार निवड",
+    buyerPortalDesc: "निविदा तयार करा, अनुपालन निकष ठरवा, AI पडताळणी अहवालांचे पुनरावलोकन करा आणि अंतिम कंत्राट मंजूर करा.",
+    createNewBidBtn: "नवीन निविदा तयार करा",
+    publishedTendersKPI: "प्रकाशित निविदा",
+    totalApplicationsKPI: "एकूण अर्ज",
+    compliantBidsKPI: "अनुपालन उत्तीर्ण",
+    awardedContractsKPI: "मंजूर कंत्राटे",
 
     // Marquee Notifications (Marathi)
     latestNotificationsBadge: "नवीनतम सूचना",

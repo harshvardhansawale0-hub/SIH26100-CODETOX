@@ -85,10 +85,10 @@ export default function Navbar({
             transition: 'all 0.2s ease',
             boxShadow: currentRole === 'buyer' ? '0 2px 8px rgba(2, 132, 199, 0.4)' : 'none'
           }}
-          title="Government / Procuring Authority Role"
+          title={t('buyerRole') || "Government / Procuring Authority Role"}
         >
           <span>🏛️</span>
-          <span>Buyer (Govt)</span>
+          <span>{t('buyerRole') || 'Buyer (Govt)'}</span>
           {isBuyerAuthenticated && (
             <span style={{ fontSize: '0.65rem', backgroundColor: '#38bdf8', color: '#071526', padding: '1px 5px', borderRadius: '10px', fontWeight: '900' }}>✓</span>
           )}
@@ -112,10 +112,10 @@ export default function Navbar({
             transition: 'all 0.2s ease',
             boxShadow: currentRole === 'bidder' ? '0 2px 8px rgba(16, 185, 129, 0.4)' : 'none'
           }}
-          title="Vendor / Company Role"
+          title={t('bidderRole') || "Vendor / Company Role"}
         >
           <span>🏢</span>
-          <span>Bidder (Vendor)</span>
+          <span>{t('bidderRole') || 'Bidder (Vendor)'}</span>
           {isBidderAuthenticated && (
             <span style={{ fontSize: '0.65rem', backgroundColor: '#34d399', color: '#071526', padding: '1px 5px', borderRadius: '10px', fontWeight: '900' }}>✓</span>
           )}
@@ -184,7 +184,7 @@ export default function Navbar({
               onClick={(e) => toggleDropdown('buyer', e)}
               style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: activeTab === 'Buyer' ? '#38bdf8' : 'inherit' }}
             >
-              <span>🏛️ Buyer Portal</span>
+              <span>🏛️ {t('tabBuyer') || 'Buyer Portal'}</span>
               {!isBuyerAuthenticated && <Lock size={12} style={{ color: '#f59e0b', opacity: 0.9 }} title="Login Required" />}
               <span className={`nav-caret ${openDropdown === 'buyer' ? 'open' : ''}`}>▼</span>
             </button>
@@ -195,20 +195,20 @@ export default function Navbar({
                   className="gem-dropdown-item"
                   onClick={() => handleDropdownSelect('Buyer')}
                 >
-                  📋 Published Bids Catalog
+                  📋 {t('publishedTendersKPI') || 'Published Bids Catalog'}
                 </button>
                 <button
                   className="gem-dropdown-item"
                   onClick={() => handleDropdownSelect('Buyer')}
                 >
-                  🤖 Review AI Compliance Reports
+                  🤖 {t('reviewAiDossiers') || 'Review AI Compliance Reports'}
                 </button>
                 <button
                   className="gem-dropdown-item"
                   onClick={() => handleDropdownSelect('Buyer', onOpenCreateBid)}
                   style={{ color: '#0284c7', fontWeight: '700' }}
                 >
-                  ➕ Create New Bid & Criteria
+                  ➕ {t('createNewBidBtn') || 'Create New Bid & Criteria'}
                 </button>
               </div>
             )}
@@ -220,7 +220,7 @@ export default function Navbar({
               onClick={(e) => toggleDropdown('bidder', e)}
               style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: activeTab === 'Bidder' || activeTab === 'Bid' ? '#34d399' : 'inherit' }}
             >
-              <span>🏢 Bidder Portal</span>
+              <span>🏢 {t('tabBidder') || 'Bidder Portal'}</span>
               {!isBidderAuthenticated && <Lock size={12} style={{ color: '#f59e0b', opacity: 0.9 }} title="Login Required" />}
               <span className={`nav-caret ${openDropdown === 'bidder' ? 'open' : ''}`}>▼</span>
             </button>
@@ -231,20 +231,20 @@ export default function Navbar({
                   className="gem-dropdown-item"
                   onClick={() => handleDropdownSelect('Bidder')}
                 >
-                  📄 Browse Available Bids
+                  📄 {t('allTenders') || 'Browse Available Bids'}
                 </button>
                 <button
                   className="gem-dropdown-item"
                   onClick={() => handleDropdownSelect('Bidder', onOpenBidVerifier)}
                   style={{ color: '#10b981', fontWeight: '700' }}
                 >
-                  ⚡ Apply & Upload Documents (OCR)
+                  ⚡ {t('joinBiddingBtn') || 'Apply & Upload Documents (OCR)'}
                 </button>
                 <button
                   className="gem-dropdown-item"
                   onClick={() => handleDropdownSelect('Bidder')}
                 >
-                  ✓ My Submitted Applications
+                  ✓ {t('mySubmittedBidsTab') || 'My Submitted Applications'}
                 </button>
               </div>
             )}
@@ -335,7 +335,7 @@ export default function Navbar({
                   {currentUser.fullName || (currentUser.role === 'buyer' ? 'Buyer Officer' : 'Vendor Bidder')}
                 </span>
                 <span style={{ fontSize: '0.65rem', color: '#94a3b8', textTransform: 'capitalize' }}>
-                  {currentUser.role === 'buyer' ? 'Buyer (Govt)' : 'Bidder (Seller)'}
+                  {currentUser.role === 'buyer' ? (t('buyerRole') || 'Buyer (Govt)') : (t('bidderRole') || 'Bidder (Seller)')}
                 </span>
               </div>
               <ChevronDown size={14} style={{ color: '#94a3b8' }} />
@@ -355,7 +355,7 @@ export default function Navbar({
                     setActiveTab(currentUser.role === 'buyer' ? 'Buyer' : 'Bidder');
                   }}
                 >
-                  🚀 Go to {currentUser.role === 'buyer' ? 'Buyer Portal' : 'Bidder Portal'}
+                  🚀 {currentUser.role === 'buyer' ? (t('tabBuyer') || 'Buyer Portal') : (t('tabBidder') || 'Bidder Portal')}
                 </button>
                 <button
                   className="gem-dropdown-item"
@@ -364,7 +364,7 @@ export default function Navbar({
                     onOpenAuth('signin', currentUser.role === 'buyer' ? 'bidder' : 'buyer');
                   }}
                 >
-                  🔄 Switch to {currentUser.role === 'buyer' ? 'Bidder / Seller' : 'Buyer'}
+                  🔄 Switch Role
                 </button>
                 <button
                   className="gem-dropdown-item"
@@ -374,7 +374,7 @@ export default function Navbar({
                   }}
                   style={{ color: '#ef4444', fontWeight: '700', borderTop: '1px solid #1e385b' }}
                 >
-                  🚪 Log Out
+                  🚪 {t('logOut') || 'Log Out'}
                 </button>
               </div>
             )}
@@ -396,10 +396,10 @@ export default function Navbar({
                 gap: '0.3rem',
                 transition: 'all 0.2s ease'
               }}
-              title="Log out of session"
+              title={t('logOut') || "Log out of session"}
             >
               <LogOut size={14} />
-              <span>Log Out</span>
+              <span>{t('logOut') || 'Log Out'}</span>
             </button>
           </div>
         ) : (
@@ -424,7 +424,7 @@ export default function Navbar({
                       handleDropdownSelect('Buyer', () => onOpenAuth('signin', 'buyer'));
                     }}
                   >
-                    🏛️ Login as Buyer (Govt)
+                    {t('loginAsBuyer') || '🏛️ Login as Buyer (Govt)'}
                   </button>
                   <button
                     className="gem-dropdown-item"
@@ -433,7 +433,7 @@ export default function Navbar({
                       handleDropdownSelect('Bidder', () => onOpenAuth('signin', 'bidder'));
                     }}
                   >
-                    🏢 Login as Bidder (Vendor)
+                    {t('loginAsBidder') || '🏢 Login as Bidder (Vendor)'}
                   </button>
                 </div>
               )}
@@ -459,7 +459,7 @@ export default function Navbar({
                       handleDropdownSelect('Buyer', () => onOpenAuth('signup', 'buyer'));
                     }}
                   >
-                    🏛️ Register as Buyer Org
+                    {t('registerAsBuyer') || '🏛️ Register as Buyer Org'}
                   </button>
                   <button
                     className="gem-dropdown-item"
@@ -468,7 +468,7 @@ export default function Navbar({
                       handleDropdownSelect('Bidder', () => onOpenAuth('signup', 'bidder'));
                     }}
                   >
-                    🏢 Register as Bidder Vendor
+                    {t('registerAsBidder') || '🏢 Register as Bidder Vendor'}
                   </button>
                 </div>
               )}

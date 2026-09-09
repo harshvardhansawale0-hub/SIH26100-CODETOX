@@ -102,10 +102,10 @@ export default function BuyerDashboard({
               )}
             </div>
             <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: 0 }}>
-              Autonomous Procurement & Bidder Selection
+              {t('buyerPortalTitle') || 'Autonomous Procurement & Bidder Selection'}
             </h1>
             <p style={{ color: '#94a3b8', fontSize: '0.92rem', marginTop: '0.3rem' }}>
-              Create tenders, define compliance requirements, review AI verification dossiers, and make final bidder awards.
+              {t('buyerPortalDesc') || 'Create tenders, define compliance requirements, review AI verification dossiers, and make final bidder awards.'}
             </p>
           </div>
 
@@ -128,7 +128,7 @@ export default function BuyerDashboard({
                 transition: 'all 0.2s ease'
               }}
             >
-              <PlusCircle size={18} /> Create New Bid / Tender
+              <PlusCircle size={18} /> {t('createNewBidBtn') || 'Create New Bid / Tender'}
             </button>
           </div>
         </div>
@@ -137,7 +137,7 @@ export default function BuyerDashboard({
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
           <div style={{ backgroundColor: '#0c1f36', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94a3b8', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
-              <span>Published Tenders</span>
+              <span>{t('publishedTendersKPI') || 'Published Tenders'}</span>
               <FileText size={18} color="#38bdf8" />
             </div>
             <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#ffffff' }}>
