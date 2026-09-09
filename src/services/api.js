@@ -1,18 +1,43 @@
-/**
- * GeM AI Procurement Platform - Frontend API Integration Service
- * Connects React UI to FastAPI backend running on http://127.0.0.1:8000
- * SIH 2026 (Problem Statement: SIH26100) - Team Codetox
- */
-
 import { initialBids, summaryMetrics } from '../data/bidsData';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+
+// Auth token management
+let _authToken = null;
+
+export function setAuthToken(token) {
+  _authToken = token;
+  if (token) {
+    localStorage.setItem('gem_auth_token', token);
+  } else {
+    localStorage.removeItem('gem_auth_token');
+  }
+}
+
+export function getAuthToken() {
+  if (!_authToken) {
+    _authToken = localStorage.getItem('gem_auth_token');
+  }
+  return _authToken;
+}
+
+export function clearAuth() {
+  _authToken = null;
+  localStorage.removeItem('gem_auth_token');
+  localStorage.removeItem('gem_user');
+}
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const defaultHeaders = {
     'Accept': 'application/json',
   };
+
+  // Include auth token if available
+  const token = getAuthToken();
+  if (token) {
+    defaultHeaders['Authorization'] = `Bearer ${token}`;
+  }
 
   if (!(options.body instanceof FormData)) {
     defaultHeaders['Content-Type'] = 'application/json';
@@ -249,6 +274,13 @@ export const gemApi = {
     }
   },
 
+  async publishTender(payload) {
+    return await request('/api/tenders', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+
   async getTenderApplications(tenderId) {
     try {
       return await request(`/api/tenders/${tenderId}/applications`);
@@ -280,6 +312,20 @@ export const gemApi = {
     }
   },
 
+  async approveCrac(poId, notes = 'Goods inspected and found compliant with tender BOQ specifications.') {
+    return await request(`/api/contracts/${poId}/crac`, {
+      method: 'PATCH',
+      body: JSON.stringify({ cracStatus: 'Approved', inspectionNotes: notes })
+    });
+  },
+
+  async processPayment(poId) {
+    return await request(`/api/contracts/${poId}/payment`, {
+      method: 'PATCH',
+      body: JSON.stringify({ paymentStatus: 'Settled (100%)', disbursementRef: `PFMS-${Date.now()}` })
+    });
+  },
+
   // 6. Platform Overview Stats
   async getStats() {
     try {
@@ -291,43 +337,26 @@ export const gemApi = {
     }
   },
 
-  // 7. Authentication (Strictly Buyer & Bidder)
+  // 7. Authentication
   async login(email, password, role = 'bidder') {
-    try {
-      return await request('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password, role })
-      });
-    } catch (err) {
-      return {
-        token: `mock_jwt_${Date.now()}`,
-        user: {
-          id: 1,
-          fullName: email.split('@')[0].toUpperCase(),
-          email,
-          role: role === 'buyer' ? 'buyer' : 'bidder',
-          organization: role === 'buyer' ? 'National Procurement Directorate' : 'Apex Technologies Ltd.'
-        },
-        message: `Logged in as ${role === 'buyer' ? 'Buyer (Government Authority)' : 'Bidder (Vendor)'}.`
-      };
-    }
+    return await request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, role })
+    });
   },
 
   async register(userData) {
+    return await request('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  },
+
+  async logout() {
     try {
-      return await request('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(userData)
-      });
-    } catch (err) {
-      return {
-        token: `mock_jwt_${Date.now()}`,
-        user: {
-          ...userData,
-          role: userData.role === 'buyer' ? 'buyer' : 'bidder'
-        },
-        message: 'Registered successfully (demo fallback).'
-      };
+      await request('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignore network errors on logout
     }
   }
 };

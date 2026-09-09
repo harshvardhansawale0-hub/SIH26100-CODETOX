@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { X, Lock, Mail, User, ShieldCheck, Building2, Landmark, Sparkles, AlertCircle } from 'lucide-react';
+import { X, Lock, Mail, User, ShieldCheck, Building2, Landmark, Sparkles, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
+import { setAuthToken } from '../services/api';
 
 export default function AuthModal({
   isOpen,
@@ -21,13 +22,13 @@ export default function AuthModal({
   const [fullName, setFullName] = useState('');
   const [organization, setOrganization] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   // Sync mode and initial role when modal opens
   useEffect(() => {
     setAuthMode(mode || 'signin');
     setRole(initialRole === 'buyer' ? 'buyer' : 'bidder');
-    setErrorMessage('');
+    setErrorMsg('');
   }, [isOpen, mode, initialRole]);
 
   const handleQuickLogin = (demoRole) => {
@@ -52,6 +53,9 @@ export default function AuthModal({
           udyam: "UDYAM-MH-03-0012345"
         };
 
+    const token = `gem_demo_jwt_${Date.now()}`;
+    setAuthToken(token);
+    localStorage.setItem('gem_user', JSON.stringify(demoUser));
     if (onAuthSuccess) {
       onAuthSuccess(demoUser);
     }
@@ -61,18 +65,14 @@ export default function AuthModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setErrorMessage('');
+    setErrorMsg('');
     try {
       if (authMode === 'signin') {
         const res = await gemApi.login(email, password, role);
-        const userData = res.user || {
-          email,
-          role,
-          fullName: fullName || email.split('@')[0],
-          organization: role === 'buyer' ? 'Government Procurement Division' : 'Registered Vendor Enterprise'
-        };
+        setAuthToken(res.token);
+        localStorage.setItem('gem_user', JSON.stringify(res.user));
         if (onAuthSuccess) {
-          onAuthSuccess(userData);
+          onAuthSuccess(res.user);
         }
       } else {
         const res = await gemApi.register({
@@ -82,28 +82,15 @@ export default function AuthModal({
           organization: organization || (role === 'buyer' ? 'Government Ministry / Dept' : 'Vendor Enterprise'),
           role: role
         });
-        const userData = res.user || {
-          email,
-          role,
-          fullName: fullName || email.split('@')[0],
-          organization: organization || (role === 'buyer' ? 'Government Ministry / Dept' : 'Vendor Enterprise')
-        };
+        setAuthToken(res.token);
+        localStorage.setItem('gem_user', JSON.stringify(res.user));
         if (onAuthSuccess) {
-          onAuthSuccess(userData);
+          onAuthSuccess(res.user);
         }
       }
       onClose();
     } catch (err) {
-      console.warn('Auth fallback:', err);
-      if (onAuthSuccess) {
-        onAuthSuccess({
-          email,
-          role,
-          fullName: fullName || email.split('@')[0],
-          organization: role === 'buyer' ? 'Government Ministry' : 'Vendor Enterprise'
-        });
-      }
-      onClose();
+      setErrorMsg(err.message || 'Authentication failed. Please check your credentials.');
     } finally {
       setIsSubmitting(false);
     }
@@ -236,6 +223,16 @@ export default function AuthModal({
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {errorMsg && (
+              <div style={{
+                display: 'flex', alignItems: 'center', gap: '0.5rem',
+                padding: '0.6rem 0.8rem', borderRadius: '6px',
+                backgroundColor: '#fef2f2', border: '1px solid #fecaca',
+                color: '#dc2626', fontSize: '0.82rem', fontWeight: '600'
+              }}>
+                <AlertTriangle size={16} /> {errorMsg}
+              </div>
+            )}
             {authMode === 'signup' && (
               <>
                 <div>

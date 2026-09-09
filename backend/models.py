@@ -247,13 +247,49 @@ class CartelDetectionAlert(BaseModel):
     flaggedVendors: List[str]
     detectedAt: Optional[str] = None
 
+class CartelAlert(BaseModel):
+    tenderId: str
+    severity: str
+    title: str
+    description: str
+    flaggedVendors: List[str]
+
+class AuctionBidItem(BaseModel):
+    rank: str
+    vendor: str
+    amount: str
+    diffL1: str
+    flag: str
+    risk: str
+    ipAddress: Optional[str] = None
+    dscIssuer: Optional[str] = None
+
+class GraphNode(BaseModel):
+    id: str
+    label: str
+    type: str  # "vendor", "tender", "ip", "dsc"
+    risk: str
+
+class GraphLink(BaseModel):
+    source: str
+    target: str
+    relationship: str
+    weight: float
+
+class ReverseAuctionStep(BaseModel):
+    roundNumber: int
+    currentL1: str
+    currentL1Vendor: str
+    timeRemainingSeconds: int
+    bidsInRound: List[Dict[str, Any]]
+
 class AuctionAnalysisResponse(BaseModel):
     tenderId: str
     tenderValue: str
-    bids: List[Dict[str, Any]]
-    cartelAlerts: List[CartelDetectionAlert]
-    graphNodes: List[Dict[str, Any]]
-    graphLinks: List[Dict[str, Any]]
+    bids: List[Any]
+    cartelAlerts: List[Any]
+    graphNodes: List[Any]
+    graphLinks: List[Any]
 
 
 # ==========================================

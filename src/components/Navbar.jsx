@@ -134,20 +134,49 @@ export default function Navbar({
         />
       </div>
 
-      {/* Navigation Tabs with Role-Specific Portals */}
+      {/* Navigation Tabs with Dropdowns */}
       <nav className="nav-menu-links">
-        {/* 1. Home / Forward Auction */}
-        <button
-          className={`nav-tab-btn ${activeTab === 'Forward' ? 'active' : ''}`}
-          onClick={() => {
-            setOpenDropdown(null);
-            setActiveTab('Forward');
-          }}
-        >
-          {t('tabForward')}
-        </button>
+        {/* 1. Forward Auction Dropdown */}
+        <div className="nav-dropdown-container">
+          <button
+            className={`nav-tab-btn ${activeTab === 'Forward' ? 'active' : ''}`}
+            onClick={(e) => toggleDropdown('forward', e)}
+          >
+            <span>{t('tabForward')}</span>
+            <span className={`nav-caret ${openDropdown === 'forward' ? 'open' : ''}`}>▼</span>
+          </button>
 
-        {/* 2. Role-Adaptive Portal Tab (Buyer Portal vs Bidder Portal) */}
+          {openDropdown === 'forward' && (
+            <div className="gem-dropdown-menu">
+              <button
+                className="gem-dropdown-item"
+                onClick={() => handleDropdownSelect('Auction')}
+              >
+                {t('ongoingAuctions')}
+              </button>
+              <button
+                className="gem-dropdown-item"
+                onClick={() => {
+                  handleSwitchRole('buyer');
+                  handleDropdownSelect('Buyer', () => onOpenAuth('signup', 'buyer'));
+                }}
+              >
+                🏛️ Buyer Registration
+              </button>
+              <button
+                className="gem-dropdown-item"
+                onClick={() => {
+                  handleSwitchRole('bidder');
+                  handleDropdownSelect('Bidder', () => onOpenAuth('signup', 'bidder'));
+                }}
+              >
+                🏢 Bidder Registration
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* 2. Primary Role Dashboard Navigation */}
         {currentRole === 'buyer' ? (
           <div className="nav-dropdown-container">
             <button
@@ -222,7 +251,29 @@ export default function Navbar({
           </div>
         )}
 
-        {/* 3. Auction Intelligence Analysis */}
+        {/* 3. Tenders Tab */}
+        <button
+          className={`nav-tab-btn ${activeTab === 'Tenders' ? 'active' : ''}`}
+          onClick={() => {
+            setOpenDropdown(null);
+            setActiveTab('Tenders');
+          }}
+        >
+          {t('tabTenders') || 'Tenders'}
+        </button>
+
+        {/* 4. Contracts Tab */}
+        <button
+          className={`nav-tab-btn ${activeTab === 'Contracts' ? 'active' : ''}`}
+          onClick={() => {
+            setOpenDropdown(null);
+            setActiveTab('Contracts');
+          }}
+        >
+          {t('tabContracts') || 'Contracts'}
+        </button>
+
+        {/* 5. Auction Tab */}
         <button
           className={`nav-tab-btn ${activeTab === 'Auction' ? 'active' : ''}`}
           onClick={() => {
@@ -233,7 +284,7 @@ export default function Navbar({
           {t('tabAuction')}
         </button>
 
-        {/* 4. About & Contact */}
+        {/* 6. About & Contact Tabs */}
         <button
           className={`nav-tab-btn ${activeTab === 'About' ? 'active' : ''}`}
           onClick={() => {
@@ -254,7 +305,7 @@ export default function Navbar({
         </button>
       </nav>
 
-      {/* Language Switcher & Auth Actions */}
+      {/* Language Switcher & Auth Actions with Dropdowns */}
       <div className="nav-actions-group">
         {/* Multi-language Selector (English / हिंदी / मराठी) */}
         <LanguageSelector />
@@ -382,7 +433,7 @@ export default function Navbar({
                       handleDropdownSelect('Bidder', () => onOpenAuth('signin', 'bidder'));
                     }}
                   >
-                    🏢 Login as Bidder / Seller (Vendor)
+                    🏢 Login as Bidder (Vendor)
                   </button>
                 </div>
               )}

@@ -707,25 +707,27 @@ def insert_bid(bid: Dict[str, Any]) -> Dict[str, Any]:
     conn.close()
     return bid
 
-def update_bid_status(bid_id: str, new_status: str, buyer_notes: Optional[str] = None, buyer_name: Optional[str] = "Government Procuring Authority") -> Optional[Dict[str, Any]]:
+def update_bid_status(bid_id: str, new_status: str, buyer_notes: Optional[str] = None, buyer_name: Optional[str] = "Government Procuring Authority", officer_notes: Optional[str] = None, officer_name: Optional[str] = None) -> Optional[Dict[str, Any]]:
     bid = get_bid_by_id(bid_id)
     if not bid:
         return None
     
+    effective_notes = buyer_notes or officer_notes
+    effective_name = officer_name or buyer_name or "Government Procuring Authority"
     timestamp = datetime.now().strftime("%d %b %Y, %I:%M %p")
-    note = buyer_notes if buyer_notes else f"Buyer transitioned status to '{new_status}'."
+    note = effective_notes if effective_notes else f"Authority transitioned status to '{new_status}'."
     bid["status"] = new_status
     if new_status == "Compliant" or new_status == "Selected":
-        bid["riskLevel"] = "Low Risk (Buyer Approved / Selected)"
+        bid["riskLevel"] = "Low Risk (Approved / Selected)"
     elif new_status == "Non-Compliant" or new_status == "Rejected":
-        bid["riskLevel"] = "High Risk (Buyer Rejected)"
+        bid["riskLevel"] = "High Risk (Rejected)"
     elif new_status == "Flagged":
-        bid["riskLevel"] = "Medium Risk (Buyer Clarification Requested)"
+        bid["riskLevel"] = "Medium Risk (Clarification Requested)"
     
     bid["auditTrail"].append({
         "timestamp": timestamp,
-        "action": f"Buyer Action: Marked as {new_status} - {note}",
-        "agent": buyer_name
+        "action": f"Authority Action: Marked as {new_status} - {note}",
+        "agent": effective_name
     })
 
     conn = get_connection()

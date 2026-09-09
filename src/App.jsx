@@ -17,9 +17,13 @@ import AboutSIHView from './components/AboutSIHView';
 import ContactView from './components/ContactView';
 import AuthModal from './components/AuthModal';
 import AuthGate from './components/AuthGate';
+import TendersView from './components/TendersView';
+import TenderDetailModal from './components/TenderDetailModal';
+import ContractsView from './components/ContractsView';
 import { initialBids, initialTenders } from './data/bidsData';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { gemApi } from './services/api';
+import { clearAuth, setAuthToken } from './services/api';
 
 function MainApp() {
   const { t } = useLanguage();
@@ -27,38 +31,36 @@ function MainApp() {
   // Session State: Persisted authenticated user (null if logged out)
   const [currentUser, setCurrentUser] = useState(() => {
     try {
-      const saved = localStorage.getItem('gem_auth_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
+      const saved = localStorage.getItem('gem_auth_user') || localStorage.getItem('gem_user');
+      if (saved) {
+        const token = localStorage.getItem('gem_auth_token');
+        if (token) setAuthToken(token);
+        return JSON.parse(saved);
+      }
+    } catch {}
+    return null;
   });
 
   // Role Context: 'buyer' or 'bidder'
   const [currentRole, setCurrentRole] = useState(() => {
-    const savedUser = localStorage.getItem('gem_auth_user');
-    if (savedUser) {
-      try {
-        const parsed = JSON.parse(savedUser);
-        if (parsed && parsed.role) return parsed.role;
-      } catch {}
-    }
+    if (currentUser && currentUser.role) return currentUser.role;
     return localStorage.getItem('gem_user_role') || 'buyer';
   });
 
-  const [activeTab, setActiveTab] = useState('Forward'); // 'Forward', 'Buyer', 'Bidder', 'Auction', 'About', 'Contact'
+  const [activeTab, setActiveTab] = useState('Forward'); // 'Forward', 'Buyer', 'Bidder', 'Tenders', 'Contracts', 'Auction', 'About', 'Contact'
   const [searchQuery, setSearchQuery] = useState('');
 
   // Tenders state (Buyer creates, Bidder applies)
-  const [tenders, setTenders] = useState(initialTenders);
+  const [tenders, setTenders] = useState(initialTenders || []);
   const [isLoadingTenders, setIsLoadingTenders] = useState(false);
 
   // Bids state (Bidder submits, Buyer reviews & awards)
-  const [bids, setBids] = useState(initialBids);
+  const [bids, setBids] = useState(initialBids || []);
   const [isLoadingBids, setIsLoadingBids] = useState(false);
 
   // Modals & Active Selections
   const [selectedBid, setSelectedBid] = useState(null);
+  const [selectedTender, setSelectedTender] = useState(null);
   const [selectedTenderForVerifier, setSelectedTenderForVerifier] = useState(null);
   const [isVerifierOpen, setIsVerifierOpen] = useState(false);
   const [isCreateBidOpen, setIsCreateBidOpen] = useState(false);
@@ -103,9 +105,10 @@ function MainApp() {
     localStorage.setItem('gem_user_role', newRole);
   };
 
-  const handleLogin = (userData) => {
+  const handleAuthSuccess = (userData) => {
     setCurrentUser(userData);
     try {
+      localStorage.setItem('gem_user', JSON.stringify(userData));
       localStorage.setItem('gem_auth_user', JSON.stringify(userData));
     } catch (e) {
       console.warn('Storage error:', e);
@@ -114,13 +117,11 @@ function MainApp() {
     setActiveTab(userData.role === 'buyer' ? 'Buyer' : 'Bidder');
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await gemApi.logout();
+    clearAuth();
     setCurrentUser(null);
-    try {
-      localStorage.removeItem('gem_auth_user');
-    } catch (e) {
-      console.warn('Storage error:', e);
-    }
+    localStorage.removeItem('gem_auth_user');
     setActiveTab('Forward');
   };
 
@@ -146,7 +147,9 @@ function MainApp() {
           udyam: "UDYAM-MH-03-0012345"
         };
 
-    handleLogin(demoUser);
+    const token = `gem_demo_jwt_${Date.now()}`;
+    setAuthToken(token);
+    handleAuthSuccess(demoUser);
   };
 
   const handleOpenAuth = (mode = 'signin', role = currentRole, reasonMessage = null) => {
@@ -164,21 +167,21 @@ function MainApp() {
       return;
     }
     if (currentUser.role !== 'bidder') {
-      handleOpenAuth('signin', 'bidder', 'Role Switch Required: Please sign in with a Vendor Bidder account to upload bid proposals.');
+      handleOpenAuth('signin', 'bidder', 'Role Switch Required: Document upload & OCR verification is reserved for Vendor Bidders.');
       return;
     }
     setSelectedTenderForVerifier(tender || tenders[0] || null);
     setIsVerifierOpen(true);
   };
 
-  // Protected Action: Create Bid (Requires Buyer Auth)
+  // Protected Action: Open Create Bid/Tender (Requires Buyer Auth)
   const handleOpenCreateBid = () => {
     if (!currentUser) {
-      handleOpenAuth('signin', 'buyer', 'Authentication Required: Please sign in as a Government Buyer to create new bids.');
+      handleOpenAuth('signin', 'buyer', 'Authentication Required: Please sign in as a Government Buyer to publish new procurement bids.');
       return;
     }
     if (currentUser.role !== 'buyer') {
-      handleOpenAuth('signin', 'buyer', 'Role Switch Required: Please sign in with a Government Buyer account to publish tenders.');
+      handleOpenAuth('signin', 'buyer', 'Role Switch Required: Publishing bids & specifying compliance criteria is reserved for Government Buyers.');
       return;
     }
     setIsCreateBidOpen(true);
@@ -194,7 +197,7 @@ function MainApp() {
   const handleAddVerifiedBid = (newBidResult) => {
     const formattedBid = {
       id: newBidResult.bidId || `BID-${Math.floor(10000 + Math.random() * 90000)}`,
-      vendor: newBidResult.vendor || currentUser?.organization || currentUser?.fullName || "Apex Supplies Ltd.",
+      vendor: newBidResult.vendor || (currentUser ? currentUser.organization : "Apex Supplies Ltd."),
       category: newBidResult.category || "IT Hardware",
       item: `${newBidResult.category || "IT"} Solution`,
       tenderId: newBidResult.tenderId || "GEM/2026/B/891244",
@@ -247,8 +250,8 @@ function MainApp() {
                 ...b.auditTrail,
                 {
                   timestamp: "Just Now",
-                  action: "Selected by Buyer as Qualified L1 Winning Bidder",
-                  agent: currentUser ? `${currentUser.fullName} (${currentUser.organization || 'Buyer'})` : "Government Procuring Authority (Buyer)"
+                  action: `Selected by ${currentUser ? currentUser.fullName : 'Buyer'} as Qualified L1 Winning Bidder`,
+                  agent: currentUser ? `${currentUser.fullName} (${currentUser.organization})` : "Government Procuring Authority (Buyer)"
                 }
               ]
             }
@@ -282,7 +285,7 @@ function MainApp() {
                 {
                   timestamp: "Manual Buyer Override",
                   action: `Buyer changed status to ${newStatus}`,
-                  agent: currentUser ? `${currentUser.fullName} (${currentUser.organization || 'Buyer'})` : "Government Procuring Authority (Buyer)"
+                  agent: currentUser ? currentUser.fullName : "Government Procuring Authority (Buyer)"
                 }
               ]
             }
@@ -299,7 +302,7 @@ function MainApp() {
 
   return (
     <div className="app-container">
-      {/* 1. Top Navbar with Active User State */}
+      {/* 1. Top Navbar with Two-Role Switcher & Auth State */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -441,15 +444,28 @@ function MainApp() {
         )
       )}
 
-      {/* 2.4 Auction Intelligence & Cartel Analysis (Public overview) */}
+      {/* 2.4 Tenders Tab */}
+      {activeTab === 'Tenders' && (
+        <TendersView
+          onSelectTender={(tender) => setSelectedTender(tender)}
+          currentUser={currentUser}
+        />
+      )}
+
+      {/* 2.5 Contracts Tab */}
+      {activeTab === 'Contracts' && (
+        <ContractsView currentUser={currentUser} />
+      )}
+
+      {/* 2.6 Auction Intelligence & Cartel Analysis */}
       {activeTab === 'Auction' && (
         <AuctionAnalysisView onSelectBid={(bid) => setSelectedBid(bid)} />
       )}
 
-      {/* 2.5 About SIH & GeM Working Principles */}
+      {/* 2.7 About SIH & GeM Working Principles */}
       {activeTab === 'About' && <AboutSIHView />}
 
-      {/* 2.6 Grievance & Helpdesk Contact */}
+      {/* 2.8 Grievance & Helpdesk Contact */}
       {activeTab === 'Contact' && <ContactView />}
 
       {/* 3. Footer */}
@@ -491,17 +507,28 @@ function MainApp() {
         onUpdateStatus={handleUpdateBidStatus}
       />
 
-      {/* 4.4 Role-Aware Authentication (Strictly Buyer or Bidder) */}
+      {/* 4.4 Tender Detail Modal */}
+      <TenderDetailModal
+        tender={selectedTender}
+        onClose={() => setSelectedTender(null)}
+        onNavigateToBids={(tenderId) => {
+          setSelectedTender(null);
+          setSearchQuery(tenderId);
+          setActiveTab('Bid');
+        }}
+      />
+
+      {/* 4.5 Role-Aware Authentication (Strictly Buyer or Bidder) */}
       <AuthModal
         isOpen={authModalConfig.isOpen}
         mode={authModalConfig.mode}
         initialRole={authModalConfig.role || currentRole}
         reasonMessage={authModalConfig.reasonMessage}
         onClose={handleCloseAuth}
-        onAuthSuccess={handleLogin}
+        onAuthSuccess={handleAuthSuccess}
       />
 
-      {/* 4.5 GeM Assistant Help Modal */}
+      {/* 4.6 GeM Assistant Help Modal */}
       {isHelpOpen && (
         <div className="modal-overlay" onClick={() => setIsHelpOpen(false)}>
           <div className="modal-content-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px' }}>
