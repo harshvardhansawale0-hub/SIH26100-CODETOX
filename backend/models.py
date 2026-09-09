@@ -56,7 +56,6 @@ class BidVerifyRequest(BaseModel):
     bidAmount: str = Field(default="₹1.38 Cr", example="₹1.38 Cr")
     gstin: str = Field(..., example="27AABCB1234F1Z5")
     pan: str = Field(..., example="AABCB1234F")
-    aadharNo: Optional[str] = Field(default="", example="387055087722")
     miiDeclared: str = Field(default="68%", example="68%")
     turnoverClaim: str = Field(default="₹12.4 Cr", example="₹12.4 Cr")
     experienceClaim: str = Field(default="5 Years", example="5 Years")
@@ -98,7 +97,6 @@ class BidVerifyResponse(BaseModel):
     ocrConfidence: str
     gstVerified: str
     panVerified: str
-    aadharVerified: Optional[str] = "UIDAI e-KYC Verified"
     rulesTested: int
     rulesPassed: int
     ruleBreakdown: List[RuleCheckResult] = []
@@ -227,14 +225,6 @@ class ContractItem(BaseModel):
     cracDate: Optional[str] = None
     paymentStatus: str
     paymentDueDate: str
-    disbursementRef: Optional[str] = None
-
-class CracUpdateRequest(BaseModel):
-    cracStatus: str = "Approved"
-    inspectionNotes: Optional[str] = "Goods inspected and found compliant with tender specifications."
-
-class PaymentUpdateRequest(BaseModel):
-    paymentStatus: str = "Settled (100%)"
     disbursementRef: Optional[str] = None
 
 

@@ -5,7 +5,10 @@ export default function GeMSubNavBar({
   onNavigateTab,
   onOpenVerifier,
   onNotificationClick,
-  onCategorySelect
+  onCategorySelect,
+  onNavigateInitiative,
+  onOpenInitiativeModal,
+  onNavigateContracts
 }) {
   const { t } = useLanguage();
   const [openDropdown, setOpenDropdown] = useState(null);
@@ -62,7 +65,7 @@ export default function GeMSubNavBar({
                             onClick={() => {
                               setOpenDropdown(null);
                               if (onCategorySelect) onCategorySelect(item);
-                              else if (onNavigateTab) onNavigateTab('Bid');
+                              else if (onNavigateTab) onNavigateTab('Tenders');
                             }}
                           >
                             {item}
@@ -95,7 +98,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('About');
+                    if (onOpenInitiativeModal) onOpenInitiativeModal('buyerGuide');
+                    else if (onNavigateTab) onNavigateTab('Buyer');
                   }}
                 >
                   {t('featBuyers')}
@@ -105,7 +109,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('About');
+                    if (onOpenInitiativeModal) onOpenInitiativeModal('sellerGuide');
+                    else if (onNavigateTab) onNavigateTab('Bidder');
                   }}
                 >
                   {t('featSellers')}
@@ -125,7 +130,7 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('Bid');
+                    if (onNavigateTab) onNavigateTab('About');
                   }}
                 >
                   {t('featDirectPurchase')}
@@ -135,7 +140,7 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('Auction');
+                    if (onNavigateTab) onNavigateTab('Auctions');
                   }}
                 >
                   {t('featReverseAuction')}
@@ -161,7 +166,7 @@ export default function GeMSubNavBar({
               className="subnav-btn"
               onClick={() => {
                 setOpenDropdown(null);
-                if (onNavigateTab) onNavigateTab('Bid');
+                if (onNavigateTab) onNavigateTab('BusinessOpportunities');
               }}
             >
               <span>{t('subnavBusinessOpportunities')}</span>
@@ -187,7 +192,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('About');
+                    if (onOpenInitiativeModal) onOpenInitiativeModal('sellerGuide');
+                    else if (onNavigateTab) onNavigateTab('Bidder');
                   }}
                 >
                   {t('sellerRegGuide')}
@@ -197,7 +203,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('About');
+                    if (onNavigateInitiative) onNavigateInitiative('mse');
+                    else if (onOpenInitiativeModal) onOpenInitiativeModal('mse');
                   }}
                 >
                   {t('sellerMsmeBenefits')}
@@ -207,7 +214,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('About');
+                    if (onNavigateInitiative) onNavigateInitiative('womaniya');
+                    else if (onOpenInitiativeModal) onOpenInitiativeModal('womaniya');
                   }}
                 >
                   {t('sellerWomaniya')}
@@ -217,7 +225,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('About');
+                    if (onNavigateInitiative) onNavigateInitiative('startup');
+                    else if (onOpenInitiativeModal) onOpenInitiativeModal('startup');
                   }}
                 >
                   {t('sellerStartup')}
@@ -227,7 +236,7 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('About');
+                    if (onOpenInitiativeModal) onOpenInitiativeModal('caution');
                   }}
                 >
                   {t('sellerCautionMoney')}
@@ -255,7 +264,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('Bid');
+                    if (onNavigateContracts) onNavigateContracts('Approved');
+                    else if (onNavigateTab) onNavigateTab('Contracts');
                   }}
                 >
                   {t('contractsActive')}
@@ -265,7 +275,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('Bid');
+                    if (onNavigateContracts) onNavigateContracts('Settled');
+                    else if (onNavigateTab) onNavigateTab('Contracts');
                   }}
                 >
                   {t('contractsConcluded')}
@@ -275,7 +286,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('Bid');
+                    if (onNavigateContracts) onNavigateContracts('Pending Inspection');
+                    else if (onNavigateTab) onNavigateTab('Contracts');
                   }}
                 >
                   {t('contractsCrac')}
@@ -285,7 +297,8 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('Bid');
+                    if (onNavigateContracts) onNavigateContracts('ALL', true);
+                    else if (onNavigateTab) onNavigateTab('Contracts');
                   }}
                 >
                   {t('contractsSearch')}
@@ -313,7 +326,7 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('Bid');
+                    if (onOpenInitiativeModal) onOpenInitiativeModal('cppp');
                   }}
                 >
                   {t('cpppCentralPortal')}
@@ -323,7 +336,7 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('Bid');
+                    if (onOpenInitiativeModal) onOpenInitiativeModal('cppp');
                   }}
                 >
                   {t('cpppSync')}
@@ -333,7 +346,7 @@ export default function GeMSubNavBar({
                   className="subnav-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onNavigateTab) onNavigateTab('Bid');
+                    if (onOpenInitiativeModal) onOpenInitiativeModal('cppp');
                   }}
                 >
                   {t('cpppXmlFeed')}
@@ -350,7 +363,8 @@ export default function GeMSubNavBar({
             type="button"
             className="subnav-new-badge-btn"
             onClick={() => {
-              if (onOpenVerifier) onOpenVerifier();
+              if (onOpenInitiativeModal) onOpenInitiativeModal('newOnGem');
+              else if (onOpenVerifier) onOpenVerifier();
             }}
             title="Recent AI Launches on GeM"
           >
@@ -384,7 +398,8 @@ export default function GeMSubNavBar({
                   className="notif-dropdown-item"
                   onClick={() => {
                     setOpenDropdown(null);
-                    if (onOpenVerifier) onOpenVerifier();
+                    if (onOpenInitiativeModal) onOpenInitiativeModal('gfr');
+                    else if (onOpenVerifier) onOpenVerifier();
                   }}
                 >
                   <p className="notif-item-title">🔔 GFR Rule 144(xi) Mandatory Declaration</p>

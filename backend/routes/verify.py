@@ -77,7 +77,6 @@ def verify_bid_payload(req: BidVerifyRequest):
         ocrConfidence=evaluation["ocrConfidence"],
         gstVerified=evaluation["gstVerified"],
         panVerified=evaluation["panVerified"],
-        aadharVerified=evaluation.get("aadharVerified", "UIDAI e-KYC Verified"),
         rulesTested=evaluation["rulesTested"],
         rulesPassed=evaluation["rulesPassed"],
         ruleBreakdown=evaluation["ruleBreakdown"],

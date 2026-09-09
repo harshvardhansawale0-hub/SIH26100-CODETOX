@@ -20,6 +20,11 @@ import AuthGate from './components/AuthGate';
 import TendersView from './components/TendersView';
 import TenderDetailModal from './components/TenderDetailModal';
 import ContractsView from './components/ContractsView';
+import InitiativeModal from './components/InitiativeModal';
+import SchemePortalView from './components/SchemePortalView';
+import AuctionsView from './components/AuctionsView';
+import BusinessOpportunitiesView from './components/BusinessOpportunitiesView';
+import CategoryCatalogView from './components/CategoryCatalogView';
 import { initialBids, initialTenders } from './data/bidsData';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { gemApi } from './services/api';
@@ -47,8 +52,17 @@ function MainApp() {
     return localStorage.getItem('gem_user_role') || 'buyer';
   });
 
-  const [activeTab, setActiveTab] = useState('Forward'); // 'Forward', 'Buyer', 'Bidder', 'Tenders', 'Contracts', 'Auction', 'About', 'Contact'
+  const [activeTab, setActiveTab] = useState('Forward'); // 'Forward', 'Buyer', 'Bidder', 'Tenders', 'Contracts', 'Auctions', 'BusinessOpportunities', 'CategoryCatalog', 'SchemePortal', 'About', 'Contact'
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Cross-Navigation & Initiative Redirection Filters
+  const [activeTenderInitiative, setActiveTenderInitiative] = useState('all');
+  const [activeTenderCategory, setActiveTenderCategory] = useState('ALL');
+  const [activeContractFilter, setActiveContractFilter] = useState('ALL');
+  const [activeContractSearch, setActiveContractSearch] = useState('');
+  const [initiativeModalKey, setInitiativeModalKey] = useState(null);
+  const [activeSchemeKey, setActiveSchemeKey] = useState('mii');
+  const [activeCatalogCategory, setActiveCatalogCategory] = useState('Oxygen Gas & Accessories');
 
   // Tenders state (Buyer creates, Bidder applies)
   const [tenders, setTenders] = useState(initialTenders || []);
@@ -158,6 +172,35 @@ function MainApp() {
 
   const handleCloseAuth = () => {
     setAuthModalConfig({ isOpen: false, mode: 'signin', role: currentRole, reasonMessage: null });
+  };
+
+  // Cross-Initiative & Scheme Redirection Handler (routes to dedicated SchemePortalView)
+  const handleNavigateInitiative = (initiativeKey) => {
+    setActiveSchemeKey(initiativeKey || 'mii');
+    setActiveTenderInitiative(initiativeKey || 'all');
+    setActiveTab('SchemePortal');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleOpenInitiativeModal = (initiativeKey) => {
+    setInitiativeModalKey(initiativeKey);
+  };
+
+  // Product Category Redirection Handler (routes to dedicated CategoryCatalogView)
+  const handleCategorySelect = (categoryName) => {
+    setActiveCatalogCategory(categoryName);
+    setActiveTenderCategory(categoryName);
+    setActiveTab('CategoryCatalog');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleNavigateContracts = (statusFilter = 'ALL', focusSearch = false) => {
+    setActiveContractFilter(statusFilter);
+    if (typeof focusSearch === 'string') {
+      setActiveContractSearch(focusSearch);
+    }
+    setActiveTab('Contracts');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   // Protected Action: Open Verifier (Requires Bidder Auth)
@@ -320,13 +363,20 @@ function MainApp() {
       {/* 1.1 Latest Notifications Marquee Ticker */}
       <NotificationMarquee
         onNotificationClick={(idx) => {
-          if (idx === 1 || idx === 2) {
+          if (idx === 0) {
+            handleOpenInitiativeModal('gfr');
+          } else if (idx === 1) {
             handleOpenVerifierForTender(null);
+          } else if (idx === 2) {
+            handleNavigateInitiative('mse');
+          } else if (idx === 3) {
+            handleNavigateInitiative('mii');
           } else if (idx === 4) {
-            setActiveTab('Auction');
+            setActiveTab('Auctions');
           } else {
             setActiveTab('About');
           }
+          window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
       />
 
@@ -342,10 +392,10 @@ function MainApp() {
         }}
         onOpenVerifier={() => handleOpenVerifierForTender(null)}
         onNotificationClick={() => {}}
-        onCategorySelect={() => {
-          setActiveTab(currentRole === 'buyer' ? 'Buyer' : 'Bidder');
-          window.scrollTo({ top: 0, behavior: 'smooth' });
-        }}
+        onCategorySelect={handleCategorySelect}
+        onNavigateInitiative={handleNavigateInitiative}
+        onOpenInitiativeModal={handleOpenInitiativeModal}
+        onNavigateContracts={handleNavigateContracts}
       />
 
       {/* 2. Main Tab Views */}
@@ -354,35 +404,58 @@ function MainApp() {
         <main>
           {/* Official GeM Visual Showcase & Image Banner Carousel */}
           <GeMBannerShowcase
-            onExploreTenders={() => {
-              setActiveTab(currentRole === 'buyer' ? 'Buyer' : 'Bidder');
+            onExploreTenders={(initKey) => {
+              if (initKey) {
+                handleNavigateInitiative(initKey);
+              } else {
+                setActiveTab('Tenders');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
             }}
             onOpenVerifier={() => handleOpenVerifierForTender(null)}
+            onNavigateInitiative={handleNavigateInitiative}
+            onOpenInitiativeModal={handleOpenInitiativeModal}
           />
 
           {/* Process Section: End-to-End Procurement Lifecycle (01 Tender Upload -> 06 Payment) */}
           <ProcessSection
             onStepClick={(num) => {
               if (num === '01') {
-                if (currentRole === 'buyer') {
+                if (currentRole === 'buyer' && currentUser?.role === 'buyer') {
                   handleOpenCreateBid();
                 } else {
                   setActiveTab('Buyer');
                 }
-              } else if (num === '02' || num === '03') {
+              } else if (num === '02') {
+                setActiveTab('Tenders');
+              } else if (num === '03') {
                 handleOpenVerifierForTender(null);
               } else if (num === '04') {
-                setActiveTab('Auction');
+                setActiveTab('Auctions');
+              } else if (num === '05') {
+                setActiveTab('Contracts');
+              } else if (num === '06') {
+                handleNavigateContracts('Pending Inspection');
               } else {
-                setActiveTab(currentRole === 'buyer' ? 'Buyer' : 'Bidder');
+                setActiveTab('Forward');
               }
+              window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
           />
 
           {/* Popular Product Categories Section matching GeM Portal */}
           <PopularProductCategories
-            onCategoryClick={() => {
-              setActiveTab(currentRole === 'buyer' ? 'Buyer' : 'Bidder');
+            onCategoryClick={(catId, itemName) => {
+              const categoryMapping = {
+                oxygen: 'Oxygen Gas & Accessories',
+                medical: 'Medical & Healthcare',
+                saras: 'SARAS Handicrafts & Women Artisans',
+                furniture: 'Furniture & Fixtures',
+                fire: 'Fire Safety & Security',
+                computers: 'Computers & IT Hardware'
+              };
+              const mappedCategory = categoryMapping[catId] || itemName || 'Oxygen Gas & Accessories';
+              handleCategorySelect(mappedCategory);
             }}
             onOpenGemmy={() => handleOpenVerifierForTender(null)}
           />
@@ -447,25 +520,75 @@ function MainApp() {
       {/* 2.4 Tenders Tab */}
       {activeTab === 'Tenders' && (
         <TendersView
+          tenders={tenders}
           onSelectTender={(tender) => setSelectedTender(tender)}
           currentUser={currentUser}
+          initialInitiative={activeTenderInitiative}
+          initialCategory={activeTenderCategory}
+          initialSearch={searchQuery}
+          onOpenInitiativeModal={handleOpenInitiativeModal}
         />
       )}
 
       {/* 2.5 Contracts Tab */}
       {activeTab === 'Contracts' && (
-        <ContractsView currentUser={currentUser} />
+        <ContractsView 
+          currentUser={currentUser} 
+          initialFilter={activeContractFilter}
+          initialSearch={activeContractSearch}
+        />
       )}
 
-      {/* 2.6 Auction Intelligence & Cartel Analysis */}
-      {activeTab === 'Auction' && (
-        <AuctionAnalysisView onSelectBid={(bid) => setSelectedBid(bid)} />
+      {/* 2.6 Dedicated Live E-Auctions Portal (Reverse & Forward) */}
+      {(activeTab === 'Auctions' || activeTab === 'Auction') && (
+        <AuctionsView 
+          currentUser={currentUser} 
+          onSelectBid={(bid) => setSelectedBid(bid)} 
+        />
       )}
 
-      {/* 2.7 About SIH & GeM Working Principles */}
+      {/* 2.7 Dedicated Business Opportunities & Procurement Forecast Portal */}
+      {activeTab === 'BusinessOpportunities' && (
+        <BusinessOpportunitiesView
+          onNavigateToTenders={() => {
+            setActiveTab('Tenders');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          currentUser={currentUser}
+        />
+      )}
+
+      {/* 2.8 Dedicated Product & Service Category Catalog */}
+      {activeTab === 'CategoryCatalog' && (
+        <CategoryCatalogView
+          initialCategory={activeCatalogCategory}
+          currentUser={currentUser}
+          onNavigateToTenders={() => {
+            setActiveTab('Tenders');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onOpenCreateBid={handleOpenCreateBid}
+        />
+      )}
+
+      {/* 2.9 Dedicated Government Schemes & Registration Portal (MII, Womaniya, Startup, MSE) */}
+      {activeTab === 'SchemePortal' && (
+        <SchemePortalView
+          initialScheme={activeSchemeKey}
+          currentUser={currentUser}
+          onNavigateToTenders={(initKey) => {
+            setActiveTenderInitiative(initKey || 'all');
+            setActiveTab('Tenders');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          onOpenVerifier={(tender) => handleOpenVerifierForTender(tender)}
+        />
+      )}
+
+      {/* 2.10 About SIH & GeM Working Principles */}
       {activeTab === 'About' && <AboutSIHView />}
 
-      {/* 2.8 Grievance & Helpdesk Contact */}
+      {/* 2.11 Grievance & Helpdesk Contact */}
       {activeTab === 'Contact' && <ContactView />}
 
       {/* 3. Footer */}
@@ -473,12 +596,17 @@ function MainApp() {
         onNavigate={(tab) => {
           if (tab === 'Bid') {
             setActiveTab(currentRole === 'buyer' ? 'Buyer' : 'Bidder');
+          } else if (tab === 'Auction') {
+            setActiveTab('Auctions');
           } else {
             setActiveTab(tab);
           }
           window.scrollTo({ top: 0, behavior: 'smooth' });
         }}
         onOpenHelp={() => setIsHelpOpen(true)}
+        onNavigateInitiative={handleNavigateInitiative}
+        onOpenInitiativeModal={handleOpenInitiativeModal}
+        onOpenVerifier={() => handleOpenVerifierForTender(null)}
       />
 
       {/* 4. Modals */}
@@ -516,6 +644,7 @@ function MainApp() {
           setSearchQuery(tenderId);
           setActiveTab('Bid');
         }}
+        onOpenVerifier={(tender) => handleOpenVerifierForTender(tender)}
       />
 
       {/* 4.5 Role-Aware Authentication (Strictly Buyer or Bidder) */}
@@ -573,6 +702,30 @@ function MainApp() {
           </div>
         </div>
       )}
+
+      {/* 4.7 Dedicated Government Initiatives Modal */}
+      <InitiativeModal
+        isOpen={!!initiativeModalKey}
+        initiativeKey={initiativeModalKey}
+        onClose={() => setInitiativeModalKey(null)}
+        onExploreTenders={(initKey) => {
+          setInitiativeModalKey(null);
+          handleNavigateInitiative(initKey);
+        }}
+        onOpenVerifier={() => {
+          setInitiativeModalKey(null);
+          handleOpenVerifierForTender(null);
+        }}
+        onOpenAuth={(mode, role) => {
+          setInitiativeModalKey(null);
+          handleOpenAuth(mode, role);
+        }}
+        onNavigateTab={(tab) => {
+          setInitiativeModalKey(null);
+          setActiveTab(tab);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
     </div>
   );
 }

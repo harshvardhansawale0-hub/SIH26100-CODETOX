@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Plus, Trash2, CheckCircle2, ShieldCheck, AlertCircle, FileText, Calendar } from 'lucide-react';
+import { X, Plus, Trash2, CheckCircle2, ShieldCheck, AlertCircle, FileText } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
 
@@ -13,15 +13,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated }) {
   const [category, setCategory] = useState('IT Hardware');
   const [estimatedValue, setEstimatedValue] = useState('₹1.85 Cr');
   const [emdAmount, setEmdAmount] = useState('₹3.70 Lakhs (MSE Exempted)');
-
-  // Calendar Closing Date (Defaults to 15 days from today in YYYY-MM-DD format)
-  const defaultClosingDate = () => {
-    const d = new Date();
-    d.setDate(d.getDate() + 15);
-    return d.toISOString().split('T')[0];
-  };
-  const [closingDate, setClosingDate] = useState(defaultClosingDate());
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [closingDate, setClosingDate] = useState('25 Sep 2026');
   
   // Compliance Criteria Builder
   const [miiMinRequirement, setMiiMinRequirement] = useState('50% (Class-I)');
@@ -68,21 +60,8 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated }) {
     setBoqItems(boqItems.filter((_, idx) => idx !== index));
   };
 
-  const formatDisplayDate = (dateVal) => {
-    if (!dateVal) return '';
-    try {
-      if (dateVal.includes('-')) {
-        const [y, m, d] = dateVal.split('-');
-        const dateObj = new Date(Number(y), Number(m) - 1, Number(d));
-        return dateObj.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
-      }
-    } catch {}
-    return dateVal;
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!acceptedTerms) return;
     setIsSubmitting(true);
     try {
       const payload = {
@@ -92,7 +71,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated }) {
         category,
         estimatedValue,
         emdAmount,
-        closingDate: formatDisplayDate(closingDate),
+        closingDate,
         miiMinRequirement,
         minTurnoverRequirement,
         minExperienceYears: Number(minExperienceYears),
@@ -243,27 +222,15 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated }) {
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
-                    <Calendar size={14} color="#0284c7" />
-                    <span>Bid Closing Date *</span>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
+                    Bid Closing Date *
                   </label>
                   <input
-                    type="date"
+                    type="text"
                     required
-                    min={new Date().toISOString().split('T')[0]}
                     value={closingDate}
                     onChange={(e) => setClosingDate(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.52rem 0.65rem',
-                      borderRadius: '6px',
-                      border: '1px solid #cbd5e1',
-                      fontSize: '0.85rem',
-                      backgroundColor: '#ffffff',
-                      color: '#0f172a',
-                      cursor: 'pointer',
-                      outline: 'none'
-                    }}
+                    style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem' }}
                   />
                 </div>
               </div>
@@ -462,38 +429,6 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated }) {
               </div>
             </div>
 
-            {/* Terms and Conditions Declaration Checkbox */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'flex-start',
-              gap: '0.75rem',
-              padding: '0.85rem 1rem',
-              backgroundColor: acceptedTerms ? '#f0f9ff' : '#f8fafc',
-              border: acceptedTerms ? '1px solid #0284c7' : '1px solid #cbd5e1',
-              borderRadius: '8px',
-              transition: 'all 0.2s ease',
-              marginTop: '0.5rem'
-            }}>
-              <input
-                type="checkbox"
-                id="tenderTermsCheck"
-                required
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                style={{
-                  marginTop: '0.2rem',
-                  width: '18px',
-                  height: '18px',
-                  cursor: 'pointer',
-                  accentColor: '#0284c7',
-                  flexShrink: 0
-                }}
-              />
-              <label htmlFor="tenderTermsCheck" style={{ fontSize: '0.82rem', color: '#334155', cursor: 'pointer', lineHeight: '1.45' }}>
-                <strong style={{ color: '#0f2238' }}>Mandatory Terms & Conditions Declaration:</strong> I hereby certify that this public procurement bid complies strictly with the <strong>General Financial Rules (GFR 2017) Rule 144(xi)</strong>, <strong>DPIIT Public Procurement (Make in India) Policy</strong>, and <strong>GeM Procurement Guidelines</strong>. All technical criteria and BOQ items have been duly verified and authorized by the Competent Procuring Authority.
-              </label>
-            </div>
-
             {/* Actions */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', borderTop: '1px solid #e2e8f0', paddingTop: '1rem' }}>
               <button
@@ -514,21 +449,20 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated }) {
               </button>
               <button
                 type="submit"
-                disabled={isSubmitting || !acceptedTerms}
+                disabled={isSubmitting}
                 style={{
                   padding: '0.65rem 1.5rem',
                   borderRadius: '6px',
-                  backgroundColor: !acceptedTerms ? '#94a3b8' : '#0284c7',
+                  backgroundColor: '#0284c7',
                   color: '#ffffff',
                   border: 'none',
                   fontWeight: '800',
                   fontSize: '0.88rem',
-                  cursor: (isSubmitting || !acceptedTerms) ? 'not-allowed' : 'pointer',
+                  cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  boxShadow: !acceptedTerms ? 'none' : '0 4px 12px rgba(2, 132, 199, 0.35)',
-                  transition: 'all 0.2s ease'
+                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)'
                 }}
               >
                 <ShieldCheck size={18} /> {isSubmitting ? 'Publishing Tender...' : 'Publish Bid & Activate AI Rules'}

@@ -1,21 +1,34 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
-import { Search, Filter, FileText, CheckCircle, IndianRupee, Clock, Briefcase, FileSignature } from 'lucide-react';
+import { initialContracts } from '../data/bidsData';
+import { Search, Filter, FileText, CheckCircle, IndianRupee, Clock, Briefcase, FileSignature, X } from 'lucide-react';
 
-const ContractsView = ({ currentUser }) => {
+const ContractsView = ({ currentUser, initialFilter = 'ALL', initialSearch = '' }) => {
   const { t } = useLanguage();
-  const [contracts, setContracts] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [contracts, setContracts] = useState(initialContracts || []);
+  const [loading, setLoading] = useState(false);
+  const [statusFilter, setStatusFilter] = useState(initialFilter || 'ALL');
+  const [searchQuery, setSearchQuery] = useState(initialSearch || '');
   
+  useEffect(() => {
+    if (initialFilter) setStatusFilter(initialFilter);
+  }, [initialFilter]);
+
+  useEffect(() => {
+    if (initialSearch !== undefined) setSearchQuery(initialSearch);
+  }, [initialSearch]);
+
   const fetchContracts = async (mounted) => {
     try {
       setLoading(true);
       const data = await gemApi.getContracts();
-      if (mounted) setContracts(data || []);
+      if (mounted) {
+        setContracts(data && data.length > 0 ? data : initialContracts);
+      }
     } catch (err) {
       console.error(err);
+      if (mounted) setContracts(initialContracts);
     } finally {
       if (mounted) setLoading(false);
     }
@@ -32,20 +45,36 @@ const ContractsView = ({ currentUser }) => {
       total: contracts.length,
       cracApproved: contracts.filter(c => c.cracStatus === 'Approved').length,
       settled: contracts.filter(c => c.paymentStatus?.includes('Settled')).length,
-      pending: contracts.filter(c => c.cracStatus === 'Pending Inspection' || c.paymentStatus?.includes('Processing')).length,
+      pending: contracts.filter(c => c.cracStatus === 'Pending Inspection' || c.paymentStatus?.includes('Processing') || c.paymentStatus?.includes('Awaiting')).length,
     };
   }, [contracts]);
 
   const filteredContracts = useMemo(() => {
-    if (statusFilter === 'ALL') return contracts;
-    return contracts.filter(c => {
-      if (statusFilter === 'Pending Inspection') return c.cracStatus === 'Pending Inspection';
-      if (statusFilter === 'Approved') return c.cracStatus === 'Approved';
-      if (statusFilter === 'Payment Processing') return c.paymentStatus?.includes('Processing');
-      if (statusFilter === 'Settled') return c.paymentStatus?.includes('Settled');
-      return true;
-    });
-  }, [contracts, statusFilter]);
+    let list = contracts;
+
+    if (statusFilter !== 'ALL') {
+      list = list.filter(c => {
+        if (statusFilter === 'Pending Inspection') return c.cracStatus === 'Pending Inspection';
+        if (statusFilter === 'Approved') return c.cracStatus === 'Approved';
+        if (statusFilter === 'Payment Processing') return c.paymentStatus?.includes('Processing') || c.paymentStatus?.includes('Awaiting');
+        if (statusFilter === 'Settled') return c.paymentStatus?.includes('Settled');
+        return true;
+      });
+    }
+
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      list = list.filter(c => 
+        (c.id?.toLowerCase().includes(q)) ||
+        (c.tenderId?.toLowerCase().includes(q)) ||
+        (c.vendorName?.toLowerCase().includes(q)) ||
+        (c.buyerOrg?.toLowerCase().includes(q)) ||
+        (c.disbursementRef?.toLowerCase().includes(q))
+      );
+    }
+
+    return list;
+  }, [contracts, statusFilter, searchQuery]);
 
   const getCracColor = (status) => {
     if (status === 'Approved') return '#10b981';
@@ -58,35 +87,51 @@ const ContractsView = ({ currentUser }) => {
     if (!status) return '#94a3b8';
     if (status.includes('Settled')) return '#10b981';
     if (status.includes('Processing')) return '#f59e0b';
-    if (status.includes('Withheld')) return '#ef4444';
+    if (status.includes('Withheld') || status.includes('Rejected')) return '#ef4444';
     return '#94a3b8';
   };
 
   const handleApproveCrac = async (e, id) => {
     e.stopPropagation();
-    if (window.confirm('Are you sure you want to approve CRAC for this contract?')) {
-      await gemApi.approveCrac(id);
-      fetchContracts(true);
+    if (window.confirm('Approve CRAC (Consignee Receipt and Acceptance Certificate) for this delivery?')) {
+      // Optimistic state update
+      setContracts(prev => prev.map(c => c.id === id ? { ...c, cracStatus: 'Approved', cracDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }), paymentStatus: 'Payment Processing (Day 1/10)' } : c));
+      try {
+        await gemApi.approveCrac(id);
+      } catch (err) {
+        console.warn('Offline approve CRAC');
+      }
     }
   };
 
   const handleProcessPayment = async (e, id) => {
     e.stopPropagation();
-    if (window.confirm('Initiate payment processing for this contract?')) {
-      await gemApi.processPayment(id);
-      fetchContracts(true);
+    if (window.confirm('Initiate electronic payment settlement via PFMS for this contract?')) {
+      // Optimistic state update
+      setContracts(prev => prev.map(c => c.id === id ? { ...c, paymentStatus: 'Settled (100%)', disbursementRef: `PFMS-TXN-${Date.now().toString().slice(-8)}` } : c));
+      try {
+        await gemApi.processPayment(id);
+      } catch (err) {
+        console.warn('Offline process payment');
+      }
     }
   };
 
+  const isOfficerOrBuyer = currentUser?.role === 'officer' || currentUser?.role === 'buyer';
+
   return (
-    <div style={{ padding: '1rem', color: '#ffffff' }}>
+    <div style={{ padding: '1.5rem', color: '#ffffff', minHeight: '80vh' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <span className="section-tag">{t('contractTag') || 'CONTRACTS & PAYMENTS (GFR 225)'}</span>
-        <h2 className="serif-heading" style={{ margin: '0.5rem 0', fontSize: '1.8rem' }}>{t('contractTitle') || 'Contract Management Portal'}</h2>
-        <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>{t('contractSubtitle') || 'Track CRAC, process payments, and manage contract lifecycles'}</p>
+        <h2 className="serif-heading" style={{ margin: '0.4rem 0', fontSize: '1.9rem', color: '#ffffff' }}>
+          {t('contractTitle') || 'Contract Management Portal'}
+        </h2>
+        <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>
+          {t('contractSubtitle') || 'Track CRAC inspections, process 10-day PFMS payments, and manage contract lifecycles.'}
+        </p>
       </div>
 
-      <div className="terminal-stat-cards" style={{ marginBottom: '2rem' }}>
+      <div className="terminal-stat-cards" style={{ marginBottom: '1.75rem' }}>
         <div className="terminal-card">
           <div className="t-card-label"><Briefcase size={14} style={{marginRight:'0.4rem'}}/> Total Contracts</div>
           <div className="t-card-value-row">
@@ -116,28 +161,52 @@ const ContractsView = ({ currentUser }) => {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
-        {['ALL', 'Pending Inspection', 'Approved', 'Payment Processing', 'Settled'].map(status => (
-          <button
-            key={status}
-            onClick={() => setStatusFilter(status)}
+      {/* Filter and Search Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+          {['ALL', 'Pending Inspection', 'Approved', 'Payment Processing', 'Settled'].map(status => (
+            <button
+              key={status}
+              type="button"
+              onClick={() => setStatusFilter(status)}
+              style={{
+                backgroundColor: statusFilter === status ? '#1e385b' : 'transparent',
+                color: statusFilter === status ? '#38bdf8' : '#94a3b8',
+                border: `1px solid ${statusFilter === status ? '#38bdf8' : '#1e385b'}`,
+                padding: '0.35rem 0.85rem',
+                borderRadius: '999px',
+                fontSize: '0.78rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
+
+        {/* Contract Search Input */}
+        <div style={{ position: 'relative' }}>
+          <Search size={15} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+          <input
+            type="text"
+            placeholder="Search PO ID, Tender ID, Vendor..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             style={{
-              backgroundColor: statusFilter === status ? '#1e385b' : 'transparent',
-              color: statusFilter === status ? '#38bdf8' : '#94a3b8',
-              border: `1px solid ${statusFilter === status ? '#38bdf8' : '#1e385b'}`,
-              padding: '0.3rem 0.8rem',
-              borderRadius: '999px',
-              fontSize: '0.8rem',
-              cursor: 'pointer',
-              transition: 'all 0.2s'
+              backgroundColor: '#081729',
+              border: '1px solid #1e385b',
+              color: '#fff',
+              padding: '0.45rem 1rem 0.45rem 2.2rem',
+              borderRadius: '6px',
+              width: '260px',
+              fontSize: '0.82rem'
             }}
-          >
-            {status}
-          </button>
-        ))}
+          />
+        </div>
       </div>
 
-      <div style={{ backgroundColor: '#081729', border: '1px solid #1e385b', borderRadius: '12px', overflow: 'hidden' }}>
+      <div style={{ backgroundColor: '#081729', border: '1px solid #1e385b', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 8px 24px rgba(0,0,0,0.25)' }}>
         <div style={{ 
           display: 'grid', 
           gridTemplateColumns: '1.2fr 1.2fr 1.5fr 1.5fr 1fr 1.2fr 1.2fr 1.5fr', 
@@ -209,12 +278,12 @@ const ContractsView = ({ currentUser }) => {
                 </span>
               </div>
               <div style={{ textAlign: 'right', display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-                {currentUser?.role === 'officer' && contract.cracStatus === 'Pending Inspection' && (
+                {isOfficerOrBuyer && contract.cracStatus === 'Pending Inspection' && (
                   <button onClick={(e) => handleApproveCrac(e, contract.id)} style={{ backgroundColor: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', fontSize: '0.75rem', cursor: 'pointer' }}>
                     ✓ {t('cracApprove') || 'CRAC Approve'}
                   </button>
                 )}
-                {currentUser?.role === 'officer' && contract.cracStatus === 'Approved' && (!contract.paymentStatus || !contract.paymentStatus.includes('Settled')) && (
+                {isOfficerOrBuyer && contract.cracStatus === 'Approved' && (!contract.paymentStatus || !contract.paymentStatus.includes('Settled')) && (
                   <button onClick={(e) => handleProcessPayment(e, contract.id)} style={{ backgroundColor: '#f59e0b', color: '#fff', border: 'none', borderRadius: '4px', padding: '0.3rem 0.6rem', fontSize: '0.75rem', cursor: 'pointer' }}>
                     ₹ {t('processPayment') || 'Process Payment'}
                   </button>

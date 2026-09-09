@@ -102,15 +102,15 @@ export default function BidderDashboard({
               {currentUser && (
                 <span style={{ fontSize: '0.75rem', color: '#94a3b8', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '0.2rem 0.6rem', borderRadius: '4px', border: '1px solid #1e385b', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <Building2 size={12} style={{ color: '#34d399' }} />
-                  <span>Authenticated: <strong style={{ color: '#34d399' }}>{currentUser.fullName}</strong> ({currentUser.organization || 'Vendor Enterprise'})</span>
+                  <span>Authenticated: <strong style={{ color: '#34d399' }}>{currentUser.fullName}</strong> ({currentUser.organization || 'Apex Supplies Ltd.'})</span>
                 </span>
               )}
             </div>
             <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: 0 }}>
-              {t('bidderPortalTitle') || 'Tender Selection & AI Document Verification'}
+              Tender Selection & AI Document Verification
             </h1>
             <p style={{ color: '#94a3b8', fontSize: '0.92rem', marginTop: '0.3rem', maxWidth: '850px' }}>
-              {t('bidderPortalDesc') || 'Select published government tenders and join active bidding. Participation strictly requires autonomous 8-stage AI document verification (PAN, GSTIN, UDYAM MSME, CA Turnover Statement & Make-in-India declarations).'}
+              Select published government tenders and join active bidding. Participation strictly requires autonomous 8-stage AI document verification (PAN, GSTIN, UDYAM MSME, CA Turnover Statement & Make-in-India declarations).
             </p>
           </div>
 
@@ -160,7 +160,7 @@ export default function BidderDashboard({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
                 <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#34d399', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {t('activeTendersTab') || '1. Active Tenders'}
+                  1. Active Tenders
                 </span>
               </div>
               <CheckCircle2 size={18} color="#34d399" />
@@ -192,7 +192,7 @@ export default function BidderDashboard({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }}></span>
                 <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {t('atRiskTendersTab') || '2. At Risk Tenders'}
+                  2. At Risk Tenders
                 </span>
               </div>
               <AlertTriangle size={18} color="#f59e0b" />
@@ -224,7 +224,7 @@ export default function BidderDashboard({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ef4444', display: 'inline-block' }}></span>
                 <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#f87171', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {t('nonCompliantTab') || '3. Non-Compliant'}
+                  3. Non-Compliant
                 </span>
               </div>
               <XCircle size={18} color="#ef4444" />
@@ -256,7 +256,7 @@ export default function BidderDashboard({
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#38bdf8', display: 'inline-block' }}></span>
                 <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#38bdf8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  {t('pendingVerificationTab') || '4. Pending Verification'}
+                  4. Pending Verification
                 </span>
               </div>
               <Clock size={18} color="#38bdf8" />
@@ -289,7 +289,7 @@ export default function BidderDashboard({
                 gap: '0.35rem'
               }}
             >
-              <FileText size={15} /> {t('allTenders') || 'All Tenders'} ({counts.all})
+              <FileText size={15} /> All Tenders ({counts.all})
             </button>
 
             <button
@@ -308,7 +308,7 @@ export default function BidderDashboard({
                 gap: '0.35rem'
               }}
             >
-              🟢 {t('activeTendersTab') || '1. Active'} ({counts.active})
+              🟢 1. Active ({counts.active})
             </button>
 
             <button
@@ -327,7 +327,7 @@ export default function BidderDashboard({
                 gap: '0.35rem'
               }}
             >
-              ⚠️ {t('atRiskTendersTab') || '2. At Risk'} ({counts.atRisk})
+              ⚠️ 2. At Risk ({counts.atRisk})
             </button>
 
             <button
@@ -346,7 +346,7 @@ export default function BidderDashboard({
                 gap: '0.35rem'
               }}
             >
-              🔴 {t('nonCompliantTab') || '3. Non-Compliant'} ({counts.nonCompliant})
+              🔴 3. Non-Compliant ({counts.nonCompliant})
             </button>
 
             <button
@@ -365,7 +365,7 @@ export default function BidderDashboard({
                 gap: '0.35rem'
               }}
             >
-              ⏳ {t('pendingVerificationTab') || '4. Pending Verification'} ({counts.pending})
+              ⏳ 4. Pending Verification ({counts.pending})
             </button>
 
             <button
@@ -384,7 +384,7 @@ export default function BidderDashboard({
                 gap: '0.35rem'
               }}
             >
-              <UploadCloud size={15} /> {t('mySubmittedBidsTab') || 'My Submitted Bids'} ({counts.mySubmissions})
+              <UploadCloud size={15} /> My Submitted Bids ({counts.mySubmissions})
             </button>
           </div>
 

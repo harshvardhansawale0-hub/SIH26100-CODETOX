@@ -23,43 +23,13 @@ def parse_currency_amount(val_str: str) -> float:
         return num / 100.0
     return num / 100000.0
 
-DUMMY_KYC_PROFILES = [
-    {
-        "name": "SUMIT ANANDRAO DESHMUKH",
-        "company": "DESHMUKH CONSTRUCTION PVT LTD",
-        "aadhar": "387055087722",
-        "pan": "ISOPD1145K",
-        "gst": "GTSIN27ABCDE1234F1Z1",
-        "gst_clean": "27ABCDE1234F1Z1",
-        "keywords": ["SUMIT", "DESHMUKH", "CONSTRUCTION"]
-    },
-    {
-        "name": "ANIKET DNYANDEO SAWARKAR",
-        "company": "APEX TECHNOLOGY",
-        "aadhar": "387055087723",
-        "pan": "ISOPD1145M",
-        "gst": "GTSIN27ABCDE1234F1Z2",
-        "gst_clean": "27ABCDE1234F1Z2",
-        "keywords": ["ANIKET", "SAWARKAR", "APEX"]
-    },
-    {
-        "name": "KRUSHNA SANTOSH BHENDE",
-        "company": "KK PVT LTD",
-        "aadhar": "387055087724",
-        "pan": "ISOPD1145N",
-        "gst": "GTSIN27ABCDE1234F1Z3",
-        "gst_clean": "27ABCDE1234F1Z3",
-        "keywords": ["KRUSHNA", "BHENDE", "KK"]
-    }
-]
-
 def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     Executes the Complete 8-Stage AI Verification Pipeline:
-    1. Uploaded Documents OCR & Ingestion (Aadhaar, PAN, GSTIN, UDYAM, CA Statement)
-    2. Entity & Data Extraction (Aadhaar No, PAN, GSTIN, Legal Name, Turnover, UDIN, MII %)
+    1. Uploaded Documents OCR & Ingestion
+    2. Entity & Data Extraction (PAN, GSTIN, Legal Name, Turnover, UDIN, MII %)
     3. Document Validation & Forensics (Tampering, pixel consistency, DPI)
-    4. Cross-Document Matching (Aadhaar <-> PAN <-> GST <-> UDYAM <-> CA Statement)
+    4. Cross-Document Matching (Name match across PAN, GST, UDYAM, CA Statement)
     5. Bid Requirement Matching (Compare extracted metrics against Tender criteria)
     6. AI Compliance Scoring (0-100) & Risk Level
     7. Status Determination (Compliant >=80, Flagged 50-79, Non-Compliant <50)
@@ -94,17 +64,10 @@ def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dic
     # ----------------------------------------------------
     # Stage 1 & 2: Entity & Data Extraction
     # ----------------------------------------------------
-    raw_gst = req.gstin.strip().upper()
-    gst_clean = re.sub(r'^(GTSIN|GSTIN)', '', raw_gst)
+    gst_clean = req.gstin.strip().upper()
     pan_clean = req.pan.strip().upper()
     udyam_clean = req.msmeRegNo.strip().upper()
     vendor_clean = req.vendorName.strip()
-    raw_aadhar = getattr(req, 'aadharNo', '') or ''
-    aadhar_clean = re.sub(r'\D', '', str(raw_aadhar))
-
-    # Match against Stored KYC Directory
-    kyc_profile_by_aadhar = next((p for p in DUMMY_KYC_PROFILES if p["aadhar"] == aadhar_clean), None)
-    kyc_profile_by_name = next((p for p in DUMMY_KYC_PROFILES if any(kw.lower() in vendor_clean.lower() for kw in p["keywords"])), None)
 
     extracted_entities.append(ExtractedEntity(
         entityType="LEGAL_NAME",
@@ -116,7 +79,7 @@ def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dic
     extracted_entities.append(ExtractedEntity(
         entityType="GSTIN",
         fieldName="GST Identification Number",
-        parsedValue=gst_clean if len(gst_clean) == 15 else raw_gst,
+        parsedValue=gst_clean,
         confidence="99.6%",
         sourceDoc="GST_Registration_Certificate.pdf"
     ))
@@ -127,17 +90,6 @@ def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dic
         confidence="99.4%",
         sourceDoc="Income_Tax_PAN_Card.pdf"
     ))
-
-    if aadhar_clean:
-        masked_aadhar = f"XXXX-XXXX-{aadhar_clean[-4:]}" if len(aadhar_clean) >= 4 else aadhar_clean
-        extracted_entities.append(ExtractedEntity(
-            entityType="AADHAAR",
-            fieldName="Aadhaar UIDAI e-KYC Identity",
-            parsedValue=masked_aadhar,
-            confidence="99.8%",
-            sourceDoc="Aadhaar_Card_Verified.pdf"
-        ))
-
     extracted_entities.append(ExtractedEntity(
         entityType="UDYAM",
         fieldName="UDYAM MSME Registration",
@@ -178,30 +130,6 @@ def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dic
     pan_valid = bool(re.match(pan_regex, pan_clean))
     pan_suspicious = pan_clean.startswith("ABCDE") or pan_clean == "0000000000" or "FAIL" in pan_clean
 
-    # Aadhaar validation against KYC directory
-    aadhar_valid = False
-    aadhar_mismatch = False
-    aadhar_remarks = "UIDAI e-KYC Verified (Biometric Authenticated)."
-
-    if aadhar_clean:
-        if len(aadhar_clean) == 12:
-            if kyc_profile_by_aadhar:
-                # Check if name aligns with this profile
-                name_aligned = any(kw.lower() in vendor_clean.lower() for kw in kyc_profile_by_aadhar["keywords"])
-                if name_aligned:
-                    aadhar_valid = True
-                    aadhar_remarks = f"UIDAI Verified: Linked to {kyc_profile_by_aadhar['name']} ({kyc_profile_by_aadhar['company']})."
-                else:
-                    aadhar_valid = False
-                    aadhar_mismatch = True
-                    aadhar_remarks = f"CRITICAL MISMATCH: Aadhaar belongs to {kyc_profile_by_aadhar['name']} but bid submitted under '{vendor_clean}'."
-            else:
-                aadhar_valid = True
-                aadhar_remarks = f"UIDAI Live API: 12-Digit Aadhaar {aadhar_clean[:4]} XXXX {aadhar_clean[-4:]} successfully verified."
-        else:
-            aadhar_valid = False
-            aadhar_remarks = f"Invalid Aadhaar format: Must contain 12 digits (found {len(aadhar_clean)})."
-
     mii_num = 0.0
     try:
         mii_num = float(req.miiDeclared.replace("%", "").strip())
@@ -213,21 +141,12 @@ def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dic
 
     extracted_docs = [
         ExtractedDoc(
-            name="Aadhaar_Card_eKYC.pdf",
-            docType="UIDAI Aadhaar e-KYC Card",
-            status="Mismatch Alert" if aadhar_mismatch else ("Verified" if aadhar_valid else "Ready"),
-            score=25 if aadhar_mismatch else 100,
-            confidence="99.8%",
-            details=aadhar_remarks,
-            tamperingDetected=aadhar_mismatch
-        ),
-        ExtractedDoc(
             name="GST_Registration_Certificate.pdf",
             docType="FORM GST REG-06",
             status="Tampering Alert" if gst_is_suspicious else "Verified",
             score=20 if gst_is_suspicious else 100,
             confidence="64.0%" if gst_is_suspicious else "99.4%",
-            details="OpenCV Forensics: Inconsistent pixel gradient near registration date." if gst_is_suspicious else f"Verified with GSTN API gateway (Active: {gst_clean}).",
+            details="OpenCV Forensics: Inconsistent pixel gradient near registration date." if gst_is_suspicious else "Verified with GSTN API gateway (Active & 3B Compliant).",
             tamperingDetected=gst_is_suspicious
         ),
         ExtractedDoc(
@@ -236,7 +155,7 @@ def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dic
             status="Mismatch Alert" if pan_suspicious else "Verified",
             score=30 if pan_suspicious else 99,
             confidence="72.0%" if pan_suspicious else "99.1%",
-            details="Name on PAN card does not match registered bidder entity." if pan_suspicious else f"PAN {pan_clean} format & NSDL live database match verified.",
+            details="Name on PAN card does not match registered bidder entity." if pan_suspicious else "PAN format & NSDL live database match verified.",
             tamperingDetected=pan_suspicious
         ),
         ExtractedDoc(
@@ -271,32 +190,23 @@ def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dic
     # ----------------------------------------------------
     # Stage 4: Cross-Document Matching
     # ----------------------------------------------------
-    if aadhar_clean:
-        cross_doc_matches.append(CrossDocMatchResult(
-            fieldName="Aadhaar <-> PAN <-> Entity Identity Link",
-            docsCompared="Aadhaar Card <-> PAN Card <-> GSTIN",
-            isMatch=not aadhar_mismatch,
-            confidence=99.8 if not aadhar_mismatch else 30.0,
-            remarks=aadhar_remarks
-        ))
-
-    pan_in_gst = pan_clean in gst_clean if (len(pan_clean) == 10 and len(gst_clean) == 15) else (pan_valid and gst_is_valid)
+    pan_in_gst = pan_clean in gst_clean if (len(pan_clean) == 10 and len(gst_clean) == 15) else False
     
     cross_doc_matches.append(CrossDocMatchResult(
         fieldName="PAN vs GSTIN Consistency",
         docsCompared="PAN Card <-> GSTIN Certificate",
         isMatch=pan_in_gst and not pan_suspicious and not gst_is_suspicious,
         confidence=99.5 if pan_in_gst else 35.0,
-        remarks=f"PAN {pan_clean} aligns with GST structure {gst_clean}." if pan_in_gst else "CRITICAL: PAN digits do NOT match GSTIN structure."
+        remarks="PAN characters (chars 3-12) correctly match the embedded PAN in GSTIN." if pan_in_gst else "CRITICAL: PAN digits do NOT match GSTIN structure."
     ))
 
-    name_match = not (pan_suspicious or gst_is_suspicious or aadhar_mismatch)
+    name_match = not (pan_suspicious or gst_is_suspicious)
     cross_doc_matches.append(CrossDocMatchResult(
         fieldName="Entity Legal Name Alignment",
-        docsCompared="Aadhaar <-> PAN <-> GSTIN <-> UDYAM <-> CA Certificate",
+        docsCompared="PAN <-> GSTIN <-> UDYAM <-> CA Certificate",
         isMatch=name_match,
         confidence=98.8 if name_match else 40.0,
-        remarks=f"Legal entity '{vendor_clean}' aligns across all statutory certificates." if name_match else "Discrepancy: Entity name variation or Aadhaar mismatch detected."
+        remarks=f"Legal entity '{vendor_clean}' aligns across all 4 statutory certificates." if name_match else "Discrepancy: Entity name variation detected across statutory documents."
     ))
 
     cross_doc_matches.append(CrossDocMatchResult(
@@ -404,45 +314,6 @@ def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dic
             penaltyPoints=0
         ))
         pan_verified_str = "VERIFIED (NSDL API)"
-
-    # Check 2b: UIDAI Aadhaar e-KYC
-    if aadhar_clean:
-        if aadhar_mismatch:
-            score -= 30
-            flags.append(f"CRITICAL IDENTITY MISMATCH: Aadhaar number belongs to a different entity than '{vendor_clean}'.")
-            rule_results.append(RuleCheckResult(
-                ruleId="UIDAI-KYC-01",
-                name="UIDAI Aadhaar e-KYC Identity Verification",
-                category="Statutory Compliance",
-                passed=False,
-                details=aadhar_remarks,
-                penaltyPoints=30
-            ))
-            aadhar_verified_str = "FAILED (Identity Mismatch)"
-        elif aadhar_valid:
-            rule_results.append(RuleCheckResult(
-                ruleId="UIDAI-KYC-01",
-                name="UIDAI Aadhaar e-KYC Identity Verification",
-                category="Statutory Compliance",
-                passed=True,
-                details=aadhar_remarks,
-                penaltyPoints=0
-            ))
-            aadhar_verified_str = "VERIFIED (UIDAI e-KYC)"
-        else:
-            score -= 10
-            flags.append(f"Invalid Aadhaar format ({aadhar_clean}). Must contain 12 numeric digits.")
-            rule_results.append(RuleCheckResult(
-                ruleId="UIDAI-KYC-01",
-                name="UIDAI Aadhaar e-KYC Identity Verification",
-                category="Statutory Compliance",
-                passed=False,
-                details=aadhar_remarks,
-                penaltyPoints=10
-            ))
-            aadhar_verified_str = "INVALID FORMAT"
-    else:
-        aadhar_verified_str = "NOT PROVIDED"
 
     # Check 3: MII
     if mii_num >= 50:
@@ -630,7 +501,6 @@ def validate_bid_compliance(req: BidVerifyRequest, tender_criteria: Optional[Dic
         "ocrConfidence": ocr_conf,
         "gstVerified": gst_verified_str,
         "panVerified": pan_verified_str,
-        "aadharVerified": aadhar_verified_str,
         "rulesTested": rules_tested,
         "rulesPassed": rules_passed,
         "ruleBreakdown": rule_results,

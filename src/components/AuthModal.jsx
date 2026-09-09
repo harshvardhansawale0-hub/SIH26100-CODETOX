@@ -31,6 +31,37 @@ export default function AuthModal({
     setErrorMsg('');
   }, [isOpen, mode, initialRole]);
 
+  const handleQuickLogin = (demoRole) => {
+    const isGovBuyer = demoRole === 'buyer';
+    const demoUser = isGovBuyer
+      ? {
+          id: 101,
+          fullName: "Dir. Rajesh Verma",
+          email: "procurement.officer@nic.in",
+          organization: "Ministry of Electronics & IT (MeitY)",
+          gstin: "07AAAGM0289C1ZU",
+          role: "buyer",
+          designation: "Chief Procurement Officer"
+        }
+      : {
+          id: 202,
+          fullName: "Harshvardhan Sawale",
+          email: "vendor.contact@apextech.com",
+          organization: "Apex Technologies & Supplies Ltd.",
+          gstin: "27AABCB1234F1Z5",
+          role: "bidder",
+          udyam: "UDYAM-MH-03-0012345"
+        };
+
+    const token = `gem_demo_jwt_${Date.now()}`;
+    setAuthToken(token);
+    localStorage.setItem('gem_user', JSON.stringify(demoUser));
+    if (onAuthSuccess) {
+      onAuthSuccess(demoUser);
+    }
+    onClose();
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -162,6 +193,33 @@ export default function AuthModal({
                 </span>
               </button>
             </div>
+          </div>
+
+          {/* Quick 1-Click Demo Shortcut */}
+          <div style={{ marginBottom: '1.25rem' }}>
+            <button
+              type="button"
+              onClick={() => handleQuickLogin(role)}
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.75rem',
+                backgroundColor: role === 'buyer' ? 'rgba(2, 132, 199, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+                color: role === 'buyer' ? '#0284c7' : '#059669',
+                border: role === 'buyer' ? '1px dashed #0284c7' : '1px dashed #10b981',
+                borderRadius: '6px',
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Sparkles size={15} />
+              <span>⚡ Instant Demo Login as {role === 'buyer' ? 'Govt Buyer Officer' : 'Vendor Bidder (Apex)'}</span>
+            </button>
           </div>
 
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

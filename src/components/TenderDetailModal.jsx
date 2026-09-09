@@ -1,7 +1,7 @@
 import React from 'react';
-import { X, ExternalLink } from 'lucide-react';
+import { X, ExternalLink, Sparkles } from 'lucide-react';
 
-const TenderDetailModal = ({ tender, onClose, onNavigateToBids }) => {
+const TenderDetailModal = ({ tender, onClose, onNavigateToBids, onOpenVerifier }) => {
   if (!tender) return null;
 
   const getStatusColor = (status) => {
@@ -106,13 +106,24 @@ const TenderDetailModal = ({ tender, onClose, onNavigateToBids }) => {
             </div>
           )}
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: '1rem', borderTop: '1px solid #1e385b' }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', paddingTop: '1rem', borderTop: '1px solid #1e385b', flexWrap: 'wrap' }}>
             <button 
               onClick={() => onNavigateToBids(tender.id)}
-              style={{ backgroundColor: '#38bdf8', color: '#0b1a2d', border: 'none', borderRadius: '6px', padding: '0.75rem 1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
+              style={{ backgroundColor: 'transparent', color: '#38bdf8', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.75rem 1.25rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}
             >
               View Related Bids <ExternalLink size={16} />
             </button>
+            {onOpenVerifier && (
+              <button 
+                onClick={() => {
+                  onClose();
+                  onOpenVerifier(tender);
+                }}
+                style={{ backgroundColor: '#10b981', color: '#ffffff', border: 'none', borderRadius: '6px', padding: '0.75rem 1.5rem', fontWeight: 'bold', display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)' }}
+              >
+                <Sparkles size={16} /> Apply & Verify Documents (AI OCR)
+              </button>
+            )}
           </div>
         </div>
       </div>
