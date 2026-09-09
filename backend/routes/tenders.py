@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException, status, Query
 from typing import List, Dict, Any, Optional
 from ..models import TenderItem, TenderCreateRequest
-from ..database import get_all_tenders, get_tender_by_id, create_tender, get_all_bids
+from ..database import get_all_tenders, get_tender_by_id, create_tender, delete_tender, get_all_bids
 
 router = APIRouter(prefix="/api/tenders", tags=["Buyer Tenders & Compliance Criteria"])
 
@@ -66,9 +66,26 @@ def publish_tender(payload: TenderCreateRequest):
         "minExperienceYears": payload.minExperienceYears,
         "mandatoryDocs": payload.mandatoryDocs,
         "boqItems": [item.model_dump() for item in payload.boqItems],
-        "applicationsCount": 0
+        "applicationsCount": 0,
+        "createdBy": payload.createdBy,
+        "buyerEmail": payload.buyerEmail,
+        "buyerName": payload.buyerName,
+        "buyerOrg": payload.buyerOrg
     }
     
     created = create_tender(new_tender)
     return created
+
+@router.delete("/{tender_id}", response_model=Dict[str, Any])
+def remove_tender(tender_id: str):
+    """
+    Buyer deletes a tender by ID.
+    """
+    deleted = delete_tender(tender_id)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tender '{tender_id}' not found or could not be deleted."
+        )
+    return {"status": "success", "message": f"Tender '{tender_id}' deleted successfully.", "id": tender_id}
 

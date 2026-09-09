@@ -232,6 +232,17 @@ export const gemApi = {
     });
   },
 
+  async deleteTender(tenderId) {
+    try {
+      return await request(`/api/tenders/${tenderId}`, {
+        method: 'DELETE'
+      });
+    } catch (err) {
+      console.warn('[GeM API] Offline delete tender fallback:', err);
+      return { status: 'success', id: tenderId };
+    }
+  },
+
   async getTenderApplications(tenderId) {
     try {
       return await request(`/api/tenders/${tenderId}/applications`);

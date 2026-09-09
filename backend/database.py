@@ -1128,6 +1128,18 @@ def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
     conn.close()
     return t
 
+def delete_tender(tender_id: str) -> bool:
+    conn = get_connection()
+    cursor = conn.cursor()
+    p = _p()
+    cursor.execute(f"DELETE FROM tenders WHERE id = {p}", (tender_id,))
+    deleted = cursor.rowcount > 0
+    # Also remove associated bids for this tender
+    cursor.execute(f"DELETE FROM bids WHERE tender_id = {p}", (tender_id,))
+    conn.commit()
+    conn.close()
+    return deleted
+
 def get_all_contracts() -> List[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()

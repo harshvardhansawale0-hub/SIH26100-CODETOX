@@ -41,7 +41,8 @@ export default function AuthModal({
           organization: "Ministry of Electronics & IT (MeitY)",
           gstin: "07AAAGM0289C1ZU",
           role: "buyer",
-          designation: "Chief Procurement Officer"
+          designation: "Chief Procurement Officer",
+          isDemo: true
         }
       : {
           id: 202,
@@ -50,7 +51,8 @@ export default function AuthModal({
           organization: "Apex Technologies & Supplies Ltd.",
           gstin: "27AABCB1234F1Z5",
           role: "bidder",
-          udyam: "UDYAM-MH-03-0012345"
+          udyam: "UDYAM-MH-03-0012345",
+          isDemo: true
         };
 
     const token = `gem_demo_jwt_${Date.now()}`;
@@ -69,10 +71,11 @@ export default function AuthModal({
     try {
       if (authMode === 'signin') {
         const res = await gemApi.login(email, password, role);
+        const loggedUser = { ...res.user, isDemo: false };
         setAuthToken(res.token);
-        localStorage.setItem('gem_user', JSON.stringify(res.user));
+        localStorage.setItem('gem_user', JSON.stringify(loggedUser));
         if (onAuthSuccess) {
-          onAuthSuccess(res.user);
+          onAuthSuccess(loggedUser);
         }
       } else {
         const res = await gemApi.register({
@@ -82,10 +85,11 @@ export default function AuthModal({
           organization: organization || (role === 'buyer' ? 'Government Ministry / Dept' : 'Vendor Enterprise'),
           role: role
         });
+        const newUser = { ...res.user, isDemo: false };
         setAuthToken(res.token);
-        localStorage.setItem('gem_user', JSON.stringify(res.user));
+        localStorage.setItem('gem_user', JSON.stringify(newUser));
         if (onAuthSuccess) {
-          onAuthSuccess(res.user);
+          onAuthSuccess(newUser);
         }
       }
       onClose();

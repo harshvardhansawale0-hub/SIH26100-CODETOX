@@ -2,18 +2,19 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   Building2, PlusCircle, FileText, CheckCircle2, AlertTriangle, XCircle,
   Award, Eye, RefreshCw, Filter, Search, ShieldCheck, ChevronRight,
-  TrendingUp, Users, FileCheck, Layers, ArrowRight, ExternalLink
+  TrendingUp, Users, FileCheck, Layers, ArrowRight, ExternalLink, Trash2
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
 import CreateBidModal from './CreateBidModal';
 
 export default function BuyerDashboard({
-  bids,
-  tenders,
+  bids = [],
+  tenders = [],
   onSelectBid,
   onTenderCreated,
   onBidSelected,
+  onDeleteTender,
   currentUser
 }) {
   const { t } = useLanguage();
@@ -25,23 +26,42 @@ export default function BuyerDashboard({
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
 
+  // Scope tenders to this Buyer:
+  // Fresh/registered buyer accounts start with ZERO tenders until they publish them.
+  // Demo accounts (Dir. Rajesh Verma) show demo tenders.
+  const buyerTenders = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.isDemo) {
+      return tenders;
+    }
+    return tenders.filter(t => 
+      t.createdBy === currentUser.email || 
+      t.buyerEmail === currentUser.email
+    );
+  }, [tenders, currentUser]);
+
+  // Scope applications received: only for tenders belonging to this Buyer
+  const buyerBids = useMemo(() => {
+    return bids.filter(b => buyerTenders.some(t => t.id === b.tenderId));
+  }, [bids, buyerTenders]);
+
   // Buyer Summary KPIs
   const kpis = useMemo(() => {
-    const totalTenders = tenders.length;
-    const totalApps = bids.length;
-    const compliantCount = bids.filter(b => b.status === 'Compliant' || b.status === 'Selected').length;
-    const awardedCount = tenders.filter(t => t.status === 'Awarded' || bids.some(b => b.status === 'Selected')).length;
+    const totalTenders = buyerTenders.length;
+    const totalApps = buyerBids.length;
+    const compliantCount = buyerBids.filter(b => b.status === 'Compliant' || b.status === 'Selected').length;
+    const awardedCount = buyerTenders.filter(t => t.status === 'Awarded' || buyerBids.some(b => b.status === 'Selected' && b.tenderId === t.id)).length;
     return {
       totalTenders,
       totalApps,
       compliantCount,
       awardedCount
     };
-  }, [tenders, bids]);
+  }, [buyerTenders, buyerBids]);
 
   // Filtered Tenders
   const filteredTenders = useMemo(() => {
-    return tenders.filter((t) => {
+    return buyerTenders.filter((t) => {
       const matchSearch =
         (t.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (t.id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -49,11 +69,11 @@ export default function BuyerDashboard({
       const matchCat = categoryFilter === 'ALL' || t.category === categoryFilter;
       return matchSearch && matchCat;
     });
-  }, [tenders, searchQuery, categoryFilter]);
+  }, [buyerTenders, searchQuery, categoryFilter]);
 
   // Filtered Applications
   const filteredApplications = useMemo(() => {
-    return bids.filter((b) => {
+    return buyerBids.filter((b) => {
       const matchTender = selectedTenderId === 'ALL' || b.tenderId === selectedTenderId;
       const matchSearch =
         (b.vendor || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -63,7 +83,15 @@ export default function BuyerDashboard({
       const matchCat = categoryFilter === 'ALL' || b.category === categoryFilter;
       return matchTender && matchSearch && matchStatus && matchCat;
     });
-  }, [bids, selectedTenderId, searchQuery, statusFilter, categoryFilter]);
+  }, [buyerBids, selectedTenderId, searchQuery, statusFilter, categoryFilter]);
+
+  const handleDeleteTender = (tender) => {
+    if (window.confirm(`Are you sure you want to permanently delete Tender "${tender.id} — ${tender.title}"?\n\nThis will remove the tender from your dashboard and public search, and will remove all associated bidder applications.`)) {
+      if (onDeleteTender) {
+        onDeleteTender(tender.id);
+      }
+    }
+  };
 
   const handleSelectWinningBid = async (bid) => {
     if (!window.confirm(`Are you sure you want to officially select and award Tender ${bid.tenderId} to ${bid.vendor} (${bid.bidAmount})?`)) {
@@ -198,7 +226,7 @@ export default function BuyerDashboard({
               gap: '0.4rem'
             }}
           >
-            <FileText size={16} /> 1. Published Bids / Tenders ({tenders.length})
+            <FileText size={16} /> 1. Published Bids / Tenders ({buyerTenders.length})
           </button>
           <button
             onClick={() => setActiveSubTab('applications')}
@@ -216,7 +244,7 @@ export default function BuyerDashboard({
               gap: '0.4rem'
             }}
           >
-            <Users size={16} /> 2. Received Bidder Applications & AI Reports ({bids.length})
+            <Users size={16} /> 2. Received Bidder Applications & AI Reports ({buyerBids.length})
           </button>
         </div>
 
@@ -277,7 +305,7 @@ export default function BuyerDashboard({
                   }}
                 >
                   <option value="ALL">Filter by Tender: All Tenders</option>
-                  {tenders.map((t) => (
+                  {buyerTenders.map((t) => (
                     <option key={t.id} value={t.id}>{t.id} — {t.title.slice(0, 35)}...</option>
                   ))}
                 </select>
@@ -308,13 +336,45 @@ export default function BuyerDashboard({
         {/* View 1: Published Tenders */}
         {activeSubTab === 'tenders' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {filteredTenders.length === 0 ? (
+            {buyerTenders.length === 0 ? (
+              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '12px', border: '1px dashed #2563eb' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(56, 189, 248, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                  <FileText size={28} color="#38bdf8" />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: '800', marginBottom: '0.5rem' }}>
+                  Zero Published Tenders
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '540px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                  You currently have 0 active tenders in your Buyer account. As a Government Procuring Authority, click below to upload your procurement tenders from zero with customized GFR 2017 & Make-in-India compliance criteria.
+                </p>
+                <button
+                  onClick={() => setIsCreateModalOpen(true)}
+                  style={{
+                    padding: '0.7rem 1.4rem',
+                    backgroundColor: '#0284c7',
+                    color: '#ffffff',
+                    fontWeight: '800',
+                    fontSize: '0.9rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)'
+                  }}
+                >
+                  <PlusCircle size={18} />
+                  <span>+ Create / Publish Your First Tender</span>
+                </button>
+              </div>
+            ) : filteredTenders.length === 0 ? (
               <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '8px', border: '1px solid #1e385b' }}>
                 <p style={{ color: '#94a3b8' }}>No published tenders match your search criteria.</p>
               </div>
             ) : (
               filteredTenders.map((tender) => {
-                const tenderBids = bids.filter(b => b.tenderId === tender.id);
+                const tenderBids = buyerBids.filter(b => b.tenderId === tender.id);
                 const hasCompliant = tenderBids.some(b => b.status === 'Compliant' || b.status === 'Selected');
                 const isAwarded = tender.status === 'Awarded' || tenderBids.some(b => b.status === 'Selected');
 
@@ -387,7 +447,7 @@ export default function BuyerDashboard({
                     </div>
 
                     {/* Applications & Actions Row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #162c47', paddingTop: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #162c47', paddingTop: '0.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.84rem' }}>
                         <span style={{ color: '#94a3b8' }}>
                           Applications Received: <strong style={{ color: '#ffffff' }}>{tenderBids.length}</strong>
@@ -399,7 +459,7 @@ export default function BuyerDashboard({
                         )}
                       </div>
 
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
+                      <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
                         <button
                           onClick={() => {
                             setSelectedTenderId(tender.id);
@@ -420,6 +480,29 @@ export default function BuyerDashboard({
                           }}
                         >
                           <Users size={14} /> Review Applications ({tenderBids.length})
+                        </button>
+
+                        <button
+                          onClick={() => handleDeleteTender(tender)}
+                          style={{
+                            padding: '0.45rem 0.85rem',
+                            backgroundColor: 'rgba(239, 68, 68, 0.12)',
+                            color: '#f87171',
+                            border: '1px solid rgba(239, 68, 68, 0.35)',
+                            borderRadius: '6px',
+                            fontWeight: '700',
+                            fontSize: '0.82rem',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.35rem',
+                            transition: 'all 0.2s ease'
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ef4444'; e.currentTarget.style.color = '#ffffff'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.12)'; e.currentTarget.style.color = '#f87171'; }}
+                          title="Permanently delete this tender"
+                        >
+                          <Trash2 size={14} /> Delete
                         </button>
                       </div>
                     </div>
@@ -620,6 +703,7 @@ export default function BuyerDashboard({
         <CreateBidModal
           isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
+          currentUser={currentUser}
           onTenderCreated={(newTender) => {
             if (onTenderCreated) onTenderCreated(newTender);
           }}

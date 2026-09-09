@@ -72,15 +72,6 @@ export default function Footer({
           </div>
         </div>
       </footer>
-
-      {/* Floating ? Help Button */}
-      <button 
-        className="floating-help-btn" 
-        onClick={onOpenHelp}
-        title="GeM AI Assistant & Helpdesk"
-      >
-        ?
-      </button>
     </>
   );
 }

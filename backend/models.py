@@ -210,6 +210,10 @@ class TenderItem(BaseModel):
     boqItems: List[BoqItem] = []
     applicationsCount: int = 0
     selectedBidderId: Optional[str] = None
+    createdBy: Optional[str] = None
+    buyerEmail: Optional[str] = None
+    buyerName: Optional[str] = None
+    buyerOrg: Optional[str] = None
 
 class TenderCreateRequest(BaseModel):
     title: str
@@ -231,6 +235,10 @@ class TenderCreateRequest(BaseModel):
         "Make in India Declaration"
     ]
     boqItems: List[BoqItem] = []
+    createdBy: Optional[str] = None
+    buyerEmail: Optional[str] = None
+    buyerName: Optional[str] = None
+    buyerOrg: Optional[str] = None
 
 
 # ==========================================

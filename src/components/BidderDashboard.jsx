@@ -22,13 +22,28 @@ export default function BidderDashboard({
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [inspectingTender, setInspectingTender] = useState(null);
 
+  // Scope submitted bids:
+  // Fresh/registered bidder accounts start with ZERO submissions (mySubmissions: 0).
+  // Demo accounts (Harshvardhan Sawale / Apex) show demo bids.
+  const myBids = useMemo(() => {
+    if (!currentUser) return [];
+    if (currentUser.isDemo) {
+      return bids;
+    }
+    return bids.filter(b => 
+      b.submittedBy === currentUser.email || 
+      b.vendorEmail === currentUser.email ||
+      (currentUser.organization && b.vendor === currentUser.organization)
+    );
+  }, [bids, currentUser]);
+
   // Categorized Tenders Counts
   const counts = useMemo(() => {
     const activeList = tenders.filter(t => t.riskCategory === 'Active' || (!t.riskCategory && t.status === 'Active'));
     const atRiskList = tenders.filter(t => t.riskCategory === 'At Risk' || t.riskLevel?.toLowerCase().includes('risk') || t.status === 'Flagged');
     const nonCompliantList = tenders.filter(t => t.riskCategory === 'Non-Compliant' || t.status === 'Non-Compliant' || t.status === 'Rejected');
     const pendingList = tenders.filter(t => t.riskCategory === 'Pending Verification' || t.status === 'Pending Verification');
-    const mySubmissions = bids.length;
+    const mySubmissions = myBids.length;
 
     return {
       all: tenders.length,
@@ -38,7 +53,7 @@ export default function BidderDashboard({
       pending: pendingList.length,
       mySubmissions
     };
-  }, [tenders, bids]);
+  }, [tenders, myBids]);
 
   // Filtered Tenders based on Tab, Search and Category
   const filteredTenders = useMemo(() => {
@@ -71,7 +86,7 @@ export default function BidderDashboard({
 
   // Filtered My Bids
   const filteredMyBids = useMemo(() => {
-    return bids.filter((b) => {
+    return myBids.filter((b) => {
       const matchSearch =
         (b.vendor || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
         (b.id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -80,10 +95,10 @@ export default function BidderDashboard({
       const matchCat = categoryFilter === 'ALL' || b.category === categoryFilter;
       return matchSearch && matchCat;
     });
-  }, [bids, searchQuery, categoryFilter]);
+  }, [myBids, searchQuery, categoryFilter]);
 
   const getTenderSubmission = (tenderId) => {
-    return bids.find(b => b.tenderId === tenderId);
+    return myBids.find(b => b.tenderId === tenderId);
   };
 
   return (
@@ -438,6 +453,50 @@ export default function BidderDashboard({
           </div>
         </div>
 
+        {/* Quick Search Keyword Chips */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
+          <span style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: '600' }}>Quick Search:</span>
+          {['IT Hardware', 'Software', 'Medical Equipment', 'Defence', 'Make in India'].map((chip) => (
+            <button
+              key={chip}
+              onClick={() => {
+                setSearchQuery(chip === searchQuery ? '' : chip);
+                if (selectedCategoryTab === 'MY_SUBMISSIONS') setSelectedCategoryTab('ALL');
+              }}
+              style={{
+                fontSize: '0.75rem',
+                padding: '0.2rem 0.65rem',
+                borderRadius: '20px',
+                border: searchQuery === chip ? '1px solid #10b981' : '1px solid #1e385b',
+                backgroundColor: searchQuery === chip ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                color: searchQuery === chip ? '#34d399' : '#94a3b8',
+                cursor: 'pointer',
+                fontWeight: '600',
+                transition: 'all 0.15s ease'
+              }}
+            >
+              {chip}
+            </button>
+          ))}
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              style={{
+                fontSize: '0.75rem',
+                padding: '0.2rem 0.5rem',
+                borderRadius: '20px',
+                border: 'none',
+                backgroundColor: 'rgba(239, 68, 68, 0.2)',
+                color: '#f87171',
+                cursor: 'pointer',
+                fontWeight: '700'
+              }}
+            >
+              ✕ Clear Search
+            </button>
+          )}
+        </div>
+
         {/* MAIN HOMEPAGE VIEW: TENDER DISCOVERY & SELECTION PAGE */}
         {selectedCategoryTab !== 'MY_SUBMISSIONS' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
@@ -736,13 +795,35 @@ export default function BidderDashboard({
         {selectedCategoryTab === 'MY_SUBMISSIONS' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {filteredMyBids.length === 0 ? (
-              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '12px', border: '1px solid #1e385b' }}>
-                <p style={{ color: '#94a3b8', fontSize: '1rem' }}>You haven't submitted any verified bid applications yet.</p>
+              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '12px', border: '1px dashed #10b981' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(16, 185, 129, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                  <UploadCloud size={28} color="#10b981" />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: '800', marginBottom: '0.5rem' }}>
+                  Zero Submitted Bids
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '520px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                  You have not submitted any bids yet. Search active government procurement tenders in the portal to verify your compliance documents and submit your bid.
+                </p>
                 <button
-                  onClick={() => setSelectedCategoryTab('ACTIVE')}
-                  style={{ marginTop: '0.75rem', padding: '0.55rem 1.25rem', backgroundColor: '#10b981', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
+                  onClick={() => { setSelectedCategoryTab('ALL'); setSearchQuery(''); }}
+                  style={{
+                    padding: '0.7rem 1.4rem',
+                    backgroundColor: '#10b981',
+                    color: '#ffffff',
+                    fontWeight: '800',
+                    fontSize: '0.9rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
+                  }}
                 >
-                  Browse Active Tenders & Join Bidding
+                  <Search size={17} />
+                  <span>Search Active Tenders to Apply</span>
                 </button>
               </div>
             ) : (

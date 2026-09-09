@@ -3,13 +3,13 @@ import { X, Plus, Trash2, CheckCircle2, ShieldCheck, AlertCircle, FileText } fro
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
 
-export default function CreateBidModal({ isOpen, onClose, onTenderCreated }) {
+export default function CreateBidModal({ isOpen, onClose, onTenderCreated, currentUser }) {
   if (!isOpen) return null;
 
   const { t } = useLanguage();
   const [title, setTitle] = useState('');
-  const [ministry, setMinistry] = useState('Ministry of Defence');
-  const [department, setDepartment] = useState('Defence Research & Development Organisation (DRDO)');
+  const [ministry, setMinistry] = useState(currentUser?.organization || 'Ministry of Defence');
+  const [department, setDepartment] = useState(currentUser?.organization ? `${currentUser.organization} Procurement Wing` : 'Defence Research & Development Organisation (DRDO)');
   const [category, setCategory] = useState('IT Hardware');
   const [estimatedValue, setEstimatedValue] = useState('₹1.85 Cr');
   const [emdAmount, setEmdAmount] = useState('₹3.70 Lakhs (MSE Exempted)');
@@ -76,12 +76,23 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated }) {
         minTurnoverRequirement,
         minExperienceYears: Number(minExperienceYears),
         mandatoryDocs,
-        boqItems
+        boqItems,
+        createdBy: currentUser?.email || 'buyer@gem.gov.in',
+        buyerEmail: currentUser?.email || '',
+        buyerName: currentUser?.fullName || 'Government Buyer',
+        buyerOrg: currentUser?.organization || ministry
       };
       const created = await gemApi.createTender(payload);
+      const tenderWithMeta = {
+        ...created,
+        createdBy: payload.createdBy,
+        buyerEmail: payload.buyerEmail,
+        buyerName: payload.buyerName,
+        buyerOrg: payload.buyerOrg
+      };
       setIsSuccess(true);
       setTimeout(() => {
-        if (onTenderCreated) onTenderCreated(created);
+        if (onTenderCreated) onTenderCreated(tenderWithMeta);
         setIsSuccess(false);
         onClose();
       }, 1200);

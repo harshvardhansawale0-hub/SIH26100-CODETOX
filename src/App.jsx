@@ -149,7 +149,8 @@ function MainApp() {
           organization: "Ministry of Electronics & IT (MeitY)",
           gstin: "07AAAGM0289C1ZU",
           role: "buyer",
-          designation: "Chief Procurement Officer"
+          designation: "Chief Procurement Officer",
+          isDemo: true
         }
       : {
           id: 202,
@@ -158,7 +159,8 @@ function MainApp() {
           organization: "Apex Technologies & Supplies Ltd.",
           gstin: "27AABCB1234F1Z5",
           role: "bidder",
-          udyam: "UDYAM-MH-03-0012345"
+          udyam: "UDYAM-MH-03-0012345",
+          isDemo: true
         };
 
     const token = `gem_demo_jwt_${Date.now()}`;
@@ -232,15 +234,53 @@ function MainApp() {
 
   // Buyer Flow: Buyer creates new tender with compliance criteria
   const handleTenderCreated = (newTender) => {
-    setTenders((prev) => [newTender, ...prev]);
+    const tenderWithCreator = {
+      ...newTender,
+      createdBy: newTender.createdBy || (currentUser ? currentUser.email : 'buyer'),
+      buyerEmail: newTender.buyerEmail || (currentUser ? currentUser.email : ''),
+      buyerName: newTender.buyerName || (currentUser ? currentUser.fullName : 'Government Buyer'),
+      buyerOrg: newTender.buyerOrg || (currentUser ? currentUser.organization : 'Government Procuring Authority')
+    };
+    setTenders((prev) => {
+      const updated = [tenderWithCreator, ...prev];
+      try {
+        localStorage.setItem('gem_stored_tenders', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     setActiveTab('Buyer');
+  };
+
+  // Buyer Flow: Buyer deletes a published tender
+  const handleDeleteTender = async (tenderId) => {
+    setTenders((prev) => {
+      const updated = prev.filter((t) => t.id !== tenderId);
+      try {
+        localStorage.setItem('gem_stored_tenders', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    setBids((prev) => {
+      const updated = prev.filter((b) => b.tenderId !== tenderId);
+      try {
+        localStorage.setItem('gem_stored_bids', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
+    try {
+      await gemApi.deleteTender(tenderId);
+    } catch (err) {
+      console.warn('Failed to delete tender on server:', err);
+    }
   };
 
   // Bidder Flow: Bidder applies and verifies documents via 8-stage pipeline
   const handleAddVerifiedBid = (newBidResult) => {
     const formattedBid = {
       id: newBidResult.bidId || `BID-${Math.floor(10000 + Math.random() * 90000)}`,
-      vendor: newBidResult.vendor || (currentUser ? currentUser.organization : "Apex Supplies Ltd."),
+      vendor: newBidResult.vendor || (currentUser ? (currentUser.organization || currentUser.fullName) : "Apex Supplies Ltd."),
+      vendorEmail: currentUser ? currentUser.email : null,
+      submittedBy: currentUser ? currentUser.email : null,
       category: newBidResult.category || "IT Hardware",
       item: `${newBidResult.category || "IT"} Solution`,
       tenderId: newBidResult.tenderId || "GEM/2026/B/891244",
@@ -277,7 +317,13 @@ function MainApp() {
         ]
     };
 
-    setBids((prev) => [formattedBid, ...prev]);
+    setBids((prev) => {
+      const updated = [formattedBid, ...prev];
+      try {
+        localStorage.setItem('gem_stored_bids', JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
   };
 
   // Buyer Flow: Final Bidder Selection & Award
@@ -484,6 +530,7 @@ function MainApp() {
             onSelectBid={(bid) => setSelectedBid(bid)}
             onTenderCreated={handleTenderCreated}
             onBidSelected={handleBidSelected}
+            onDeleteTender={handleDeleteTender}
           />
         ) : (
           <AuthGate
@@ -645,6 +692,14 @@ function MainApp() {
           setActiveTab('Bid');
         }}
         onOpenVerifier={(tender) => handleOpenVerifierForTender(tender)}
+      />
+
+      {/* 4.4b Create Bid/Tender Modal (Buyer) */}
+      <CreateBidModal
+        isOpen={isCreateBidOpen}
+        onClose={() => setIsCreateBidOpen(false)}
+        currentUser={currentUser}
+        onTenderCreated={handleTenderCreated}
       />
 
       {/* 4.5 Role-Aware Authentication (Strictly Buyer or Bidder) */}
