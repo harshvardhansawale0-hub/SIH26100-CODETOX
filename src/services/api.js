@@ -1,18 +1,43 @@
-/**
- * GeM AI Procurement Platform - Frontend API Integration Service
- * Connects React UI to FastAPI backend running on http://127.0.0.1:8000
- * SIH 2026 (Problem Statement: SIH26100) - Team Codetox
- */
+import { initialBids, initialTenders, initialContracts, summaryMetrics } from '../data/bidsData';
 
-import { initialBids, summaryMetrics } from '../data/bidsData';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'http://127.0.0.1:8000' : '');
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+// Auth token management
+let _authToken = null;
+
+export function setAuthToken(token) {
+  _authToken = token;
+  if (token) {
+    localStorage.setItem('gem_auth_token', token);
+  } else {
+    localStorage.removeItem('gem_auth_token');
+  }
+}
+
+export function getAuthToken() {
+  if (!_authToken) {
+    _authToken = localStorage.getItem('gem_auth_token');
+  }
+  return _authToken;
+}
+
+export function clearAuth() {
+  _authToken = null;
+  localStorage.removeItem('gem_auth_token');
+  localStorage.removeItem('gem_user');
+}
 
 async function request(endpoint, options = {}) {
   const url = `${API_BASE_URL}${endpoint}`;
   const defaultHeaders = {
     'Accept': 'application/json',
   };
+
+  // Include auth token if available
+  const token = getAuthToken();
+  if (token) {
+    defaultHeaders['Authorization'] = `Bearer ${token}`;
+  }
 
   if (!(options.body instanceof FormData)) {
     defaultHeaders['Content-Type'] = 'application/json';
@@ -81,7 +106,7 @@ export const gemApi = {
     }
   },
 
-  async updateBidStatus(bidId, newStatus, officerNotes = '', officerName = 'Nodal Procurement Officer (Admin)') {
+  async updateBidStatus(bidId, newStatus, officerNotes = '', officerName = 'Government Procuring Authority (Buyer)') {
     try {
       return await request(`/api/bids/${bidId}/status`, {
         method: 'PATCH',
@@ -164,21 +189,93 @@ export const gemApi = {
     }
   },
 
-  // 5. Tenders & Contracts
+  // 5. Tenders & Contracts (Buyer & Bidder)
   async getTenders() {
     try {
-      return await request('/api/tenders');
+      const data = await request('/api/tenders');
+      return (data && data.length > 0) ? data : initialTenders;
+    } catch {
+      return initialTenders;
+    }
+  },
+
+  async getTenderById(tenderId) {
+    try {
+      return await request(`/api/tenders/${tenderId}`);
+    } catch {
+      return null;
+    }
+  },
+
+  async createTender(tenderData) {
+    try {
+      return await request('/api/tenders', {
+        method: 'POST',
+        body: JSON.stringify(tenderData)
+      });
+    } catch (err) {
+      console.warn('[GeM API] Offline create tender fallback:', err);
+      return {
+        id: `GEM/2026/B/${Math.floor(100000 + Math.random() * 900000)}`,
+        ...tenderData,
+        status: 'Active',
+        publishedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+        applicationsCount: 0
+      };
+    }
+  },
+
+  async publishTender(payload) {
+    return await request('/api/tenders', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  },
+
+  async getTenderApplications(tenderId) {
+    try {
+      return await request(`/api/tenders/${tenderId}/applications`);
     } catch {
       return [];
     }
   },
 
+  async selectWinningBidder(bidId, notes = '', buyerName = 'Government Procuring Authority') {
+    try {
+      return await request(`/api/bids/${bidId}/select`, {
+        method: 'POST',
+        body: JSON.stringify({ notes, buyerName })
+      });
+    } catch (err) {
+      console.warn('[GeM API] Offline select winning bidder fallback:', err);
+      return {
+        status: 'success',
+        message: `Bid '${bidId}' officially selected as winning vendor!`
+      };
+    }
+  },
+
   async getContracts() {
     try {
-      return await request('/api/contracts');
+      const data = await request('/api/contracts');
+      return (data && data.length > 0) ? data : initialContracts;
     } catch {
-      return [];
+      return initialContracts;
     }
+  },
+
+  async approveCrac(poId, notes = 'Goods inspected and found compliant with tender BOQ specifications.') {
+    return await request(`/api/contracts/${poId}/crac`, {
+      method: 'PATCH',
+      body: JSON.stringify({ cracStatus: 'Approved', inspectionNotes: notes })
+    });
+  },
+
+  async processPayment(poId) {
+    return await request(`/api/contracts/${poId}/payment`, {
+      method: 'PATCH',
+      body: JSON.stringify({ paymentStatus: 'Settled (100%)', disbursementRef: `PFMS-${Date.now()}` })
+    });
   },
 
   // 6. Platform Overview Stats
@@ -193,39 +290,26 @@ export const gemApi = {
   },
 
   // 7. Authentication
-  async login(email, password, role = 'buyer') {
-    try {
-      return await request('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email, password, role })
-      });
-    } catch (err) {
-      return {
-        token: `mock_jwt_${Date.now()}`,
-        user: {
-          id: 1,
-          fullName: email.split('@')[0].toUpperCase(),
-          email,
-          role,
-          organization: 'National Enterprise'
-        },
-        message: 'Logged in (demo fallback).'
-      };
-    }
+  async login(email, password, role = 'bidder') {
+    return await request('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password, role })
+    });
   },
 
   async register(userData) {
+    return await request('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(userData)
+    });
+  },
+
+  async logout() {
     try {
-      return await request('/api/auth/register', {
-        method: 'POST',
-        body: JSON.stringify(userData)
-      });
-    } catch (err) {
-      return {
-        token: `mock_jwt_${Date.now()}`,
-        user: userData,
-        message: 'Registered successfully (demo fallback).'
-      };
+      await request('/api/auth/logout', { method: 'POST' });
+    } catch {
+      // Ignore network errors on logout
     }
   }
 };
+

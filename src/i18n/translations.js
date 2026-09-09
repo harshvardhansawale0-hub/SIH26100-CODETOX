@@ -358,7 +358,34 @@ export const translations = {
     emailLabel: "Official Email Address",
     bidTenderIdLabel: "Bid / Tender ID (Optional)",
     messageLabel: "Message / Grievance Details",
-    sendGrievance: "Send Grievance Ticket"
+    sendGrievance: "Send Grievance Ticket",
+
+    // Tenders & Contracts
+    tabTenders: "Tenders",
+    tabContracts: "Contracts",
+    logout: "Logout",
+    tenderTag: "PROCUREMENT TENDERS (GFR 2017)",
+    tenderTitle: "Public Tenders & Bid Invitations",
+    tenderSubtitle: "Explore active government procurement notices and technical specifications",
+    publishTender: "Publish New Tender",
+    tenderIdCol: "Tender ID",
+    titleCol: "Tender Title",
+    ministryCol: "Ministry / Dept",
+    categoryCol: "Category",
+    valueCol: "Estimated Value",
+    closingDateCol: "Closing Date",
+    statusCol: "Status",
+    contractTag: "CONTRACTS & PAYMENTS (GFR 225)",
+    contractTitle: "Contract Management Portal",
+    contractSubtitle: "Track CRAC, process payments, and manage contract lifecycles",
+    poIdCol: "PO Number",
+    vendorCol: "Vendor Entity",
+    buyerOrgCol: "Buyer Organization",
+    contractValueCol: "Contract Value",
+    cracStatusCol: "CRAC Status",
+    paymentStatusCol: "Payment Status",
+    cracApprove: "Approve CRAC",
+    processPayment: "Process Payment"
   },
 
   hi: {
@@ -717,7 +744,34 @@ export const translations = {
     emailLabel: "आधिकारिक ईमेल पता",
     bidTenderIdLabel: "बोली / निविदा आईडी (वैकल्पिक)",
     messageLabel: "संदेश / शिकायत विवरण",
-    sendGrievance: "शिकायत दर्ज करें"
+    sendGrievance: "शिकायत दर्ज करें",
+
+    // Tenders & Contracts
+    tabTenders: "निविदाएं",
+    tabContracts: "अनुबंध",
+    logout: "लॉगआउट",
+    tenderTag: "खरीद निविदाएं (GFR 2017)",
+    tenderTitle: "सार्वजनिक निविदाएं और बोली आमंत्रण",
+    tenderSubtitle: "सक्रिय सरकारी खरीद सूचनाओं और तकनीकी विनिर्देशों का अन्वेषण करें",
+    publishTender: "नई निविदा प्रकाशित करें",
+    tenderIdCol: "निविदा आईडी",
+    titleCol: "निविदा शीर्षक",
+    ministryCol: "मंत्रालय / विभाग",
+    categoryCol: "श्रेणी",
+    valueCol: "अनुमानित मूल्य",
+    closingDateCol: "समाप्ति तिथि",
+    statusCol: "स्थिति",
+    contractTag: "अनुबंध और भुगतान (GFR 225)",
+    contractTitle: "अनुबंध प्रबंधन पोर्टल",
+    contractSubtitle: "CRAC ट्रैक करें, भुगतान प्रोसेस करें, और अनुबंध जीवनचक्र प्रबंधित करें",
+    poIdCol: "पीओ नंबर",
+    vendorCol: "विक्रेता संस्था",
+    buyerOrgCol: "क्रेता संगठन",
+    contractValueCol: "अनुबंध मूल्य",
+    cracStatusCol: "CRAC स्थिति",
+    paymentStatusCol: "भुगतान स्थिति",
+    cracApprove: "CRAC स्वीकृत करें",
+    processPayment: "भुगतान प्रोसेस करें"
   },
 
   mr: {
@@ -1076,6 +1130,33 @@ export const translations = {
     emailLabel: "अधिकृत ईमेल पत्ता",
     bidTenderIdLabel: "निविदा आयडी (पर्यायी)",
     messageLabel: "संदेश / तक्रार तपशील",
-    sendGrievance: "तक्रार नोंदवा"
+    sendGrievance: "तक्रार नोंदवा",
+
+    // Tenders & Contracts
+    tabTenders: "निविदा",
+    tabContracts: "करार व देयके",
+    logout: "लॉगआउट",
+    tenderTag: "खरेदी निविदा (GFR 2017)",
+    tenderTitle: "सार्वजनिक निविदा आणि बोली आमंत्रणे",
+    tenderSubtitle: "सक्रिय सरकारी खरेदी सूचना आणि तांत्रिक वैशिष्ट्ये पहा",
+    publishTender: "नवीन निविदा प्रकाशित करा",
+    tenderIdCol: "निविदा आयडी",
+    titleCol: "निविदा शीर्षक",
+    ministryCol: "मंत्रालय / विभाग",
+    categoryCol: "श्रेणी",
+    valueCol: "अंदाजे मूल्य",
+    closingDateCol: "अंतिम तारीख",
+    statusCol: "स्थिती",
+    contractTag: "करार आणि देयके (GFR 225)",
+    contractTitle: "करार व्यवस्थापन पोर्टल",
+    contractSubtitle: "CRAC ट्रॅक करा, देयके प्रोसेस करा आणि करार व्यवस्थापित करा",
+    poIdCol: "पीओ क्रमांक",
+    vendorCol: "विक्रेता संस्था",
+    buyerOrgCol: "खरेदीदार संस्था",
+    contractValueCol: "करार मूल्य",
+    cracStatusCol: "CRAC स्थिती",
+    paymentStatusCol: "देयक स्थिती",
+    cracApprove: "CRAC मंजूर करा",
+    processPayment: "देयक प्रोसेस करा"
   }
 };

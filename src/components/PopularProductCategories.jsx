@@ -126,7 +126,16 @@ export default function PopularProductCategories({ onCategoryClick, onOpenGemmy 
 
                   <ul className="category-items-list">
                     {cat.items.map((item, idx) => (
-                      <li key={idx} className="category-item-link">
+                      <li 
+                        key={idx} 
+                        className="category-item-link"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (onCategoryClick) onCategoryClick(cat.id, item);
+                        }}
+                        style={{ cursor: 'pointer' }}
+                        title={`Filter tenders for ${item}`}
+                      >
                         {item}
                       </li>
                     ))}
@@ -137,7 +146,7 @@ export default function PopularProductCategories({ onCategoryClick, onOpenGemmy 
                     className="category-view-all-btn"
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (onCategoryClick) onCategoryClick(cat.id);
+                      if (onCategoryClick) onCategoryClick(cat.id, cat.title);
                     }}
                   >
                     {t('viewAll')}

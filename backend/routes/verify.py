@@ -8,7 +8,8 @@ from typing import Dict, Any, List
 
 from ..models import BidVerifyRequest, BidVerifyResponse, ExtractedDoc, AuditTrailEntry
 from ..services.rule_engine import validate_bid_compliance
-from ..database import insert_bid
+from ..database import insert_bid, get_tender_by_id
+from ..services.ocr_forensics import parse_uploaded_document
 
 from ..services.document_processing.processor import process_document
 from ..services.document_processing.cross_checker import run_cross_document_checks
@@ -65,22 +66,26 @@ def verify_bid_payload(req: BidVerifyRequest):
             pass
             
     # 2. Base rule engine evaluation (Deterministic Rules based on extraction)
-    evaluation = validate_bid_compliance(req, processing_results, cross_checks)
+    tender = get_tender_by_id(req.tenderId)
+    evaluation = validate_bid_compliance(req, processing_results, cross_checks, tender)
     
     if req.fileId:
         evaluation["extractedDocs"] = real_extracted_docs
         evaluation["ocrConfidence"] = doc_ocr_conf
-
     
     bid_id = f"BID-{random.randint(20500, 29999)}"
     now_str = datetime.now().strftime("%d %b %Y, %I:%M %p")
 
-    # Construct the complete verified bid record
+    # Construct the complete verified bid record with compliance report
+    report_dict = evaluation["complianceReport"].model_dump() if evaluation.get("complianceReport") else None
+    if report_dict:
+        report_dict["bidId"] = bid_id
+
     verified_record = {
         "id": bid_id,
         "vendor": req.vendorName,
         "category": req.category,
-        "item": f"{req.category} Equipment / Solution",
+        "item": f"{req.category} Procurement Solution",
         "tenderId": req.tenderId,
         "tenderValue": req.tenderValue,
         "bidAmount": req.bidAmount,
@@ -97,6 +102,10 @@ def verify_bid_payload(req: BidVerifyRequest):
         "ocrConfidence": evaluation["ocrConfidence"],
         "flags": evaluation["flags"],
         "extractedDocs": [doc.model_dump() for doc in evaluation["extractedDocs"]],
+        "extractedEntities": [e.model_dump() for e in evaluation["extractedEntities"]],
+        "crossDocMatches": [m.model_dump() for m in evaluation["crossDocMatches"]],
+        "requirementMatches": [r.model_dump() for r in evaluation["requirementMatches"]],
+        "complianceReport": report_dict,
         "auditTrail": [entry.model_dump() for entry in evaluation["auditTrail"]]
     }
 
@@ -121,8 +130,12 @@ def verify_bid_payload(req: BidVerifyRequest):
         rulesTested=evaluation["rulesTested"],
         rulesPassed=evaluation["rulesPassed"],
         ruleBreakdown=evaluation["ruleBreakdown"],
+        extractedEntities=evaluation["extractedEntities"],
+        crossDocMatches=evaluation["crossDocMatches"],
+        requirementMatches=evaluation["requirementMatches"],
         extractedDocs=evaluation["extractedDocs"],
-        auditTrail=evaluation["auditTrail"]
+        auditTrail=evaluation["auditTrail"],
+        complianceReport=evaluation["complianceReport"]
     )
 
 @router.post("/upload")
@@ -161,3 +174,4 @@ async def upload_and_parse_document(file: UploadFile = File(...)):
             "details": "File securely uploaded and awaiting verification pipeline."
         }
     }
+

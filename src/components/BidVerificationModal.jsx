@@ -397,7 +397,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
             <div style={{ backgroundColor: '#0f2238', color: '#ffffff', padding: '1rem 1.25rem', borderRadius: '8px', border: '1px solid #1e385b' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.85rem', color: '#7dd3fc', fontFamily: 'monospace' }}>
-                  {stepsList[scanStep - 1] || "Processing..."}
+                  {["Parsing OCR", "Validating Fields", "Cross-Checking", "Applying Rules"][scanStep - 1] || "Processing..."}
                 </span>
                 <span style={{ fontSize: '0.75rem', color: '#f5a623', fontWeight: '700' }}>
                   {scanStep * 25}% Complete
@@ -480,6 +480,25 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                   {t('allPassedTitle')}
                 </div>
               )}
+
+              {/* Buyer Recommendation Banner */}
+              <div
+                style={{
+                  backgroundColor: result.status === 'Compliant' ? 'rgba(16, 185, 129, 0.1)' : (result.status === 'Flagged' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)'),
+                  border: `1px solid ${result.status === 'Compliant' ? 'rgba(16, 185, 129, 0.3)' : (result.status === 'Flagged' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)')}`,
+                  borderRadius: '8px',
+                  padding: '1rem',
+                  marginBottom: '1.25rem',
+                  fontSize: '0.88rem'
+                }}
+              >
+                <strong style={{ display: 'block', color: result.status === 'Compliant' ? '#34d399' : (result.status === 'Flagged' ? '#fbbf24' : '#f87171'), marginBottom: '0.25rem' }}>
+                  🤖 AI Recommendation for Government Buyer:
+                </strong>
+                <p style={{ margin: 0, color: '#e2e8f0', lineHeight: 1.5 }}>
+                  {result.status === 'Compliant' ? 'Application verified and meets requirements. Ready for L1 award.' : result.status === 'Flagged' ? 'Application requires manual review due to discrepancies or marginal shortfalls.' : 'Application rejected due to critical non-compliance or document mismatch.'}
+                </p>
+              </div>
 
               {/* Action Buttons */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>

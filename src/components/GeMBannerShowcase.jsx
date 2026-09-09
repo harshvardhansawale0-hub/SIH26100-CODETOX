@@ -7,10 +7,28 @@ import makeInIndiaImg from '../assets/gem_make_in_india.jpg';
 import womaniyaImg from '../assets/gem_womaniya_msme.jpg';
 import startupRunwayImg from '../assets/gem_startup_runway.jpg';
 
-export default function GeMBannerShowcase({ onExploreTenders, onOpenVerifier }) {
+export default function GeMBannerShowcase({ 
+  onExploreTenders, 
+  onOpenVerifier,
+  onNavigateInitiative,
+  onOpenInitiativeModal
+}) {
   const { t, lang } = useLanguage();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
+
+  const handleSlideAction = (slideId) => {
+    if (slideId === 'make-in-india') {
+      if (onNavigateInitiative) onNavigateInitiative('mii');
+      else if (onExploreTenders) onExploreTenders('mii');
+    } else if (slideId === 'womaniya') {
+      if (onNavigateInitiative) onNavigateInitiative('womaniya');
+      else if (onOpenVerifier) onOpenVerifier();
+    } else if (slideId === 'startup-runway') {
+      if (onNavigateInitiative) onNavigateInitiative('startup');
+      else if (onOpenVerifier) onOpenVerifier();
+    }
+  };
 
   const slides = [
     {
@@ -23,8 +41,8 @@ export default function GeMBannerShowcase({ onExploreTenders, onOpenVerifier }) 
         : lang === 'mr' 
         ? "क्लास-I स्थानिक पुरवठादारांसाठी GeM वर प्राधान्य — स्थानिक उत्पादने आणि 'आत्मनिर्भर भारत' ला प्रोत्साहन."
         : "Class-I Local Supplier preference on GeM — driving public procurement toward verified domestic manufacturers.",
-      cta: lang === 'hi' ? "मेक इन इंडिया निविदा देखें" : lang === 'mr' ? "MII निविदा पहा" : "Explore MII Tenders",
-      action: onExploreTenders
+      cta: lang === 'hi' ? "योजना और पंजीकरण देखें" : lang === 'mr' ? "योजना आणि नोंदणी पहा" : "Explore Scheme & Register",
+      action: () => handleSlideAction("make-in-india")
     },
     {
       id: "womaniya",
@@ -36,8 +54,8 @@ export default function GeMBannerShowcase({ onExploreTenders, onOpenVerifier }) 
         : lang === 'mr'
         ? "बचत गट (SHG), महिला सूक्ष्म-उद्योजक आणि कारागिरांना थेट सरकारी खरेदीदारांशी जोडणे."
         : "Direct national marketplace for Self-Help Groups (SHGs), female micro-entrepreneurs, and master craftswomen.",
-      cta: lang === 'hi' ? "विक्रेता पंजीकरण" : lang === 'mr' ? "विक्रेता नोंदणी" : "Register as Seller",
-      action: onOpenVerifier
+      cta: lang === 'hi' ? "वोमानिया योजना और पंजीकरण देखें" : lang === 'mr' ? "नोंदणी व योजना पहा" : "Explore Womaniya & Register",
+      action: () => handleSlideAction("womaniya")
     },
     {
       id: "startup-runway",
@@ -49,12 +67,12 @@ export default function GeMBannerShowcase({ onExploreTenders, onOpenVerifier }) 
         : lang === 'mr'
         ? "DPIIT मान्यताप्राप्त स्टार्टअप्ससाठी सरकारी विभागांमध्ये अत्याधुनिक तंत्रज्ञान आणि AI समाधानांची थेट खरेदी."
         : "Fast-track onboarding for DPIIT-recognized startups to supply breakthrough technologies directly to Government bodies.",
-      cta: lang === 'hi' ? "AI सत्यापन शुरू करें" : lang === 'mr' ? "AI पडताळणी सुरू करा" : "Launch AI Verification",
-      action: onOpenVerifier
+      cta: lang === 'hi' ? "स्टार्टअप योजना और पंजीकरण देखें" : lang === 'mr' ? "स्टार्टअप योजना व नोंदणी पहा" : "Explore Startup Runway & Register",
+      action: () => handleSlideAction("startup-runway")
     }
   ];
 
-  // Auto-advance carousel every 5 seconds unless hovered
+  // Auto-advance carousel every 5.5 seconds unless hovered
   useEffect(() => {
     if (isPaused) return;
     const interval = setInterval(() => {
@@ -71,27 +89,35 @@ export default function GeMBannerShowcase({ onExploreTenders, onOpenVerifier }) 
     setCurrentSlide((prev) => (prev + 1) % slides.length);
   };
 
-  // Special initiatives items matching GeM portal
+  // Special initiatives items matching GeM portal with click handlers
   const specialInitiatives = [
     {
+      key: "mii",
       icon: <Award size={24} color="#f59e0b" />,
       title: "Make in India (MII)",
-      desc: lang === 'hi' ? "घरेलू विनिर्माण को प्रोत्साहन" : lang === 'mr' ? "स्थानिक उत्पादनांना प्राधान्य" : "Preference to verified domestic manufacturers"
+      desc: lang === 'hi' ? "घरेलू विनिर्माण को प्रोत्साहन" : lang === 'mr' ? "स्थानिक उत्पादनांना प्राधान्य" : "Preference to verified domestic manufacturers",
+      badgeText: "Class-I & II"
     },
     {
+      key: "womaniya",
       icon: <HeartHandshake size={24} color="#ec4899" />,
       title: "Womaniya on GeM",
-      desc: lang === 'hi' ? "महिला व SHG सशक्तिकरण" : lang === 'mr' ? "महिला व बचत गट सक्षमीकरण" : "Dedicated market for women entrepreneurs"
+      desc: lang === 'hi' ? "महिला व SHG सशक्तिकरण" : lang === 'mr' ? "महिला व बचत गट सक्षमीकरण" : "Dedicated market for women entrepreneurs",
+      badgeText: "3% Quota"
     },
     {
+      key: "startup",
       icon: <Rocket size={24} color="#3b82f6" />,
       title: "Startup Runway",
-      desc: lang === 'hi' ? "नवाचार व AI समाधान" : lang === 'mr' ? "नावीन्यपूर्ण AI सोल्यूशन्स" : "Direct access for innovative tech startups"
+      desc: lang === 'hi' ? "नवाचार व AI समाधान" : lang === 'mr' ? "नावीन्यपूर्ण AI सोल्यूशन्स" : "Direct access for innovative tech startups",
+      badgeText: "DPIIT Fast-Track"
     },
     {
+      key: "mse",
       icon: <ShieldCheck size={24} color="#10b981" />,
       title: "MSE Sambandh",
-      desc: lang === 'hi' ? "25% अनिवार्य कोटा" : lang === 'mr' ? "25% अनिवार्य कोटा" : "25% mandatory public procurement quota"
+      desc: lang === 'hi' ? "25% अनिवार्य कोटा" : lang === 'mr' ? "25% अनिवार्य कोटा" : "25% mandatory public procurement quota",
+      badgeText: "25% Reserved"
     }
   ];
 
@@ -123,6 +149,7 @@ export default function GeMBannerShowcase({ onExploreTenders, onOpenVerifier }) 
             <button 
               className="carousel-action-btn"
               onClick={slides[currentSlide].action}
+              style={{ cursor: 'pointer' }}
             >
               <span>{slides[currentSlide].cta}</span>
               <ArrowRight size={16} />
@@ -150,14 +177,43 @@ export default function GeMBannerShowcase({ onExploreTenders, onOpenVerifier }) 
           </div>
         </div>
 
-        {/* 4 Government Procurement Initiatives Bar */}
+        {/* 4 Government Procurement Initiatives Bar (Interactive Buttons) */}
         <div className="gem-initiatives-grid">
           {specialInitiatives.map((item, idx) => (
-            <div key={idx} className="initiative-card">
+            <div 
+              key={idx} 
+              className="initiative-card"
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                if (onNavigateInitiative) onNavigateInitiative(item.key);
+                else if (onOpenInitiativeModal) onOpenInitiativeModal(item.key);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  if (onNavigateInitiative) onNavigateInitiative(item.key);
+                }
+              }}
+              style={{ cursor: 'pointer', position: 'relative' }}
+              title={`Click to view ${item.title} opportunities`}
+            >
               <div className="initiative-icon-box">{item.icon}</div>
-              <div>
-                <h4 className="initiative-title">{item.title}</h4>
-                <p className="initiative-desc">{item.desc}</p>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '2px' }}>
+                  <h4 className="initiative-title" style={{ margin: 0 }}>{item.title}</h4>
+                  <span style={{ 
+                    fontSize: '0.65rem', 
+                    fontWeight: '800', 
+                    backgroundColor: 'rgba(2, 132, 199, 0.1)', 
+                    color: '#0284c7', 
+                    padding: '2px 6px', 
+                    borderRadius: '4px',
+                    border: '1px solid rgba(2, 132, 199, 0.2)'
+                  }}>
+                    {item.badgeText}
+                  </span>
+                </div>
+                <p className="initiative-desc" style={{ margin: 0 }}>{item.desc}</p>
               </div>
             </div>
           ))}

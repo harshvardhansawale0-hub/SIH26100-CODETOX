@@ -6,6 +6,49 @@ from pydantic import BaseModel, Field, field_validator
 # 1. Verification & Input Schemas
 # ==========================================
 
+class ExtractedEntity(BaseModel):
+    entityType: str  # "PAN", "GSTIN", "UDIN", "TURNOVER", "LEGAL_NAME", "MII_PERCENT"
+    fieldName: str
+    parsedValue: str
+    confidence: str
+    sourceDoc: str
+
+class CrossDocMatchResult(BaseModel):
+    fieldName: str
+    docsCompared: str
+    isMatch: bool
+    confidence: float
+    remarks: str
+
+class BidRequirementMatchResult(BaseModel):
+    requirementName: str
+    tenderRequirement: str
+    bidderClaim: str
+    isMet: bool
+    remarks: str
+
+class RuleCheckResult(BaseModel):
+    ruleId: str
+    name: str
+    category: str  # e.g. "GFR 2017", "DPIIT Policy", "Statutory Compliance", "MSE Policy 2012"
+    passed: bool
+    details: str
+    penaltyPoints: int = 0
+
+class ExtractedDoc(BaseModel):
+    name: str
+    docType: str
+    status: str
+    score: int
+    confidence: str
+    details: Optional[str] = None
+    tamperingDetected: bool = False
+
+class AuditTrailEntry(BaseModel):
+    timestamp: str
+    action: str
+    agent: str
+
 class BidVerifyRequest(BaseModel):
     vendorName: str = Field(..., example="Apex Supplies Ltd.")
     category: str = Field(default="IT Hardware", example="IT Hardware")
@@ -44,29 +87,25 @@ class BidVerifyRequest(BaseModel):
     ipAddress: Optional[str] = Field(default="49.204.12.8", example="49.204.12.8")
     dscSerial: Optional[str] = Field(default="DSC-2026-APEX-001", example="DSC-2026-APEX-001")
     fileId: Optional[str] = Field(default=None, description="UUID of the uploaded document to process")
+    uploadedDocNames: Optional[List[str]] = Field(default=[])
 
-
-class RuleCheckResult(BaseModel):
-    ruleId: str
-    name: str
-    category: str  # e.g. "GFR 2017", "DPIIT", "Statutory Compliance", "MSE Policy"
-    passed: bool
-    details: str
-    penaltyPoints: int = 0
-
-
-class ExtractedDoc(BaseModel):
-    name: str
-    status: str
+class ComplianceReport(BaseModel):
+    reportId: str
+    generatedAt: str
+    bidId: str
+    tenderId: str
+    vendorName: str
     score: int
-    details: Optional[str] = None
-
-
-class AuditTrailEntry(BaseModel):
-    timestamp: str
-    action: str
-    agent: str
-
+    status: str  # "Compliant", "Flagged", "Non-Compliant"
+    riskLevel: str
+    summaryText: str
+    buyerRecommendation: str
+    extractedEntities: List[ExtractedEntity] = []
+    crossDocMatches: List[CrossDocMatchResult] = []
+    requirementMatches: List[BidRequirementMatchResult] = []
+    ruleBreakdown: List[RuleCheckResult] = []
+    extractedDocs: List[ExtractedDoc] = []
+    flags: List[str] = []
 
 class BidVerifyResponse(BaseModel):
     bidId: str
@@ -76,8 +115,8 @@ class BidVerifyResponse(BaseModel):
     tenderValue: str
     bidAmount: str
     score: int
-    status: str  # "Compliant", "Flagged", "Rejected"
-    risk: str    # "Low Risk", "Medium Risk", "Critical High Risk"
+    status: str  # "Compliant", "Flagged", "Non-Compliant"
+    risk: str    # "Low Risk", "Medium Risk", "High Risk"
     flags: List[str] = []
     miiVerified: str
     ocrConfidence: str
@@ -86,12 +125,16 @@ class BidVerifyResponse(BaseModel):
     rulesTested: int
     rulesPassed: int
     ruleBreakdown: List[RuleCheckResult] = []
+    extractedEntities: List[ExtractedEntity] = []
+    crossDocMatches: List[CrossDocMatchResult] = []
+    requirementMatches: List[BidRequirementMatchResult] = []
     extractedDocs: List[ExtractedDoc] = []
     auditTrail: List[AuditTrailEntry] = []
+    complianceReport: Optional[ComplianceReport] = None
 
 
 # ==========================================
-# 2. Bid Entity & Management Schemas
+# 2. Bid Entity & Application Schemas
 # ==========================================
 
 class BidItem(BaseModel):
@@ -102,7 +145,7 @@ class BidItem(BaseModel):
     tenderId: str
     tenderValue: str
     bidAmount: str
-    status: str
+    status: str  # "Compliant", "Flagged", "Non-Compliant", "Selected"
     score: int
     miiContent: str
     turnover: str
@@ -115,17 +158,20 @@ class BidItem(BaseModel):
     ocrConfidence: str
     flags: List[str] = []
     extractedDocs: List[ExtractedDoc] = []
+    extractedEntities: List[ExtractedEntity] = []
+    crossDocMatches: List[CrossDocMatchResult] = []
+    requirementMatches: List[BidRequirementMatchResult] = []
     auditTrail: List[AuditTrailEntry] = []
-
+    complianceReport: Optional[Dict[str, Any]] = None
 
 class BidStatusUpdate(BaseModel):
-    status: str
-    officerNotes: Optional[str] = None
-    officerName: Optional[str] = "Nodal Procurement Officer (GeM)"
+    status: str  # "Compliant", "Flagged", "Non-Compliant", "Selected"
+    buyerNotes: Optional[str] = None
+    buyerName: Optional[str] = "Government Procuring Authority"
 
 
 # ==========================================
-# 3. Tenders & BOQ Schemas
+# 3. Tenders & BOQ Schemas (Buyer Created)
 # ==========================================
 
 class BoqItem(BaseModel):
@@ -133,6 +179,18 @@ class BoqItem(BaseModel):
     qty: int
     unit: str
 
+class TenderComplianceCriteria(BaseModel):
+    miiMinRequirement: str = "50% (Class-I)"
+    minTurnoverRequirement: str = "₹2.0 Cr"
+    minExperienceYears: int = 3
+    mandatoryDocs: List[str] = [
+        "PAN Card",
+        "GSTIN Certificate",
+        "UDYAM Certificate",
+        "CA Audited Turnover Statement",
+        "Make in India Declaration"
+    ]
+    technicalSpecsSummary: Optional[str] = "Standard OEM & ISO 9001 certified procurement quality."
 
 class TenderItem(BaseModel):
     id: str
@@ -144,10 +202,14 @@ class TenderItem(BaseModel):
     emdAmount: str
     publishedDate: str
     closingDate: str
-    status: str
+    status: str  # "Active", "Under Evaluation", "Awarded", "Closed"
     miiMinRequirement: str
+    minTurnoverRequirement: str = "₹2.0 Cr"
+    minExperienceYears: int = 3
+    mandatoryDocs: List[str] = []
     boqItems: List[BoqItem] = []
-
+    applicationsCount: int = 0
+    selectedBidderId: Optional[str] = None
 
 class TenderCreateRequest(BaseModel):
     title: str
@@ -159,11 +221,20 @@ class TenderCreateRequest(BaseModel):
     publishedDate: Optional[str] = None
     closingDate: str
     miiMinRequirement: str = "50% (Class-I)"
+    minTurnoverRequirement: str = "₹2.0 Cr"
+    minExperienceYears: int = 3
+    mandatoryDocs: List[str] = [
+        "PAN Card",
+        "GSTIN Certificate",
+        "UDYAM Certificate",
+        "CA Audited Turnover Statement",
+        "Make in India Declaration"
+    ]
     boqItems: List[BoqItem] = []
 
 
 # ==========================================
-# 4. Contracts & CRAC Schemas (GFR Stage 5 & 6)
+# 4. Contracts & CRAC Schemas
 # ==========================================
 
 class ContractItem(BaseModel):
@@ -174,27 +245,47 @@ class ContractItem(BaseModel):
     buyerOrg: str
     contractValue: str
     poDate: str
-    dscSigned: bool
+    dscSigned: bool = True
     cracStatus: str
     cracDate: Optional[str] = None
     paymentStatus: str
     paymentDueDate: str
     disbursementRef: Optional[str] = None
 
-
 class CracUpdateRequest(BaseModel):
-    cracStatus: str = "Approved"  # "Approved", "Rejected", "Pending Inspection"
-    inspectionNotes: Optional[str] = "Goods inspected and found compliant with tender BOQ specifications."
-
+    cracStatus: str  # "Approved", "Rejected", "Pending Inspection"
+    inspectionNotes: Optional[str] = None
 
 class PaymentUpdateRequest(BaseModel):
-    paymentStatus: str = "Settled (100%)"  # "Settled (100%)", "Processing (Day 4/10)", "Withheld"
+    paymentStatus: str  # "Processing (Day 4/10)", "Settled (100%)", "Withheld"
     disbursementRef: Optional[str] = None
 
 
 # ==========================================
-# 5. Auction & Anti-Cartel Schemas
+# 5. Anti-Cartel Schemas
 # ==========================================
+
+class CartelVendorInfo(BaseModel):
+    vendorName: str
+    ipAddress: str
+    dscSerial: str
+    bankBranch: str
+    bidAmount: str
+
+class CartelDetectionAlert(BaseModel):
+    tenderId: str
+    severity: str
+    title: str
+    description: str
+    flaggedVendors: List[str]
+    detectedAt: Optional[str] = None
+
+class CartelAlert(BaseModel):
+    tenderId: str
+    severity: str
+    title: str
+    description: str
+    flaggedVendors: List[str]
 
 class AuctionBidItem(BaseModel):
     rank: str
@@ -206,37 +297,17 @@ class AuctionBidItem(BaseModel):
     ipAddress: Optional[str] = None
     dscIssuer: Optional[str] = None
 
-
-class CartelAlert(BaseModel):
-    tenderId: str
-    severity: str
-    title: str
-    description: str
-    flaggedVendors: List[str]
-
-
 class GraphNode(BaseModel):
     id: str
     label: str
     type: str  # "vendor", "tender", "ip", "dsc"
     risk: str
 
-
 class GraphLink(BaseModel):
     source: str
     target: str
     relationship: str
     weight: float
-
-
-class AuctionAnalysisResponse(BaseModel):
-    tenderId: str
-    tenderValue: str
-    bids: List[AuctionBidItem]
-    cartelAlerts: List[CartelAlert]
-    graphNodes: List[GraphNode]
-    graphLinks: List[GraphLink]
-
 
 class ReverseAuctionStep(BaseModel):
     roundNumber: int
@@ -245,27 +316,34 @@ class ReverseAuctionStep(BaseModel):
     timeRemainingSeconds: int
     bidsInRound: List[Dict[str, Any]]
 
+class AuctionAnalysisResponse(BaseModel):
+    tenderId: str
+    tenderValue: str
+    bids: List[Any]
+    cartelAlerts: List[Any]
+    graphNodes: List[Any]
+    graphLinks: List[Any]
+
 
 # ==========================================
-# 6. Overview & Stats Schemas
+# 6. Platform Overview & Summary Metrics
 # ==========================================
 
 class ViolationItem(BaseModel):
-    name: str
-    percent: int
-    color: str
-
+    type: str
+    count: int
+    percentage: str
+    riskWeight: str
 
 class PlatformStats(BaseModel):
-    gmvProcessed: str
-    gmvSubtitle: str
-    complianceAccuracy: str
+    verifiedVolume: str
+    verifiedSubtitle: str
+    accuracyRate: str
     accuracySubtitle: str
-    vendorsScreened: str
+    activeVendors: str
     vendorsSubtitle: str
     turnaroundTime: str
     turnaroundSubtitle: str
-
 
 class SummaryMetrics(BaseModel):
     activeBids: str
@@ -277,7 +355,6 @@ class SummaryMetrics(BaseModel):
     rejected: str
     rejectedPercent: str
 
-
 class StatsOverviewResponse(BaseModel):
     platformStats: PlatformStats
     summaryMetrics: SummaryMetrics
@@ -285,23 +362,21 @@ class StatsOverviewResponse(BaseModel):
 
 
 # ==========================================
-# 7. Auth Schemas
+# 7. Authentication Schemas (Strictly Buyer & Bidder)
 # ==========================================
 
 class UserLogin(BaseModel):
     email: str
     password: str
-    role: Optional[str] = "buyer"  # "buyer", "seller", "officer"
-
+    role: Optional[str] = "buyer"  # Strictly "buyer" or "bidder"
 
 class UserRegister(BaseModel):
     fullName: str
     email: str
     organization: str
     gstin: Optional[str] = None
-    role: str = "seller"
+    role: str = "bidder"  # Strictly "buyer" or "bidder"
     password: str
-
 
 class AuthResponse(BaseModel):
     token: str

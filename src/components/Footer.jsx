@@ -1,7 +1,13 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function Footer({ onNavigate, onOpenHelp }) {
+export default function Footer({ 
+  onNavigate, 
+  onOpenHelp,
+  onNavigateInitiative,
+  onOpenInitiativeModal,
+  onOpenVerifier
+}) {
   const { t } = useLanguage();
 
   return (
@@ -23,7 +29,7 @@ export default function Footer({ onNavigate, onOpenHelp }) {
           <div>
             <h4 className="footer-col-heading">{t('platform')}</h4>
             <ul className="footer-links-list">
-              <li><span className="footer-link" onClick={() => onNavigate('Bid')}>{t('bidVerification')}</span></li>
+              <li><span className="footer-link" onClick={() => onOpenVerifier ? onOpenVerifier() : onNavigate('Bid')}>{t('bidVerification')}</span></li>
               <li><span className="footer-link" onClick={() => onNavigate('Auction')}>{t('vendorScreen')}</span></li>
               <li><span className="footer-link" onClick={() => onNavigate('Auction')}>{t('auditLogs')}</span></li>
               <li><span className="footer-link" onClick={() => onNavigate('Forward')}>{t('analytics')}</span></li>
@@ -34,10 +40,10 @@ export default function Footer({ onNavigate, onOpenHelp }) {
           <div>
             <h4 className="footer-col-heading">{t('policy')}</h4>
             <ul className="footer-links-list">
-              <li><span className="footer-link" onClick={() => onNavigate('About')}>{t('gfr2017')}</span></li>
-              <li><span className="footer-link" onClick={() => onNavigate('About')}>{t('makeInIndia')}</span></li>
-              <li><span className="footer-link" onClick={() => onNavigate('About')}>{t('msePolicy')}</span></li>
-              <li><span className="footer-link" onClick={() => onNavigate('About')}>{t('dpiitGuidelines')}</span></li>
+              <li><span className="footer-link" onClick={() => onOpenInitiativeModal ? onOpenInitiativeModal('gfr') : onNavigate('About')}>{t('gfr2017')}</span></li>
+              <li><span className="footer-link" onClick={() => onNavigateInitiative ? onNavigateInitiative('mii') : onNavigate('About')}>{t('makeInIndia')}</span></li>
+              <li><span className="footer-link" onClick={() => onNavigateInitiative ? onNavigateInitiative('mse') : onNavigate('About')}>{t('msePolicy')}</span></li>
+              <li><span className="footer-link" onClick={() => onNavigateInitiative ? onNavigateInitiative('startup') : onNavigate('About')}>{t('dpiitGuidelines')}</span></li>
             </ul>
           </div>
 
