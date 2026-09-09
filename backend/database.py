@@ -1,4 +1,3 @@
-import sqlite3
 import json
 import os
 import sys
@@ -6,17 +5,67 @@ import argparse
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "gem_procure.db")
+# ===========================================================================
+# Database Connection — PostgreSQL (Neon) with SQLite fallback for local dev
+# ===========================================================================
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+
+# Determine which driver to use
+if DATABASE_URL:
+    import psycopg2
+    import psycopg2.extras
+    _USE_PG = True
+    print(f"[*] Using PostgreSQL (Neon): {DATABASE_URL[:40]}...")
+else:
+    import sqlite3
+    _USE_PG = False
+    DB_PATH = os.path.join(os.path.dirname(__file__), "gem_procure.db")
+    print(f"[*] DATABASE_URL not set. Falling back to SQLite: {DB_PATH}")
+
 
 def get_connection():
     """
-    Returns a configured SQLite connection with row_factory enabled and PRAGMAs applied.
+    Returns a database connection.
+    - If DATABASE_URL is set: PostgreSQL via psycopg2 (RealDictCursor)
+    - Otherwise: SQLite with row_factory (local dev fallback)
     """
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON;")
-    conn.execute("PRAGMA journal_mode = WAL;")
-    return conn
+    if _USE_PG:
+        conn = psycopg2.connect(DATABASE_URL, cursor_factory=psycopg2.extras.RealDictCursor)
+        conn.autocommit = False
+        return conn
+    else:
+        conn = sqlite3.connect(DB_PATH)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON;")
+        conn.execute("PRAGMA journal_mode = WAL;")
+        return conn
+
+
+def _ph(n: int = 1) -> str:
+    """Returns the correct placeholder for the current DB engine."""
+    if _USE_PG:
+        return ", ".join(["%s"] * n)
+    else:
+        return ", ".join(["?"] * n)
+
+
+def _p() -> str:
+    """Single parameter placeholder."""
+    return "%s" if _USE_PG else "?"
+
+
+def _count_result(row):
+    """Extract count from a COUNT(*) query result (works for both drivers)."""
+    if _USE_PG:
+        return row["count"]
+    else:
+        return row[0]
+
+
+# ===========================================================================
+# Schema Initialization
+# ===========================================================================
 
 def init_db(force_recreate: bool = False):
     """
@@ -35,136 +84,256 @@ def init_db(force_recreate: bool = False):
         cursor.execute("DROP TABLE IF EXISTS vendors")
         cursor.execute("DROP TABLE IF EXISTS users")
 
-    # 1. Bids table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS bids (
-        id TEXT PRIMARY KEY,
-        vendor TEXT NOT NULL,
-        category TEXT NOT NULL,
-        item TEXT NOT NULL,
-        tender_id TEXT NOT NULL,
-        tender_value TEXT NOT NULL,
-        bid_amount TEXT NOT NULL,
-        status TEXT NOT NULL,
-        score INTEGER NOT NULL,
-        mii_content TEXT NOT NULL,
-        turnover TEXT NOT NULL,
-        experience TEXT NOT NULL,
-        gst_status TEXT NOT NULL,
-        pan_status TEXT NOT NULL,
-        msme_status TEXT NOT NULL,
-        date TEXT NOT NULL,
-        risk_level TEXT NOT NULL,
-        ocr_confidence TEXT NOT NULL,
-        flags TEXT NOT NULL, -- JSON array
-        extracted_docs TEXT NOT NULL, -- JSON array
-        extracted_entities TEXT, -- JSON array
-        cross_doc_matches TEXT, -- JSON array
-        requirement_matches TEXT, -- JSON array
-        compliance_report TEXT, -- JSON object
-        audit_trail TEXT NOT NULL -- JSON array
-    )
-    """)
+    if _USE_PG:
+        # PostgreSQL table definitions
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS bids (
+            id TEXT PRIMARY KEY,
+            vendor TEXT NOT NULL,
+            category TEXT NOT NULL,
+            item TEXT NOT NULL,
+            tender_id TEXT NOT NULL,
+            tender_value TEXT NOT NULL,
+            bid_amount TEXT NOT NULL,
+            status TEXT NOT NULL,
+            score INTEGER NOT NULL,
+            mii_content TEXT NOT NULL,
+            turnover TEXT NOT NULL,
+            experience TEXT NOT NULL,
+            gst_status TEXT NOT NULL,
+            pan_status TEXT NOT NULL,
+            msme_status TEXT NOT NULL,
+            date TEXT NOT NULL,
+            risk_level TEXT NOT NULL,
+            ocr_confidence TEXT NOT NULL,
+            flags TEXT NOT NULL,
+            extracted_docs TEXT NOT NULL,
+            extracted_entities TEXT,
+            cross_doc_matches TEXT,
+            requirement_matches TEXT,
+            compliance_report TEXT,
+            audit_trail TEXT NOT NULL,
+            _row_order SERIAL
+        )
+        """)
 
-    # 2. Users table (Strictly Buyer and Bidder)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        full_name TEXT NOT NULL,
-        email TEXT UNIQUE NOT NULL,
-        password_hash TEXT NOT NULL,
-        organization TEXT NOT NULL,
-        gstin TEXT,
-        role TEXT NOT NULL DEFAULT 'bidder', -- Strictly 'buyer' or 'bidder'
-        created_at TEXT NOT NULL
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id SERIAL PRIMARY KEY,
+            full_name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            organization TEXT NOT NULL,
+            gstin TEXT,
+            role TEXT NOT NULL DEFAULT 'bidder',
+            created_at TEXT NOT NULL
+        )
+        """)
 
-    # 3. Tenders table (Buyer Published with Compliance Criteria)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS tenders (
-        id TEXT PRIMARY KEY,
-        title TEXT NOT NULL,
-        ministry TEXT NOT NULL,
-        department TEXT NOT NULL,
-        category TEXT NOT NULL,
-        estimated_value TEXT NOT NULL,
-        emd_amount TEXT NOT NULL,
-        published_date TEXT NOT NULL,
-        closing_date TEXT NOT NULL,
-        status TEXT NOT NULL, -- 'Active', 'Under Evaluation', 'Awarded', 'Closed'
-        mii_min_requirement TEXT NOT NULL,
-        min_turnover_requirement TEXT DEFAULT '₹2.0 Cr',
-        min_experience_years INTEGER DEFAULT 3,
-        mandatory_docs TEXT DEFAULT '[]', -- JSON array
-        boq_items TEXT NOT NULL, -- JSON array
-        selected_bidder_id TEXT,
-        created_at TEXT NOT NULL
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tenders (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            ministry TEXT NOT NULL,
+            department TEXT NOT NULL,
+            category TEXT NOT NULL,
+            estimated_value TEXT NOT NULL,
+            emd_amount TEXT NOT NULL,
+            published_date TEXT NOT NULL,
+            closing_date TEXT NOT NULL,
+            status TEXT NOT NULL,
+            mii_min_requirement TEXT NOT NULL,
+            min_turnover_requirement TEXT DEFAULT '₹2.0 Cr',
+            min_experience_years INTEGER DEFAULT 3,
+            mandatory_docs TEXT DEFAULT '[]',
+            boq_items TEXT NOT NULL,
+            selected_bidder_id TEXT,
+            created_at TEXT NOT NULL
+        )
+        """)
 
-    # 4. Contracts & Purchase Orders table (GFR Stage 5 & 6)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS contracts (
-        id TEXT PRIMARY KEY,
-        tender_id TEXT NOT NULL,
-        bid_id TEXT NOT NULL,
-        vendor TEXT NOT NULL,
-        buyer_org TEXT NOT NULL,
-        contract_value TEXT NOT NULL,
-        po_date TEXT NOT NULL,
-        dsc_signed BOOLEAN NOT NULL DEFAULT 1,
-        crac_status TEXT NOT NULL, -- 'Pending Inspection', 'Approved', 'Rejected'
-        crac_date TEXT,
-        payment_status TEXT NOT NULL, -- 'Processing (Day 4/10)', 'Settled (100%)', 'Withheld'
-        payment_due_date TEXT NOT NULL,
-        disbursement_ref TEXT
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS contracts (
+            id TEXT PRIMARY KEY,
+            tender_id TEXT NOT NULL,
+            bid_id TEXT NOT NULL,
+            vendor TEXT NOT NULL,
+            buyer_org TEXT NOT NULL,
+            contract_value TEXT NOT NULL,
+            po_date TEXT NOT NULL,
+            dsc_signed BOOLEAN NOT NULL DEFAULT TRUE,
+            crac_status TEXT NOT NULL,
+            crac_date TEXT,
+            payment_status TEXT NOT NULL,
+            payment_due_date TEXT NOT NULL,
+            disbursement_ref TEXT,
+            _row_order SERIAL
+        )
+        """)
 
-    # 5. Cartel Detection Logs table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS cartel_reports (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        tender_id TEXT NOT NULL,
-        severity TEXT NOT NULL,
-        title TEXT NOT NULL,
-        description TEXT NOT NULL,
-        flagged_vendors TEXT NOT NULL, -- JSON array
-        detected_at TEXT NOT NULL
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS cartel_reports (
+            id SERIAL PRIMARY KEY,
+            tender_id TEXT NOT NULL,
+            severity TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            flagged_vendors TEXT NOT NULL,
+            detected_at TEXT NOT NULL
+        )
+        """)
 
-    # 6. Master Vendors Directory table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS vendors (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE NOT NULL,
-        gstin TEXT NOT NULL,
-        pan TEXT NOT NULL,
-        udyam_no TEXT,
-        category TEXT NOT NULL,
-        mii_classification TEXT NOT NULL,
-        compliance_score INTEGER DEFAULT 90,
-        risk_tier TEXT DEFAULT 'Low Risk',
-        blacklisted BOOLEAN DEFAULT 0,
-        created_at TEXT NOT NULL
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS vendors (
+            id SERIAL PRIMARY KEY,
+            name TEXT UNIQUE NOT NULL,
+            gstin TEXT NOT NULL,
+            pan TEXT NOT NULL,
+            udyam_no TEXT,
+            category TEXT NOT NULL,
+            mii_classification TEXT NOT NULL,
+            compliance_score INTEGER DEFAULT 90,
+            risk_tier TEXT DEFAULT 'Low Risk',
+            blacklisted BOOLEAN DEFAULT FALSE,
+            created_at TEXT NOT NULL
+        )
+        """)
 
-    # 7. System Audit Logs table
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS audit_logs (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        event_type TEXT NOT NULL,
-        entity_id TEXT NOT NULL,
-        user_agent TEXT NOT NULL,
-        details TEXT NOT NULL,
-        timestamp TEXT NOT NULL
-    )
-    """)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id SERIAL PRIMARY KEY,
+            event_type TEXT NOT NULL,
+            entity_id TEXT NOT NULL,
+            user_agent TEXT NOT NULL,
+            details TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+        """)
+    else:
+        # SQLite table definitions (original)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS bids (
+            id TEXT PRIMARY KEY,
+            vendor TEXT NOT NULL,
+            category TEXT NOT NULL,
+            item TEXT NOT NULL,
+            tender_id TEXT NOT NULL,
+            tender_value TEXT NOT NULL,
+            bid_amount TEXT NOT NULL,
+            status TEXT NOT NULL,
+            score INTEGER NOT NULL,
+            mii_content TEXT NOT NULL,
+            turnover TEXT NOT NULL,
+            experience TEXT NOT NULL,
+            gst_status TEXT NOT NULL,
+            pan_status TEXT NOT NULL,
+            msme_status TEXT NOT NULL,
+            date TEXT NOT NULL,
+            risk_level TEXT NOT NULL,
+            ocr_confidence TEXT NOT NULL,
+            flags TEXT NOT NULL,
+            extracted_docs TEXT NOT NULL,
+            extracted_entities TEXT,
+            cross_doc_matches TEXT,
+            requirement_matches TEXT,
+            compliance_report TEXT,
+            audit_trail TEXT NOT NULL
+        )
+        """)
 
-    # Performance Indexes
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            full_name TEXT NOT NULL,
+            email TEXT UNIQUE NOT NULL,
+            password_hash TEXT NOT NULL,
+            organization TEXT NOT NULL,
+            gstin TEXT,
+            role TEXT NOT NULL DEFAULT 'bidder',
+            created_at TEXT NOT NULL
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS tenders (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            ministry TEXT NOT NULL,
+            department TEXT NOT NULL,
+            category TEXT NOT NULL,
+            estimated_value TEXT NOT NULL,
+            emd_amount TEXT NOT NULL,
+            published_date TEXT NOT NULL,
+            closing_date TEXT NOT NULL,
+            status TEXT NOT NULL,
+            mii_min_requirement TEXT NOT NULL,
+            min_turnover_requirement TEXT DEFAULT '₹2.0 Cr',
+            min_experience_years INTEGER DEFAULT 3,
+            mandatory_docs TEXT DEFAULT '[]',
+            boq_items TEXT NOT NULL,
+            selected_bidder_id TEXT,
+            created_at TEXT NOT NULL
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS contracts (
+            id TEXT PRIMARY KEY,
+            tender_id TEXT NOT NULL,
+            bid_id TEXT NOT NULL,
+            vendor TEXT NOT NULL,
+            buyer_org TEXT NOT NULL,
+            contract_value TEXT NOT NULL,
+            po_date TEXT NOT NULL,
+            dsc_signed BOOLEAN NOT NULL DEFAULT 1,
+            crac_status TEXT NOT NULL,
+            crac_date TEXT,
+            payment_status TEXT NOT NULL,
+            payment_due_date TEXT NOT NULL,
+            disbursement_ref TEXT
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS cartel_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            tender_id TEXT NOT NULL,
+            severity TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT NOT NULL,
+            flagged_vendors TEXT NOT NULL,
+            detected_at TEXT NOT NULL
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS vendors (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT UNIQUE NOT NULL,
+            gstin TEXT NOT NULL,
+            pan TEXT NOT NULL,
+            udyam_no TEXT,
+            category TEXT NOT NULL,
+            mii_classification TEXT NOT NULL,
+            compliance_score INTEGER DEFAULT 90,
+            risk_tier TEXT DEFAULT 'Low Risk',
+            blacklisted BOOLEAN DEFAULT 0,
+            created_at TEXT NOT NULL
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type TEXT NOT NULL,
+            entity_id TEXT NOT NULL,
+            user_agent TEXT NOT NULL,
+            details TEXT NOT NULL,
+            timestamp TEXT NOT NULL
+        )
+        """)
+
+    # Performance Indexes (same syntax for both)
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_bids_status ON bids(status)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_bids_category ON bids(category)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_bids_tender ON bids(tender_id)")
@@ -177,46 +346,29 @@ def init_db(force_recreate: bool = False):
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_vendors_name ON vendors(name)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_cartel_tender ON cartel_reports(tender_id)")
 
-    # Seed initial bids if empty
-    cursor.execute("SELECT COUNT(*) FROM bids")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_bids(cursor)
+    # Auto-seeding disabled to maintain clean database state
+    conn.commit()
+    conn.close()
 
-    # Seed initial users if empty
-    cursor.execute("SELECT COUNT(*) FROM users")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_users(cursor)
-
-    # Seed initial tenders if empty
-    cursor.execute("SELECT COUNT(*) FROM tenders")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_tenders(cursor)
-
-    # Seed initial contracts if empty
-    cursor.execute("SELECT COUNT(*) FROM contracts")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_contracts(cursor)
-
-    # Seed cartel reports if empty
-    cursor.execute("SELECT COUNT(*) FROM cartel_reports")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_cartel_reports(cursor)
-
-    # Seed vendors if empty
-    cursor.execute("SELECT COUNT(*) FROM vendors")
-    if cursor.fetchone()[0] == 0:
-        seed_initial_vendors(cursor)
-
+def clear_all_data():
+    """
+    Deletes all records from all database tables (users, bids, tenders, contracts, vendors, cartel_reports, audit_logs).
+    """
+    conn = get_connection()
+    cursor = conn.cursor()
+    for tbl in ["audit_logs", "cartel_reports", "contracts", "bids", "tenders", "vendors", "users"]:
+        cursor.execute(f"DELETE FROM {tbl}")
     conn.commit()
     conn.close()
 
 def reset_db():
     """
-    Wipes the SQLite database completely and re-initializes all tables and seeds.
+    Wipes the database completely and re-initializes clean empty tables.
     """
     init_db(force_recreate=True)
 
 def seed_initial_bids(cursor):
+    p = _p()
     initial_bids = [
         {
             "id": "BID-20495",
@@ -421,18 +573,33 @@ def seed_initial_bids(cursor):
     ]
 
     for b in initial_bids:
-        cursor.execute("""
-        INSERT OR IGNORE INTO bids (
-            id, vendor, category, item, tender_id, tender_value, bid_amount,
-            status, score, mii_content, turnover, experience, gst_status, pan_status,
-            msme_status, date, risk_level, ocr_confidence, flags, extracted_docs, audit_trail
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            b["id"], b["vendor"], b["category"], b["item"], b["tenderId"], b["tenderValue"], b["bidAmount"],
-            b["status"], b["score"], b["miiContent"], b["turnover"], b["experience"], b["gstStatus"], b["panStatus"],
-            b["msmeStatus"], b["date"], b["riskLevel"], b["ocrConfidence"],
-            json.dumps(b["flags"]), json.dumps(b["extractedDocs"]), json.dumps(b["auditTrail"])
-        ))
+        if _USE_PG:
+            cursor.execute("""
+            INSERT INTO bids (
+                id, vendor, category, item, tender_id, tender_value, bid_amount,
+                status, score, mii_content, turnover, experience, gst_status, pan_status,
+                msme_status, date, risk_level, ocr_confidence, flags, extracted_docs, audit_trail
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (id) DO NOTHING
+            """, (
+                b["id"], b["vendor"], b["category"], b["item"], b["tenderId"], b["tenderValue"], b["bidAmount"],
+                b["status"], b["score"], b["miiContent"], b["turnover"], b["experience"], b["gstStatus"], b["panStatus"],
+                b["msmeStatus"], b["date"], b["riskLevel"], b["ocrConfidence"],
+                json.dumps(b["flags"]), json.dumps(b["extractedDocs"]), json.dumps(b["auditTrail"])
+            ))
+        else:
+            cursor.execute("""
+            INSERT OR IGNORE INTO bids (
+                id, vendor, category, item, tender_id, tender_value, bid_amount,
+                status, score, mii_content, turnover, experience, gst_status, pan_status,
+                msme_status, date, risk_level, ocr_confidence, flags, extracted_docs, audit_trail
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                b["id"], b["vendor"], b["category"], b["item"], b["tenderId"], b["tenderValue"], b["bidAmount"],
+                b["status"], b["score"], b["miiContent"], b["turnover"], b["experience"], b["gstStatus"], b["panStatus"],
+                b["msmeStatus"], b["date"], b["riskLevel"], b["ocrConfidence"],
+                json.dumps(b["flags"]), json.dumps(b["extractedDocs"]), json.dumps(b["auditTrail"])
+            ))
 
 def seed_initial_users(cursor):
     demo_users = [
@@ -442,10 +609,17 @@ def seed_initial_users(cursor):
         ("Kaveri Infotech (Bidder)", "bidder@kaveri.in", "bidder123", "Kaveri Infotech", "27KAVRI5678B1Z2", "bidder")
     ]
     for u in demo_users:
-        cursor.execute("""
-        INSERT OR IGNORE INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (u[0], u[1], u[2], u[3], u[4], u[5], datetime.now().isoformat()))
+        if _USE_PG:
+            cursor.execute("""
+            INSERT INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (email) DO NOTHING
+            """, (u[0], u[1], u[2], u[3], u[4], u[5], datetime.now().isoformat()))
+        else:
+            cursor.execute("""
+            INSERT OR IGNORE INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (u[0], u[1], u[2], u[3], u[4], u[5], datetime.now().isoformat()))
 
 def seed_initial_tenders(cursor):
     tenders = [
@@ -535,18 +709,33 @@ def seed_initial_tenders(cursor):
         }
     ]
     for t in tenders:
-        cursor.execute("""
-        INSERT OR IGNORE INTO tenders (
-            id, title, ministry, department, category, estimated_value,
-            emd_amount, published_date, closing_date, status, mii_min_requirement,
-            min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            t["id"], t["title"], t["ministry"], t["department"], t["category"],
-            t["estimated_value"], t["emd_amount"], t["published_date"], t["closing_date"],
-            t["status"], t["mii_min_requirement"], t["min_turnover_requirement"],
-            t["min_experience_years"], t["mandatory_docs"], t["boq_items"], t["created_at"]
-        ))
+        if _USE_PG:
+            cursor.execute("""
+            INSERT INTO tenders (
+                id, title, ministry, department, category, estimated_value,
+                emd_amount, published_date, closing_date, status, mii_min_requirement,
+                min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (id) DO NOTHING
+            """, (
+                t["id"], t["title"], t["ministry"], t["department"], t["category"],
+                t["estimated_value"], t["emd_amount"], t["published_date"], t["closing_date"],
+                t["status"], t["mii_min_requirement"], t["min_turnover_requirement"],
+                t["min_experience_years"], t["mandatory_docs"], t["boq_items"], t["created_at"]
+            ))
+        else:
+            cursor.execute("""
+            INSERT OR IGNORE INTO tenders (
+                id, title, ministry, department, category, estimated_value,
+                emd_amount, published_date, closing_date, status, mii_min_requirement,
+                min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                t["id"], t["title"], t["ministry"], t["department"], t["category"],
+                t["estimated_value"], t["emd_amount"], t["published_date"], t["closing_date"],
+                t["status"], t["mii_min_requirement"], t["min_turnover_requirement"],
+                t["min_experience_years"], t["mandatory_docs"], t["boq_items"], t["created_at"]
+            ))
 
 def seed_initial_contracts(cursor):
     contracts = [
@@ -558,7 +747,7 @@ def seed_initial_contracts(cursor):
             "buyer_org": "DRDO Research Labs, Min of Defence",
             "contract_value": "₹1.38 Cr",
             "po_date": "06 Sep 2026",
-            "dsc_signed": 1,
+            "dsc_signed": True if _USE_PG else 1,
             "crac_status": "Approved",
             "crac_date": "06 Sep 2026, 03:30 PM",
             "payment_status": "Processing (Day 4/10)",
@@ -567,16 +756,29 @@ def seed_initial_contracts(cursor):
         }
     ]
     for c in contracts:
-        cursor.execute("""
-        INSERT OR IGNORE INTO contracts (
-            id, tender_id, bid_id, vendor, buyer_org, contract_value, po_date,
-            dsc_signed, crac_status, crac_date, payment_status, payment_due_date, disbursement_ref
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            c["id"], c["tender_id"], c["bid_id"], c["vendor"], c["buyer_org"],
-            c["contract_value"], c["po_date"], c["dsc_signed"], c["crac_status"],
-            c["crac_date"], c["payment_status"], c["payment_due_date"], c["disbursement_ref"]
-        ))
+        if _USE_PG:
+            cursor.execute("""
+            INSERT INTO contracts (
+                id, tender_id, bid_id, vendor, buyer_org, contract_value, po_date,
+                dsc_signed, crac_status, crac_date, payment_status, payment_due_date, disbursement_ref
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (id) DO NOTHING
+            """, (
+                c["id"], c["tender_id"], c["bid_id"], c["vendor"], c["buyer_org"],
+                c["contract_value"], c["po_date"], c["dsc_signed"], c["crac_status"],
+                c["crac_date"], c["payment_status"], c["payment_due_date"], c["disbursement_ref"]
+            ))
+        else:
+            cursor.execute("""
+            INSERT OR IGNORE INTO contracts (
+                id, tender_id, bid_id, vendor, buyer_org, contract_value, po_date,
+                dsc_signed, crac_status, crac_date, payment_status, payment_due_date, disbursement_ref
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                c["id"], c["tender_id"], c["bid_id"], c["vendor"], c["buyer_org"],
+                c["contract_value"], c["po_date"], c["dsc_signed"], c["crac_status"],
+                c["crac_date"], c["payment_status"], c["payment_due_date"], c["disbursement_ref"]
+            ))
 
 def seed_initial_cartel_reports(cursor):
     reports = [
@@ -591,28 +793,51 @@ def seed_initial_cartel_reports(cursor):
         }
     ]
     for r in reports:
-        cursor.execute("""
-        INSERT OR IGNORE INTO cartel_reports (id, tender_id, severity, title, description, flagged_vendors, detected_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (r["id"], r["tender_id"], r["severity"], r["title"], r["description"], r["flagged_vendors"], r["detected_at"]))
+        if _USE_PG:
+            cursor.execute("""
+            INSERT INTO cartel_reports (id, tender_id, severity, title, description, flagged_vendors, detected_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (id) DO NOTHING
+            """, (r["id"], r["tender_id"], r["severity"], r["title"], r["description"], r["flagged_vendors"], r["detected_at"]))
+        else:
+            cursor.execute("""
+            INSERT OR IGNORE INTO cartel_reports (id, tender_id, severity, title, description, flagged_vendors, detected_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (r["id"], r["tender_id"], r["severity"], r["title"], r["description"], r["flagged_vendors"], r["detected_at"]))
 
 def seed_initial_vendors(cursor):
     vendors = [
-        ("Apex Supplies Ltd.", "27AABCB1234F1Z5", "AABCB1234F", "UDYAM-MH-03-0019284", "IT Hardware", "Class-I Local Supplier (68%)", 96, "Low Risk", 0),
-        ("Kaveri Infotech", "27KAVRI5678B1Z2", "KAVRI5678B", "UDYAM-MH-03-0044192", "IT Hardware", "Class-I Local Supplier (72%)", 94, "Low Risk", 0),
-        ("TechForce Pvt Ltd", "07TFPL9912C1Z4", "TFPL9912C", "UDYAM-DL-02-0048123", "Software", "Class-I Local Supplier (85%)", 91, "Low Risk", 0),
-        ("Balaji Enterprises", "27BLEP4411D1Z8", "BLEP4411D", "UDYAM-MH-03-0099812", "Furniture", "Class-II Local Supplier (42%)", 61, "Medium Risk", 0),
-        ("UniVend Solutions", "06UNIV0000Z1Z0", "ABCDE1234F", "UDYAM-HR-00-INVALID", "Stationery", "Non-Compliant (<20%)", 22, "High Risk", 1)
+        ("Apex Supplies Ltd.", "27AABCB1234F1Z5", "AABCB1234F", "UDYAM-MH-03-0019284", "IT Hardware", "Class-I Local Supplier (68%)", 96, "Low Risk", False if _USE_PG else 0),
+        ("Kaveri Infotech", "27KAVRI5678B1Z2", "KAVRI5678B", "UDYAM-MH-03-0044192", "IT Hardware", "Class-I Local Supplier (72%)", 94, "Low Risk", False if _USE_PG else 0),
+        ("TechForce Pvt Ltd", "07TFPL9912C1Z4", "TFPL9912C", "UDYAM-DL-02-0048123", "Software", "Class-I Local Supplier (85%)", 91, "Low Risk", False if _USE_PG else 0),
+        ("Balaji Enterprises", "27BLEP4411D1Z8", "BLEP4411D", "UDYAM-MH-03-0099812", "Furniture", "Class-II Local Supplier (42%)", 61, "Medium Risk", False if _USE_PG else 0),
+        ("UniVend Solutions", "06UNIV0000Z1Z0", "ABCDE1234F", "UDYAM-HR-00-INVALID", "Stationery", "Non-Compliant (<20%)", 22, "High Risk", True if _USE_PG else 1)
     ]
     for v in vendors:
-        cursor.execute("""
-        INSERT OR IGNORE INTO vendors (name, gstin, pan, udyam_no, category, mii_classification, compliance_score, risk_tier, blacklisted, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], datetime.now().isoformat()))
+        if _USE_PG:
+            cursor.execute("""
+            INSERT INTO vendors (name, gstin, pan, udyam_no, category, mii_classification, compliance_score, risk_tier, blacklisted, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ON CONFLICT (name) DO NOTHING
+            """, (v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], datetime.now().isoformat()))
+        else:
+            cursor.execute("""
+            INSERT OR IGNORE INTO vendors (name, gstin, pan, udyam_no, category, mii_classification, compliance_score, risk_tier, blacklisted, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (v[0], v[1], v[2], v[3], v[4], v[5], v[6], v[7], v[8], datetime.now().isoformat()))
 
 # =========================================================================
 # Query Helpers
 # =========================================================================
+
+def _row_get(row, key, default=None):
+    """Safely get a value from a row dict (works for both RealDictCursor and sqlite3.Row)."""
+    if _USE_PG:
+        return row.get(key, default)
+    else:
+        if key in row.keys():
+            return row[key] if row[key] is not None else default
+        return default
 
 def row_to_bid_dict(row) -> Dict[str, Any]:
     return {
@@ -636,35 +861,40 @@ def row_to_bid_dict(row) -> Dict[str, Any]:
         "ocrConfidence": row["ocr_confidence"],
         "flags": json.loads(row["flags"]) if row["flags"] else [],
         "extractedDocs": json.loads(row["extracted_docs"]) if row["extracted_docs"] else [],
-        "extractedEntities": json.loads(row["extracted_entities"]) if "extracted_entities" in row.keys() and row["extracted_entities"] else [],
-        "crossDocMatches": json.loads(row["cross_doc_matches"]) if "cross_doc_matches" in row.keys() and row["cross_doc_matches"] else [],
-        "requirementMatches": json.loads(row["requirement_matches"]) if "requirement_matches" in row.keys() and row["requirement_matches"] else [],
-        "complianceReport": json.loads(row["compliance_report"]) if "compliance_report" in row.keys() and row["compliance_report"] else None,
+        "extractedEntities": json.loads(_row_get(row, "extracted_entities", "[]")) if _row_get(row, "extracted_entities") else [],
+        "crossDocMatches": json.loads(_row_get(row, "cross_doc_matches", "[]")) if _row_get(row, "cross_doc_matches") else [],
+        "requirementMatches": json.loads(_row_get(row, "requirement_matches", "[]")) if _row_get(row, "requirement_matches") else [],
+        "complianceReport": json.loads(_row_get(row, "compliance_report", "null")) if _row_get(row, "compliance_report") else None,
         "auditTrail": json.loads(row["audit_trail"]) if row["audit_trail"] else []
     }
 
 def get_all_bids(status_filter: Optional[str] = None, category_filter: Optional[str] = None, search: Optional[str] = None) -> List[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
-    
+    p = _p()
+
     query = "SELECT * FROM bids WHERE 1=1"
     params = []
 
     if status_filter and status_filter.upper() != "ALL":
-        query += " AND UPPER(status) = ?"
+        query += f" AND UPPER(status) = {p}"
         params.append(status_filter.upper())
 
     if category_filter and category_filter.upper() != "ALL":
-        query += " AND category = ?"
+        query += f" AND category = {p}"
         params.append(category_filter)
 
     if search:
         s = f"%{search.lower()}%"
-        query += " AND (LOWER(vendor) LIKE ? OR LOWER(id) LIKE ? OR LOWER(category) LIKE ? OR LOWER(tender_id) LIKE ?)"
+        query += f" AND (LOWER(vendor) LIKE {p} OR LOWER(id) LIKE {p} OR LOWER(category) LIKE {p} OR LOWER(tender_id) LIKE {p})"
         params.extend([s, s, s, s])
 
-    query += " ORDER BY rowid DESC"
-    cursor.execute(query, params)
+    if _USE_PG:
+        query += " ORDER BY _row_order DESC"
+    else:
+        query += " ORDER BY rowid DESC"
+
+    cursor.execute(query, params if _USE_PG else params)
     rows = cursor.fetchall()
     bids = [row_to_bid_dict(r) for r in rows]
     conn.close()
@@ -673,7 +903,8 @@ def get_all_bids(status_filter: Optional[str] = None, category_filter: Optional[
 def get_bid_by_id(bid_id: str) -> Optional[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM bids WHERE id = ?", (bid_id,))
+    p = _p()
+    cursor.execute(f"SELECT * FROM bids WHERE id = {p}", (bid_id,))
     row = cursor.fetchone()
     conn.close()
     if row:
@@ -683,26 +914,58 @@ def get_bid_by_id(bid_id: str) -> Optional[Dict[str, Any]]:
 def insert_bid(bid: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-    INSERT OR REPLACE INTO bids (
-        id, vendor, category, item, tender_id, tender_value, bid_amount,
-        status, score, mii_content, turnover, experience, gst_status, pan_status,
-        msme_status, date, risk_level, ocr_confidence, flags, extracted_docs,
-        extracted_entities, cross_doc_matches, requirement_matches, compliance_report, audit_trail
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        bid["id"], bid["vendor"], bid["category"], bid.get("item", f"{bid['category']} Procurement"),
-        bid["tenderId"], bid["tenderValue"], bid["bidAmount"],
-        bid["status"], bid["score"], bid["miiContent"], bid["turnover"], bid["experience"],
-        bid["gstStatus"], bid["panStatus"], bid["msmeStatus"], bid["date"],
-        bid["riskLevel"], bid["ocrConfidence"],
-        json.dumps(bid["flags"]), json.dumps(bid["extractedDocs"]),
-        json.dumps(bid.get("extractedEntities", [])),
-        json.dumps(bid.get("crossDocMatches", [])),
-        json.dumps(bid.get("requirementMatches", [])),
-        json.dumps(bid.get("complianceReport", None)),
-        json.dumps(bid["auditTrail"])
-    ))
+    if _USE_PG:
+        cursor.execute("""
+        INSERT INTO bids (
+            id, vendor, category, item, tender_id, tender_value, bid_amount,
+            status, score, mii_content, turnover, experience, gst_status, pan_status,
+            msme_status, date, risk_level, ocr_confidence, flags, extracted_docs,
+            extracted_entities, cross_doc_matches, requirement_matches, compliance_report, audit_trail
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        ON CONFLICT (id) DO UPDATE SET
+            vendor = EXCLUDED.vendor, category = EXCLUDED.category, item = EXCLUDED.item,
+            tender_id = EXCLUDED.tender_id, tender_value = EXCLUDED.tender_value, bid_amount = EXCLUDED.bid_amount,
+            status = EXCLUDED.status, score = EXCLUDED.score, mii_content = EXCLUDED.mii_content,
+            turnover = EXCLUDED.turnover, experience = EXCLUDED.experience, gst_status = EXCLUDED.gst_status,
+            pan_status = EXCLUDED.pan_status, msme_status = EXCLUDED.msme_status, date = EXCLUDED.date,
+            risk_level = EXCLUDED.risk_level, ocr_confidence = EXCLUDED.ocr_confidence, flags = EXCLUDED.flags,
+            extracted_docs = EXCLUDED.extracted_docs, extracted_entities = EXCLUDED.extracted_entities,
+            cross_doc_matches = EXCLUDED.cross_doc_matches, requirement_matches = EXCLUDED.requirement_matches,
+            compliance_report = EXCLUDED.compliance_report, audit_trail = EXCLUDED.audit_trail
+        """, (
+            bid["id"], bid["vendor"], bid["category"], bid.get("item", f"{bid['category']} Procurement"),
+            bid["tenderId"], bid["tenderValue"], bid["bidAmount"],
+            bid["status"], bid["score"], bid["miiContent"], bid["turnover"], bid["experience"],
+            bid["gstStatus"], bid["panStatus"], bid["msmeStatus"], bid["date"],
+            bid["riskLevel"], bid["ocrConfidence"],
+            json.dumps(bid["flags"]), json.dumps(bid["extractedDocs"]),
+            json.dumps(bid.get("extractedEntities", [])),
+            json.dumps(bid.get("crossDocMatches", [])),
+            json.dumps(bid.get("requirementMatches", [])),
+            json.dumps(bid.get("complianceReport", None)),
+            json.dumps(bid["auditTrail"])
+        ))
+    else:
+        cursor.execute("""
+        INSERT OR REPLACE INTO bids (
+            id, vendor, category, item, tender_id, tender_value, bid_amount,
+            status, score, mii_content, turnover, experience, gst_status, pan_status,
+            msme_status, date, risk_level, ocr_confidence, flags, extracted_docs,
+            extracted_entities, cross_doc_matches, requirement_matches, compliance_report, audit_trail
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            bid["id"], bid["vendor"], bid["category"], bid.get("item", f"{bid['category']} Procurement"),
+            bid["tenderId"], bid["tenderValue"], bid["bidAmount"],
+            bid["status"], bid["score"], bid["miiContent"], bid["turnover"], bid["experience"],
+            bid["gstStatus"], bid["panStatus"], bid["msmeStatus"], bid["date"],
+            bid["riskLevel"], bid["ocrConfidence"],
+            json.dumps(bid["flags"]), json.dumps(bid["extractedDocs"]),
+            json.dumps(bid.get("extractedEntities", [])),
+            json.dumps(bid.get("crossDocMatches", [])),
+            json.dumps(bid.get("requirementMatches", [])),
+            json.dumps(bid.get("complianceReport", None)),
+            json.dumps(bid["auditTrail"])
+        ))
     conn.commit()
     conn.close()
     return bid
@@ -711,7 +974,7 @@ def update_bid_status(bid_id: str, new_status: str, buyer_notes: Optional[str] =
     bid = get_bid_by_id(bid_id)
     if not bid:
         return None
-    
+
     effective_notes = buyer_notes or officer_notes
     effective_name = officer_name or buyer_name or "Government Procuring Authority"
     timestamp = datetime.now().strftime("%d %b %Y, %I:%M %p")
@@ -723,7 +986,7 @@ def update_bid_status(bid_id: str, new_status: str, buyer_notes: Optional[str] =
         bid["riskLevel"] = "High Risk (Rejected)"
     elif new_status == "Flagged":
         bid["riskLevel"] = "Medium Risk (Clarification Requested)"
-    
+
     bid["auditTrail"].append({
         "timestamp": timestamp,
         "action": f"Authority Action: Marked as {new_status} - {note}",
@@ -732,21 +995,22 @@ def update_bid_status(bid_id: str, new_status: str, buyer_notes: Optional[str] =
 
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
+    p = _p()
+    cursor.execute(f"""
     UPDATE bids SET
-        status = ?,
-        risk_level = ?,
-        audit_trail = ?
-    WHERE id = ?
+        status = {p},
+        risk_level = {p},
+        audit_trail = {p}
+    WHERE id = {p}
     """, (bid["status"], bid["riskLevel"], json.dumps(bid["auditTrail"]), bid_id))
-    
+
     # If final selection / awarded, also update tender record
     if new_status == "Selected":
-        cursor.execute("""
+        cursor.execute(f"""
         UPDATE tenders SET
             status = 'Awarded',
-            selected_bidder_id = ?
-        WHERE id = ?
+            selected_bidder_id = {p}
+        WHERE id = {p}
         """, (bid_id, bid["tenderId"]))
 
     conn.commit()
@@ -756,7 +1020,8 @@ def update_bid_status(bid_id: str, new_status: str, buyer_notes: Optional[str] =
 def delete_bid(bid_id: str) -> bool:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("DELETE FROM bids WHERE id = ?", (bid_id,))
+    p = _p()
+    cursor.execute(f"DELETE FROM bids WHERE id = {p}", (bid_id,))
     deleted = cursor.rowcount > 0
     conn.commit()
     conn.close()
@@ -785,11 +1050,11 @@ def get_all_tenders() -> List[Dict[str, Any]]:
             "closingDate": r["closing_date"],
             "status": r["status"],
             "miiMinRequirement": r["mii_min_requirement"],
-            "minTurnoverRequirement": r["min_turnover_requirement"] if "min_turnover_requirement" in r.keys() and r["min_turnover_requirement"] else "₹2.0 Cr",
-            "minExperienceYears": r["min_experience_years"] if "min_experience_years" in r.keys() and r["min_experience_years"] else 3,
-            "mandatoryDocs": json.loads(r["mandatory_docs"]) if "mandatory_docs" in r.keys() and r["mandatory_docs"] else ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"],
+            "minTurnoverRequirement": _row_get(r, "min_turnover_requirement", "₹2.0 Cr"),
+            "minExperienceYears": _row_get(r, "min_experience_years", 3),
+            "mandatoryDocs": json.loads(_row_get(r, "mandatory_docs", "[]")) if _row_get(r, "mandatory_docs") else ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"],
             "boqItems": json.loads(r["boq_items"]) if r["boq_items"] else [],
-            "selectedBidderId": r["selected_bidder_id"] if "selected_bidder_id" in r.keys() else None
+            "selectedBidderId": _row_get(r, "selected_bidder_id", None)
         })
     conn.close()
     return tenders
@@ -797,7 +1062,8 @@ def get_all_tenders() -> List[Dict[str, Any]]:
 def get_tender_by_id(tender_id: str) -> Optional[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM tenders WHERE id = ?", (tender_id,))
+    p = _p()
+    cursor.execute(f"SELECT * FROM tenders WHERE id = {p}", (tender_id,))
     r = cursor.fetchone()
     conn.close()
     if not r:
@@ -814,32 +1080,50 @@ def get_tender_by_id(tender_id: str) -> Optional[Dict[str, Any]]:
         "closingDate": r["closing_date"],
         "status": r["status"],
         "miiMinRequirement": r["mii_min_requirement"],
-        "minTurnoverRequirement": r["min_turnover_requirement"] if "min_turnover_requirement" in r.keys() and r["min_turnover_requirement"] else "₹2.0 Cr",
-        "minExperienceYears": r["min_experience_years"] if "min_experience_years" in r.keys() and r["min_experience_years"] else 3,
-        "mandatoryDocs": json.loads(r["mandatory_docs"]) if "mandatory_docs" in r.keys() and r["mandatory_docs"] else ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"],
+        "minTurnoverRequirement": _row_get(r, "min_turnover_requirement", "₹2.0 Cr"),
+        "minExperienceYears": _row_get(r, "min_experience_years", 3),
+        "mandatoryDocs": json.loads(_row_get(r, "mandatory_docs", "[]")) if _row_get(r, "mandatory_docs") else ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"],
         "boqItems": json.loads(r["boq_items"]) if r["boq_items"] else [],
-        "selectedBidderId": r["selected_bidder_id"] if "selected_bidder_id" in r.keys() else None
+        "selectedBidderId": _row_get(r, "selected_bidder_id", None)
     }
 
 def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
-    INSERT INTO tenders (
-        id, title, ministry, department, category, estimated_value,
-        emd_amount, published_date, closing_date, status, mii_min_requirement,
-        min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        t["id"], t["title"], t["ministry"], t["department"], t["category"],
-        t["estimatedValue"], t["emdAmount"], t["publishedDate"], t["closingDate"],
-        t.get("status", "Active"), t["miiMinRequirement"],
-        t.get("minTurnoverRequirement", "₹2.0 Cr"),
-        t.get("minExperienceYears", 3),
-        json.dumps(t.get("mandatoryDocs", ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"])),
-        json.dumps(t.get("boqItems", [])),
-        datetime.now().isoformat()
-    ))
+    if _USE_PG:
+        cursor.execute("""
+        INSERT INTO tenders (
+            id, title, ministry, department, category, estimated_value,
+            emd_amount, published_date, closing_date, status, mii_min_requirement,
+            min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (
+            t["id"], t["title"], t["ministry"], t["department"], t["category"],
+            t["estimatedValue"], t["emdAmount"], t["publishedDate"], t["closingDate"],
+            t.get("status", "Active"), t["miiMinRequirement"],
+            t.get("minTurnoverRequirement", "₹2.0 Cr"),
+            t.get("minExperienceYears", 3),
+            json.dumps(t.get("mandatoryDocs", ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"])),
+            json.dumps(t.get("boqItems", [])),
+            datetime.now().isoformat()
+        ))
+    else:
+        cursor.execute("""
+        INSERT INTO tenders (
+            id, title, ministry, department, category, estimated_value,
+            emd_amount, published_date, closing_date, status, mii_min_requirement,
+            min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            t["id"], t["title"], t["ministry"], t["department"], t["category"],
+            t["estimatedValue"], t["emdAmount"], t["publishedDate"], t["closingDate"],
+            t.get("status", "Active"), t["miiMinRequirement"],
+            t.get("minTurnoverRequirement", "₹2.0 Cr"),
+            t.get("minExperienceYears", 3),
+            json.dumps(t.get("mandatoryDocs", ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"])),
+            json.dumps(t.get("boqItems", [])),
+            datetime.now().isoformat()
+        ))
     conn.commit()
     conn.close()
     return t
@@ -847,7 +1131,10 @@ def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
 def get_all_contracts() -> List[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("SELECT * FROM contracts ORDER BY rowid DESC")
+    if _USE_PG:
+        cursor.execute("SELECT * FROM contracts ORDER BY _row_order DESC")
+    else:
+        cursor.execute("SELECT * FROM contracts ORDER BY rowid DESC")
     rows = cursor.fetchall()
     contracts = []
     for r in rows:
@@ -872,16 +1159,17 @@ def get_all_contracts() -> List[Dict[str, Any]]:
 def update_contract_crac(po_id: str, crac_status: str, notes: Optional[str] = None) -> Optional[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
+    p = _p()
     now_str = datetime.now().strftime("%d %b %Y, %I:%M %p")
-    cursor.execute("""
+    cursor.execute(f"""
     UPDATE contracts SET
-        crac_status = ?,
-        crac_date = ?
-    WHERE id = ?
+        crac_status = {p},
+        crac_date = {p}
+    WHERE id = {p}
     """, (crac_status, now_str, po_id))
     conn.commit()
     conn.close()
-    
+
     for c in get_all_contracts():
         if c["id"] == po_id:
             return c
@@ -890,12 +1178,13 @@ def update_contract_crac(po_id: str, crac_status: str, notes: Optional[str] = No
 def update_contract_payment(po_id: str, payment_status: str, disbursement_ref: Optional[str] = None) -> Optional[Dict[str, Any]]:
     conn = get_connection()
     cursor = conn.cursor()
+    p = _p()
     ref = disbursement_ref or f"PFMS-TXN-{datetime.now().strftime('%Y-%m%d')}-{po_id[-4:]}"
-    cursor.execute("""
+    cursor.execute(f"""
     UPDATE contracts SET
-        payment_status = ?,
-        disbursement_ref = ?
-    WHERE id = ?
+        payment_status = {p},
+        disbursement_ref = {p}
+    WHERE id = {p}
     """, (payment_status, ref, po_id))
     conn.commit()
     conn.close()
@@ -949,9 +1238,10 @@ def get_all_cartel_reports() -> List[Dict[str, Any]]:
 def log_audit_event(event_type: str, entity_id: str, user_agent: str, details: str):
     conn = get_connection()
     cursor = conn.cursor()
-    cursor.execute("""
+    p = _p()
+    cursor.execute(f"""
     INSERT INTO audit_logs (event_type, entity_id, user_agent, details, timestamp)
-    VALUES (?, ?, ?, ?, ?)
+    VALUES ({p}, {p}, {p}, {p}, {p})
     """, (event_type, entity_id, user_agent, details, datetime.now().isoformat()))
     conn.commit()
     conn.close()
@@ -963,8 +1253,9 @@ def get_db_stats() -> Dict[str, int]:
     tables = ["bids", "tenders", "contracts", "vendors", "users", "cartel_reports", "audit_logs"]
     for t in tables:
         try:
-            cursor.execute(f"SELECT COUNT(*) FROM {t}")
-            stats[t] = cursor.fetchone()[0]
+            cursor.execute(f"SELECT COUNT(*) as count FROM {t}")
+            row = cursor.fetchone()
+            stats[t] = _count_result(row)
         except Exception:
             stats[t] = 0
     conn.close()
@@ -983,7 +1274,10 @@ if __name__ == "__main__":
 
     print("=======================================================================")
     print("🏛️  GeM AI PROCUREMENT DATABASE MANAGER (SIH26100 - TEAM CODETOX)")
-    print(f"[*] Database file: {DB_PATH}")
+    if _USE_PG:
+        print(f"[*] Database: PostgreSQL (Neon) — {DATABASE_URL[:40]}...")
+    else:
+        print(f"[*] Database file: {DB_PATH}")
     print("=======================================================================")
 
     if args.reset:
