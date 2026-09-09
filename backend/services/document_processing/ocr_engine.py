@@ -1,8 +1,16 @@
 import os
-import pytesseract
 from typing import Optional
 
+try:
+    import pytesseract
+    HAS_TESSERACT_PKG = True
+except ImportError:
+    pytesseract = None
+    HAS_TESSERACT_PKG = False
+
 def check_tesseract_availability() -> bool:
+    if not HAS_TESSERACT_PKG or pytesseract is None:
+        return False
     try:
         pytesseract.get_tesseract_version()
         return True

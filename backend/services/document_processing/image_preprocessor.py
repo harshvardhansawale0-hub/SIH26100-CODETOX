@@ -1,12 +1,27 @@
-import cv2
-import numpy as np
-from PIL import Image
+try:
+    import cv2
+    import numpy as np
+    HAS_CV2 = True
+except ImportError:
+    cv2 = None
+    np = None
+    HAS_CV2 = False
 
-def preprocess_image_for_ocr(image: Image.Image) -> np.ndarray:
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    Image = None
+    HAS_PIL = False
+
+def preprocess_image_for_ocr(image):
     """
     Takes a PIL Image, applies OpenCV preprocessing (grayscale, thresholding, etc.)
-    and returns a numpy array ready for OCR.
+    and returns a numpy array ready for OCR. If OpenCV is not available, returns the image directly.
     """
+    if not HAS_CV2 or cv2 is None or np is None:
+        return image
+
     # Convert PIL Image to OpenCV format (numpy array)
     img_cv = cv2.cvtColor(np.array(image), cv2.COLOR_RGB2BGR)
 

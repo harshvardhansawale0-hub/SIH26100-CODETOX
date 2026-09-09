@@ -1,5 +1,16 @@
-import fitz  # PyMuPDF
-from PIL import Image
+try:
+    import fitz  # PyMuPDF
+    HAS_FITZ = True
+except ImportError:
+    fitz = None
+    HAS_FITZ = False
+
+try:
+    from PIL import Image
+    HAS_PIL = True
+except ImportError:
+    Image = None
+    HAS_PIL = False
 from typing import Dict, Any, List
 from .ocr_engine import perform_ocr_on_image, HAS_TESSERACT
 from .image_preprocessor import preprocess_image_for_ocr
@@ -18,6 +29,10 @@ def extract_text_from_pdf(file_path: str) -> Dict[str, Any]:
         "pages_text": [],
         "errors": []
     }
+    
+    if not HAS_FITZ or fitz is None:
+        result["errors"].append("PyMuPDF (fitz) is not installed on this system.")
+        return result
     
     try:
         doc = fitz.open(file_path)
