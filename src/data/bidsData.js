@@ -276,6 +276,7 @@ export const samplePreloads = {
 };
 
 export const initialTenders = [
+  // 1. ACTIVE TENDERS
   {
     id: "GEM/2026/B/891244",
     title: "Procurement of High-Performance AI Workstations & Edge Servers",
@@ -286,27 +287,13 @@ export const initialTenders = [
     emdAmount: "₹2.90 Lakhs (MSE Exempted)",
     closingDate: "28 Sep 2026",
     status: "Active",
+    riskCategory: "Active",
+    riskLevel: "Low Risk",
     miiMinRequirement: "50% (Class-I)",
     minTurnoverRequirement: "₹5.0 Cr",
     minExperienceYears: 3,
     mandatoryDocs: ["PAN Card", "GSTIN Certificate", "UDYAM MSME Certificate", "CA Audited Turnover", "Make in India Declaration"],
     boqItems: [{ item: "High-Performance Workstations (RTX 6000)", qty: 250, unit: "Nos" }]
-  },
-  {
-    id: "GEM/2026/B/890412",
-    title: "Supply and Installation of Ergonomic Modular Office Furniture",
-    ministry: "Ministry of Railways",
-    department: "Railway Board & Northern Railway HQ",
-    category: "Furniture",
-    estimatedValue: "₹42.0 Lakhs",
-    emdAmount: "₹84,000",
-    closingDate: "22 Sep 2026",
-    status: "Active",
-    miiMinRequirement: "50% (Class-I)",
-    minTurnoverRequirement: "₹2.0 Cr",
-    minExperienceYears: 3,
-    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "UDYAM MSME Certificate", "CA Audited Turnover"],
-    boqItems: [{ item: "Modular Office Workstations & Chairs", qty: 400, unit: "Sets" }]
   },
   {
     id: "GEM/2026/B/889105",
@@ -318,6 +305,8 @@ export const initialTenders = [
     emdAmount: "₹4.20 Lakhs",
     closingDate: "30 Sep 2026",
     status: "Active",
+    riskCategory: "Active",
+    riskLevel: "Low Risk",
     miiMinRequirement: "50% (Class-I)",
     minTurnoverRequirement: "₹8.0 Cr",
     minExperienceYears: 4,
@@ -334,11 +323,147 @@ export const initialTenders = [
     emdAmount: "₹2.30 Lakhs",
     closingDate: "18 Sep 2026",
     status: "Active",
+    riskCategory: "Active",
+    riskLevel: "Low Risk",
     miiMinRequirement: "50% (Class-I)",
     minTurnoverRequirement: "₹3.0 Cr",
     minExperienceYears: 2,
     mandatoryDocs: ["PAN Card", "GSTIN Certificate", "ISO 13485 Medical Device Cert", "CA Audited Turnover"],
     boqItems: [{ item: "Medical Oxygen Generation Concentrators", qty: 80, unit: "Units" }]
+  },
+
+  // 2. AT RISK TENDERS (High Scrutiny / Collusion Alerts / Borderline Thresholds)
+  {
+    id: "GEM/2026/B/890412",
+    title: "Supply and Installation of Ergonomic Modular Office Furniture",
+    ministry: "Ministry of Railways",
+    department: "Railway Board & Northern Railway HQ",
+    category: "Furniture",
+    estimatedValue: "₹42.0 Lakhs",
+    emdAmount: "₹84,000",
+    closingDate: "22 Sep 2026",
+    status: "Active",
+    riskCategory: "At Risk",
+    riskLevel: "Medium Risk (Cartel Alert)",
+    riskAlert: "Collusion Warning: 3 bidders detected with price variance < 0.7% and shared IP subnet cluster (192.168.4.x).",
+    miiMinRequirement: "50% (Class-I)",
+    minTurnoverRequirement: "₹2.0 Cr",
+    minExperienceYears: 3,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "UDYAM MSME Certificate", "CA Audited Turnover"],
+    boqItems: [{ item: "Modular Office Workstations & Chairs", qty: 400, unit: "Sets" }]
+  },
+  {
+    id: "GEM/2026/B/893110",
+    title: "Industrial Grade High-Capacity Online UPS & Battery Banks",
+    ministry: "Ministry of Power",
+    department: "National Thermal Power Corporation (NTPC)",
+    category: "Heavy Electricals",
+    estimatedValue: "₹75.0 Lakhs",
+    emdAmount: "₹1.50 Lakhs",
+    closingDate: "24 Sep 2026",
+    status: "Active",
+    riskCategory: "At Risk",
+    riskLevel: "Medium Risk (DPIIT Scrutiny)",
+    riskAlert: "High Scrutiny: Class-II local supplier declarations require mandatory CA-verified UDIN certificate for local value addition.",
+    miiMinRequirement: "60% (Class-I)",
+    minTurnoverRequirement: "₹3.5 Cr",
+    minExperienceYears: 3,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "CA UDIN Local Content Certificate", "OEM Authorization"],
+    boqItems: [{ item: "120 kVA Online Modular UPS System", qty: 6, unit: "Sets" }]
+  },
+
+  // 3. NON-COMPLIANT TENDERS (Disqualifications / Rule Violations)
+  {
+    id: "GEM/2026/B/887990",
+    title: "Bulk Supply of Premium Executive Stationery & Desk Supplies",
+    ministry: "Ministry of Communications",
+    department: "Department of Posts",
+    category: "Stationery",
+    estimatedValue: "₹18.5 Lakhs",
+    emdAmount: "₹37,000",
+    closingDate: "15 Sep 2026",
+    status: "Non-Compliant",
+    riskCategory: "Non-Compliant",
+    riskLevel: "High Risk (Critical Disqualification)",
+    disqualificationReason: "Statutory Violation: Local content is 15% (<20% DPIIT limit) & GSTIN flagged as Cancelled on GST Portal.",
+    failedRules: [
+      "Rule GFR 173 - Annual turnover shortfall",
+      "DPIIT Public Procurement Order 2017 - Class-III Ineligible",
+      "GSTIN Verification API - Status: Tax Defaulter / Cancelled"
+    ],
+    miiMinRequirement: "50% (Class-I)",
+    minTurnoverRequirement: "₹50 Lakhs",
+    minExperienceYears: 2,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "CA Turnover Statement"],
+    boqItems: [{ item: "Executive Stationery Pack Sets", qty: 2500, unit: "Packs" }]
+  },
+  {
+    id: "GEM/2026/B/882100",
+    title: "Office IT Consumables, Toners & Peripheral Supplies",
+    ministry: "Ministry of Electronics & IT",
+    department: "National Informatics Centre (NIC)",
+    category: "IT Hardware",
+    estimatedValue: "₹30.0 Lakhs",
+    emdAmount: "₹60,000",
+    closingDate: "12 Sep 2026",
+    status: "Non-Compliant",
+    riskCategory: "Non-Compliant",
+    riskLevel: "High Risk (Forensic Tampering)",
+    disqualificationReason: "Document Forensic Alert: OpenCV detected font irregularity on turnover certificate & UDYAM number is invalid.",
+    failedRules: [
+      "OpenCV Forensics - Altered typography on CA audited report",
+      "UDYAM Portal API - Certificate number not found in MSME database"
+    ],
+    miiMinRequirement: "50% (Class-I)",
+    minTurnoverRequirement: "₹2.0 Cr",
+    minExperienceYears: 2,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "UDYAM MSME Certificate"],
+    boqItems: [{ item: "High-Yield Laser Toner Cartridges", qty: 500, unit: "Units" }]
+  },
+
+  // 4. PENDING VERIFICATION TENDERS (OCR & AI Extraction In-Progress)
+  {
+    id: "GEM/2026/B/894520",
+    title: "Supply & Installation of 75-inch 4K Interactive Smart Classroom Panels",
+    ministry: "Ministry of Education",
+    department: "Kendriya Vidyalaya Sangathan (KVS)",
+    category: "IT Hardware",
+    estimatedValue: "₹92.0 Lakhs",
+    emdAmount: "₹1.84 Lakhs",
+    closingDate: "26 Sep 2026",
+    status: "Pending Verification",
+    riskCategory: "Pending Verification",
+    riskLevel: "Under AI Evaluation",
+    verificationStage: "Stage 5/8: Bid Requirement & CA UDIN Cross-Match",
+    ocrProgress: 68,
+    ocrConfidence: "98.2%",
+    miiMinRequirement: "50% (Class-I)",
+    minTurnoverRequirement: "₹3.0 Cr",
+    minExperienceYears: 3,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "UDYAM MSME Certificate", "CA Audited Balance Sheet", "BIS Certification"],
+    boqItems: [{ item: "75\" 4K UHD Interactive Flat Panels", qty: 60, unit: "Units" }]
+  },
+  {
+    id: "GEM/2026/B/895102",
+    title: "IoT-Enabled Smart Water Quality Monitoring Sensor Network",
+    ministry: "Ministry of Jal Shakti",
+    department: "National Water Mission",
+    category: "Medical Equipment",
+    estimatedValue: "₹64.0 Lakhs",
+    emdAmount: "₹1.28 Lakhs",
+    closingDate: "29 Sep 2026",
+    status: "Pending Verification",
+    riskCategory: "Pending Verification",
+    riskLevel: "Under AI Evaluation",
+    verificationStage: "Stage 3/8: OpenCV Document Forensics & Tampering Analysis",
+    ocrProgress: 42,
+    ocrConfidence: "96.4%",
+    miiMinRequirement: "50% (Class-I)",
+    minTurnoverRequirement: "₹2.5 Cr",
+    minExperienceYears: 2,
+    mandatoryDocs: ["PAN Card", "GSTIN Certificate", "NABL Calibration Cert", "CA Audited Turnover"],
+    boqItems: [{ item: "Multi-Parameter Real-Time Water Quality Sensors", qty: 120, unit: "Sensors" }]
   }
 ];
+
 

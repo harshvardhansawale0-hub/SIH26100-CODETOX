@@ -1,9 +1,16 @@
-import React, { useState } from 'react';
-import { X, Lock, Mail, User, ShieldCheck, Building2, Landmark } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Lock, Mail, User, ShieldCheck, Building2, Landmark, Sparkles, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
 
-export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess, initialRole = 'bidder' }) {
+export default function AuthModal({
+  isOpen,
+  mode = 'signin',
+  onClose,
+  onAuthSuccess,
+  initialRole = 'bidder',
+  reasonMessage = null
+}) {
   if (!isOpen) return null;
 
   const { t, lang } = useLanguage();
@@ -14,15 +21,58 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess, initia
   const [fullName, setFullName] = useState('');
   const [organization, setOrganization] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Sync mode and initial role when modal opens
+  useEffect(() => {
+    setAuthMode(mode || 'signin');
+    setRole(initialRole === 'buyer' ? 'buyer' : 'bidder');
+    setErrorMessage('');
+  }, [isOpen, mode, initialRole]);
+
+  const handleQuickLogin = (demoRole) => {
+    const isGovBuyer = demoRole === 'buyer';
+    const demoUser = isGovBuyer
+      ? {
+          id: 101,
+          fullName: "Dir. Rajesh Verma",
+          email: "procurement.officer@nic.in",
+          organization: "Ministry of Electronics & IT (MeitY)",
+          gstin: "07AAAGM0289C1ZU",
+          role: "buyer",
+          designation: "Chief Procurement Officer"
+        }
+      : {
+          id: 202,
+          fullName: "Harshvardhan Sawale",
+          email: "vendor.contact@apextech.com",
+          organization: "Apex Technologies & Supplies Ltd.",
+          gstin: "27AABCB1234F1Z5",
+          role: "bidder",
+          udyam: "UDYAM-MH-03-0012345"
+        };
+
+    if (onAuthSuccess) {
+      onAuthSuccess(demoUser);
+    }
+    onClose();
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setErrorMessage('');
     try {
       if (authMode === 'signin') {
         const res = await gemApi.login(email, password, role);
+        const userData = res.user || {
+          email,
+          role,
+          fullName: fullName || email.split('@')[0],
+          organization: role === 'buyer' ? 'Government Procurement Division' : 'Registered Vendor Enterprise'
+        };
         if (onAuthSuccess) {
-          onAuthSuccess(res.user || { email, role, fullName: fullName || email.split('@')[0] });
+          onAuthSuccess(userData);
         }
       } else {
         const res = await gemApi.register({
@@ -32,15 +82,26 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess, initia
           organization: organization || (role === 'buyer' ? 'Government Ministry / Dept' : 'Vendor Enterprise'),
           role: role
         });
+        const userData = res.user || {
+          email,
+          role,
+          fullName: fullName || email.split('@')[0],
+          organization: organization || (role === 'buyer' ? 'Government Ministry / Dept' : 'Vendor Enterprise')
+        };
         if (onAuthSuccess) {
-          onAuthSuccess(res.user || { email, role, fullName: fullName || email.split('@')[0] });
+          onAuthSuccess(userData);
         }
       }
       onClose();
     } catch (err) {
-      console.warn('Auth error, fallback:', err);
+      console.warn('Auth fallback:', err);
       if (onAuthSuccess) {
-        onAuthSuccess({ email, role, fullName: fullName || email.split('@')[0] });
+        onAuthSuccess({
+          email,
+          role,
+          fullName: fullName || email.split('@')[0],
+          organization: role === 'buyer' ? 'Government Ministry' : 'Vendor Enterprise'
+        });
       }
       onClose();
     } finally {
@@ -57,17 +118,17 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess, initia
   const getBidderLabel = () => {
     if (lang === 'hi') return '🏢 बोलीदाता (विक्रेता / कंपनी)';
     if (lang === 'mr') return '🏢 निविदाकार (विक्रेता / कंपनी)';
-    return '🏢 Bidder (Vendor / Company)';
+    return '🏢 Bidder / Seller (Vendor)';
   };
 
   return (
     <div className="modal-overlay" onClick={onClose}>
-      <div className="modal-content-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '460px' }}>
+      <div className="modal-content-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
         <div className="modal-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span className="gem-badge-box" style={{ fontSize: '0.85rem', padding: '0.2rem 0.5rem' }}>GeM</span>
             <h3 className="modal-title" style={{ fontSize: '1.2rem' }}>
-              {authMode === 'signin' ? 'Sign In / Select Role' : 'Create Account'}
+              {authMode === 'signin' ? 'Sign In to GeM Portal' : 'Create GeM Account'}
             </h3>
           </div>
           <button className="modal-close-btn" onClick={onClose}>
@@ -76,10 +137,28 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess, initia
         </div>
 
         <div className="modal-body">
+          {reasonMessage && (
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.5rem',
+              backgroundColor: 'rgba(2, 132, 199, 0.1)',
+              border: '1px solid rgba(2, 132, 199, 0.3)',
+              color: '#0284c7',
+              padding: '0.65rem 0.85rem',
+              borderRadius: '6px',
+              fontSize: '0.82rem',
+              marginBottom: '1rem'
+            }}>
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              <span>{reasonMessage}</span>
+            </div>
+          )}
+
           {/* User Role selector: ONLY TWO ROLES */}
           <div style={{ marginBottom: '1.25rem' }}>
             <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '800', color: '#0f2238', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
-              Select User Role:
+              Select Required Portal Access:
             </label>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
               <button
@@ -129,36 +208,86 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess, initia
             </div>
           </div>
 
+          {/* Quick 1-Click Demo Shortcut */}
+          <div style={{ marginBottom: '1.25rem' }}>
+            <button
+              type="button"
+              onClick={() => handleQuickLogin(role)}
+              style={{
+                width: '100%',
+                padding: '0.6rem 0.75rem',
+                backgroundColor: role === 'buyer' ? 'rgba(2, 132, 199, 0.08)' : 'rgba(16, 185, 129, 0.08)',
+                color: role === 'buyer' ? '#0284c7' : '#059669',
+                border: role === 'buyer' ? '1px dashed #0284c7' : '1px dashed #10b981',
+                borderRadius: '6px',
+                fontSize: '0.82rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '0.4rem',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Sparkles size={15} />
+              <span>⚡ Instant Demo Login as {role === 'buyer' ? 'Govt Buyer Officer' : 'Vendor Bidder (Apex)'}</span>
+            </button>
+          </div>
+
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {authMode === 'signup' && (
-              <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
-                  Legal Organization / Full Name
-                </label>
-                <div style={{ position: 'relative' }}>
-                  <User size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
-                  <input
-                    type="text"
-                    required
-                    placeholder="e.g. Apex Supplies Ltd."
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
-                  />
+              <>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
+                    Full Official Name
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    <User size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                    <input
+                      type="text"
+                      required
+                      placeholder={role === 'buyer' ? "e.g. Officer Rajesh Verma" : "e.g. Harshvardhan Sawale"}
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                    />
+                  </div>
                 </div>
-              </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
+                    {role === 'buyer' ? 'Ministry / Department' : 'Enterprise / Company Name'}
+                  </label>
+                  <div style={{ position: 'relative' }}>
+                    {role === 'buyer' ? (
+                      <Landmark size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                    ) : (
+                      <Building2 size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
+                    )}
+                    <input
+                      type="text"
+                      required
+                      placeholder={role === 'buyer' ? "e.g. Ministry of Electronics & IT" : "e.g. Apex Technologies Ltd."}
+                      value={organization}
+                      onChange={(e) => setOrganization(e.target.value)}
+                      style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div>
               <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
-                {t('emailLabel')} / NIC ID
+                {t('emailLabel')} / {role === 'buyer' ? 'NIC Official ID' : 'Business Email'}
               </label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
                 <input
                   type="email"
                   required
-                  placeholder="officer@nic.in or vendor@biz.com"
+                  placeholder={role === 'buyer' ? "officer@nic.in" : "vendor@apextech.com"}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={{ width: '100%', padding: '0.5rem 0.5rem 0.5rem 2.2rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.88rem' }}
@@ -189,7 +318,7 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess, initia
               style={{
                 marginTop: '0.5rem',
                 padding: '0.65rem',
-                backgroundColor: '#0b1a2d',
+                backgroundColor: role === 'buyer' ? '#0284c7' : '#10b981',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
@@ -202,7 +331,7 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess, initia
                 gap: '0.5rem'
               }}
             >
-              <ShieldCheck size={18} /> {isSubmitting ? 'Authenticating...' : authMode === 'signin' ? t('loginSubmit') : t('registerSubmit')}
+              <ShieldCheck size={18} /> {isSubmitting ? 'Authenticating...' : authMode === 'signin' ? `Sign In as ${role === 'buyer' ? 'Buyer' : 'Bidder'}` : `Register as ${role === 'buyer' ? 'Buyer Org' : 'Vendor Bidder'}`}
             </button>
           </form>
 
@@ -215,7 +344,7 @@ export default function AuthModal({ isOpen, mode, onClose, onAuthSuccess, initia
                   onClick={() => setAuthMode('signup')}
                   style={{ color: '#0284c7', fontWeight: '700', border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
                 >
-                  Sign Up
+                  Register Entity
                 </button>
               </span>
             ) : (

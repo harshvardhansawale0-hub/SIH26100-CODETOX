@@ -13,7 +13,8 @@ export default function BuyerDashboard({
   tenders,
   onSelectBid,
   onTenderCreated,
-  onBidSelected
+  onBidSelected,
+  currentUser
 }) {
   const { t } = useLanguage();
   const [activeSubTab, setActiveSubTab] = useState('tenders'); // 'tenders' or 'applications'
@@ -94,6 +95,11 @@ export default function BuyerDashboard({
               <span style={{ color: '#38bdf8', fontSize: '0.85rem', fontWeight: '600' }}>
                 Government / Procuring Authority
               </span>
+              {currentUser && (
+                <span style={{ fontSize: '0.75rem', color: '#94a3b8', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #1e385b' }}>
+                  Logged in: <strong style={{ color: '#38bdf8' }}>{currentUser.fullName}</strong> ({currentUser.organization || 'Govt Authority'})
+                </span>
+              )}
             </div>
             <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: 0 }}>
               Autonomous Procurement & Bidder Selection

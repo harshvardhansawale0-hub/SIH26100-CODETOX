@@ -16,6 +16,7 @@ import AuctionAnalysisView from './components/AuctionAnalysisView';
 import AboutSIHView from './components/AboutSIHView';
 import ContactView from './components/ContactView';
 import AuthModal from './components/AuthModal';
+import AuthGate from './components/AuthGate';
 import { initialBids, initialTenders } from './data/bidsData';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { gemApi } from './services/api';
@@ -23,8 +24,25 @@ import { gemApi } from './services/api';
 function MainApp() {
   const { t } = useLanguage();
   
-  // Two-Role Architecture: ONLY 'buyer' or 'bidder'
+  // Session State: Persisted authenticated user (null if logged out)
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = localStorage.getItem('gem_auth_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  });
+
+  // Role Context: 'buyer' or 'bidder'
   const [currentRole, setCurrentRole] = useState(() => {
+    const savedUser = localStorage.getItem('gem_auth_user');
+    if (savedUser) {
+      try {
+        const parsed = JSON.parse(savedUser);
+        if (parsed && parsed.role) return parsed.role;
+      } catch {}
+    }
     return localStorage.getItem('gem_user_role') || 'buyer';
   });
 
@@ -44,7 +62,12 @@ function MainApp() {
   const [selectedTenderForVerifier, setSelectedTenderForVerifier] = useState(null);
   const [isVerifierOpen, setIsVerifierOpen] = useState(false);
   const [isCreateBidOpen, setIsCreateBidOpen] = useState(false);
-  const [authModalConfig, setAuthModalConfig] = useState({ isOpen: false, mode: 'signin', role: 'buyer' });
+  const [authModalConfig, setAuthModalConfig] = useState({
+    isOpen: false,
+    mode: 'signin',
+    role: 'buyer',
+    reasonMessage: null
+  });
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Fetch live tenders & bids from FastAPI backend on mount
@@ -80,17 +103,85 @@ function MainApp() {
     localStorage.setItem('gem_user_role', newRole);
   };
 
-  const handleOpenAuth = (mode = 'signin', role = currentRole) => {
-    setAuthModalConfig({ isOpen: true, mode, role });
+  const handleLogin = (userData) => {
+    setCurrentUser(userData);
+    try {
+      localStorage.setItem('gem_auth_user', JSON.stringify(userData));
+    } catch (e) {
+      console.warn('Storage error:', e);
+    }
+    handleRoleChange(userData.role);
+    setActiveTab(userData.role === 'buyer' ? 'Buyer' : 'Bidder');
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    try {
+      localStorage.removeItem('gem_auth_user');
+    } catch (e) {
+      console.warn('Storage error:', e);
+    }
+    setActiveTab('Forward');
+  };
+
+  const handleQuickDemoLogin = (demoRole) => {
+    const isGovBuyer = demoRole === 'buyer';
+    const demoUser = isGovBuyer
+      ? {
+          id: 101,
+          fullName: "Dir. Rajesh Verma",
+          email: "procurement.officer@nic.in",
+          organization: "Ministry of Electronics & IT (MeitY)",
+          gstin: "07AAAGM0289C1ZU",
+          role: "buyer",
+          designation: "Chief Procurement Officer"
+        }
+      : {
+          id: 202,
+          fullName: "Harshvardhan Sawale",
+          email: "vendor.contact@apextech.com",
+          organization: "Apex Technologies & Supplies Ltd.",
+          gstin: "27AABCB1234F1Z5",
+          role: "bidder",
+          udyam: "UDYAM-MH-03-0012345"
+        };
+
+    handleLogin(demoUser);
+  };
+
+  const handleOpenAuth = (mode = 'signin', role = currentRole, reasonMessage = null) => {
+    setAuthModalConfig({ isOpen: true, mode, role, reasonMessage });
   };
 
   const handleCloseAuth = () => {
-    setAuthModalConfig({ isOpen: false, mode: 'signin', role: currentRole });
+    setAuthModalConfig({ isOpen: false, mode: 'signin', role: currentRole, reasonMessage: null });
   };
 
+  // Protected Action: Open Verifier (Requires Bidder Auth)
   const handleOpenVerifierForTender = (tender) => {
+    if (!currentUser) {
+      handleOpenAuth('signin', 'bidder', 'Authentication Required: Please sign in as a Vendor Bidder to upload & verify documents.');
+      return;
+    }
+    if (currentUser.role !== 'bidder') {
+      handleOpenAuth('signin', 'bidder', 'Role Switch Required: Please sign in with a Vendor Bidder account to upload bid proposals.');
+      return;
+    }
     setSelectedTenderForVerifier(tender || tenders[0] || null);
     setIsVerifierOpen(true);
+  };
+
+  // Protected Action: Create Bid (Requires Buyer Auth)
+  const handleOpenCreateBid = () => {
+    if (!currentUser) {
+      handleOpenAuth('signin', 'buyer', 'Authentication Required: Please sign in as a Government Buyer to create new bids.');
+      return;
+    }
+    if (currentUser.role !== 'buyer') {
+      handleOpenAuth('signin', 'buyer', 'Role Switch Required: Please sign in with a Government Buyer account to publish tenders.');
+      return;
+    }
+    setIsCreateBidOpen(true);
   };
 
   // Buyer Flow: Buyer creates new tender with compliance criteria
@@ -103,7 +194,7 @@ function MainApp() {
   const handleAddVerifiedBid = (newBidResult) => {
     const formattedBid = {
       id: newBidResult.bidId || `BID-${Math.floor(10000 + Math.random() * 90000)}`,
-      vendor: newBidResult.vendor || "Apex Supplies Ltd.",
+      vendor: newBidResult.vendor || currentUser?.organization || currentUser?.fullName || "Apex Supplies Ltd.",
       category: newBidResult.category || "IT Hardware",
       item: `${newBidResult.category || "IT"} Solution`,
       tenderId: newBidResult.tenderId || "GEM/2026/B/891244",
@@ -157,7 +248,7 @@ function MainApp() {
                 {
                   timestamp: "Just Now",
                   action: "Selected by Buyer as Qualified L1 Winning Bidder",
-                  agent: "Government Procuring Authority (Buyer)"
+                  agent: currentUser ? `${currentUser.fullName} (${currentUser.organization || 'Buyer'})` : "Government Procuring Authority (Buyer)"
                 }
               ]
             }
@@ -191,7 +282,7 @@ function MainApp() {
                 {
                   timestamp: "Manual Buyer Override",
                   action: `Buyer changed status to ${newStatus}`,
-                  agent: "Government Procuring Authority (Buyer)"
+                  agent: currentUser ? `${currentUser.fullName} (${currentUser.organization || 'Buyer'})` : "Government Procuring Authority (Buyer)"
                 }
               ]
             }
@@ -208,15 +299,17 @@ function MainApp() {
 
   return (
     <div className="app-container">
-      {/* 1. Top Navbar with Two-Role Switcher */}
+      {/* 1. Top Navbar with Active User State */}
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         currentRole={currentRole}
         setCurrentRole={handleRoleChange}
-        onOpenAuth={(mode, role) => handleOpenAuth(mode, role)}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onOpenAuth={(mode, role, reason) => handleOpenAuth(mode, role, reason)}
         onOpenBidVerifier={() => handleOpenVerifierForTender(null)}
-        onOpenCreateBid={() => setIsCreateBidOpen(true)}
+        onOpenCreateBid={handleOpenCreateBid}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
       />
@@ -253,7 +346,7 @@ function MainApp() {
       />
 
       {/* 2. Main Tab Views */}
-      {/* 2.1 Forward Auction / Home Overview */}
+      {/* 2.1 Forward Auction / Home Overview (Public) */}
       {activeTab === 'Forward' && (
         <main>
           {/* Official GeM Visual Showcase & Image Banner Carousel */}
@@ -269,7 +362,7 @@ function MainApp() {
             onStepClick={(num) => {
               if (num === '01') {
                 if (currentRole === 'buyer') {
-                  setIsCreateBidOpen(true);
+                  handleOpenCreateBid();
                 } else {
                   setActiveTab('Buyer');
                 }
@@ -295,7 +388,7 @@ function MainApp() {
           <CtaBanner
             onGetStarted={() => {
               if (currentRole === 'buyer') {
-                setIsCreateBidOpen(true);
+                handleOpenCreateBid();
               } else {
                 handleOpenVerifierForTender(null);
               }
@@ -305,28 +398,50 @@ function MainApp() {
         </main>
       )}
 
-      {/* 2.2 BUYER PORTAL: Government / Procuring Authority Flow */}
+      {/* 2.2 BUYER PORTAL: Government / Procuring Authority Flow (PROTECTED) */}
       {activeTab === 'Buyer' && (
-        <BuyerDashboard
-          tenders={tenders}
-          bids={bids}
-          onSelectBid={(bid) => setSelectedBid(bid)}
-          onTenderCreated={handleTenderCreated}
-          onBidSelected={handleBidSelected}
-        />
+        currentUser && currentUser.role === 'buyer' ? (
+          <BuyerDashboard
+            tenders={tenders}
+            bids={bids}
+            currentUser={currentUser}
+            onSelectBid={(bid) => setSelectedBid(bid)}
+            onTenderCreated={handleTenderCreated}
+            onBidSelected={handleBidSelected}
+          />
+        ) : (
+          <AuthGate
+            requiredRole="buyer"
+            currentUser={currentUser}
+            onOpenAuth={(mode, role) => handleOpenAuth(mode, role, 'Sign in as Government Buyer to access Buyer Portal')}
+            onQuickDemoLogin={(role) => handleQuickDemoLogin(role)}
+            onNavigateHome={() => setActiveTab('Forward')}
+          />
+        )
       )}
 
-      {/* 2.3 BIDDER PORTAL: Vendor / Company Flow */}
+      {/* 2.3 BIDDER PORTAL: Vendor / Company Flow (PROTECTED) */}
       {(activeTab === 'Bidder' || activeTab === 'Bid') && (
-        <BidderDashboard
-          tenders={tenders}
-          bids={bids}
-          onOpenVerifierWithTender={(tender) => handleOpenVerifierForTender(tender)}
-          onSelectBid={(bid) => setSelectedBid(bid)}
-        />
+        currentUser && currentUser.role === 'bidder' ? (
+          <BidderDashboard
+            tenders={tenders}
+            bids={bids}
+            currentUser={currentUser}
+            onOpenVerifierWithTender={(tender) => handleOpenVerifierForTender(tender)}
+            onSelectBid={(bid) => setSelectedBid(bid)}
+          />
+        ) : (
+          <AuthGate
+            requiredRole="bidder"
+            currentUser={currentUser}
+            onOpenAuth={(mode, role) => handleOpenAuth(mode, role, 'Sign in as Vendor Bidder to access Bidder Portal')}
+            onQuickDemoLogin={(role) => handleQuickDemoLogin(role)}
+            onNavigateHome={() => setActiveTab('Forward')}
+          />
+        )
       )}
 
-      {/* 2.4 Auction Intelligence & Cartel Analysis */}
+      {/* 2.4 Auction Intelligence & Cartel Analysis (Public overview) */}
       {activeTab === 'Auction' && (
         <AuctionAnalysisView onSelectBid={(bid) => setSelectedBid(bid)} />
       )}
@@ -381,11 +496,9 @@ function MainApp() {
         isOpen={authModalConfig.isOpen}
         mode={authModalConfig.mode}
         initialRole={authModalConfig.role || currentRole}
+        reasonMessage={authModalConfig.reasonMessage}
         onClose={handleCloseAuth}
-        onAuthSuccess={(userData) => {
-          handleRoleChange(userData.role);
-          setActiveTab(userData.role === 'buyer' ? 'Buyer' : 'Bidder');
-        }}
+        onAuthSuccess={handleLogin}
       />
 
       {/* 4.5 GeM Assistant Help Modal */}
@@ -444,4 +557,3 @@ export default function App() {
     </LanguageProvider>
   );
 }
-
