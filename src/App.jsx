@@ -87,31 +87,26 @@ function MainApp() {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
 
   // Fetch live tenders & bids from FastAPI backend on mount
-  useEffect(() => {
-    let isMounted = true;
-    async function loadData() {
-      setIsLoadingTenders(true);
-      setIsLoadingBids(true);
-      try {
-        const [fetchedTenders, fetchedBids] = await Promise.all([
-          gemApi.getTenders().catch(() => initialTenders),
-          gemApi.getBids().catch(() => initialBids)
-        ]);
-        if (isMounted) {
-          if (fetchedTenders && fetchedTenders.length > 0) setTenders(fetchedTenders);
-          if (fetchedBids && fetchedBids.length > 0) setBids(fetchedBids);
-        }
-      } catch (err) {
-        console.warn('Backend load fallback:', err);
-      } finally {
-        if (isMounted) {
-          setIsLoadingTenders(false);
-          setIsLoadingBids(false);
-        }
-      }
+  const loadData = async () => {
+    setIsLoadingTenders(true);
+    setIsLoadingBids(true);
+    try {
+      const [fetchedTenders, fetchedBids] = await Promise.all([
+        gemApi.getTenders().catch(() => initialTenders),
+        gemApi.getBids().catch(() => initialBids)
+      ]);
+      if (fetchedTenders && fetchedTenders.length > 0) setTenders(fetchedTenders);
+      if (fetchedBids && fetchedBids.length > 0) setBids(fetchedBids);
+    } catch (err) {
+      console.warn('Backend load fallback:', err);
+    } finally {
+      setIsLoadingTenders(false);
+      setIsLoadingBids(false);
     }
+  };
+
+  useEffect(() => {
     loadData();
-    return () => { isMounted = false; };
   }, []);
 
   const handleRoleChange = (newRole) => {
@@ -129,6 +124,7 @@ function MainApp() {
     }
     handleRoleChange(userData.role);
     setActiveTab(userData.role === 'buyer' ? 'Buyer' : 'Bidder');
+    loadData();
   };
 
   const handleLogout = async () => {

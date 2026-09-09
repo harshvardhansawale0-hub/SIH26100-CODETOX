@@ -40,6 +40,10 @@ CREATE TABLE IF NOT EXISTS tenders (
     status TEXT NOT NULL DEFAULT 'Active', -- 'Active', 'Under Evaluation', 'Awarded', 'Closed'
     mii_min_requirement TEXT NOT NULL DEFAULT '50% (Class-I)',
     boq_items TEXT NOT NULL DEFAULT '[]', -- JSON array of line items with qty and unit
+    created_by TEXT DEFAULT '',
+    buyer_email TEXT DEFAULT '',
+    buyer_name TEXT DEFAULT '',
+    buyer_org TEXT DEFAULT '',
     created_at TEXT NOT NULL
 );
 

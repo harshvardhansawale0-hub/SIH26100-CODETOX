@@ -34,10 +34,22 @@ export default function BuyerDashboard({
     if (currentUser.isDemo) {
       return tenders;
     }
-    return tenders.filter(t => 
-      t.createdBy === currentUser.email || 
-      t.buyerEmail === currentUser.email
-    );
+    const userEmail = (currentUser.email || '').trim().toLowerCase();
+    const userName = (currentUser.fullName || '').trim().toLowerCase();
+    const userOrg = (currentUser.organization || '').trim().toLowerCase();
+
+    return tenders.filter(t => {
+      const createdBy = (t.createdBy || '').trim().toLowerCase();
+      const buyerEmail = (t.buyerEmail || '').trim().toLowerCase();
+      const buyerName = (t.buyerName || '').trim().toLowerCase();
+      const buyerOrg = (t.buyerOrg || '').trim().toLowerCase();
+
+      return (
+        (userEmail && (createdBy === userEmail || buyerEmail === userEmail)) ||
+        (userName && buyerName && buyerName === userName) ||
+        (userOrg && buyerOrg && buyerOrg === userOrg)
+      );
+    });
   }, [tenders, currentUser]);
 
   // Scope applications received: only for tenders belonging to this Buyer
