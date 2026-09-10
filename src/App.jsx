@@ -731,6 +731,7 @@ function MainApp() {
       <BidVerificationModal
         isOpen={isVerifierOpen}
         selectedTender={selectedTenderForVerifier}
+        currentUser={currentUser}
         onClose={() => {
           setIsVerifierOpen(false);
           setSelectedTenderForVerifier(null);
