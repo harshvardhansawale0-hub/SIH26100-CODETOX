@@ -54,8 +54,10 @@ def verify_bid_payload(req: BidVerifyRequest):
              
         real_extracted_docs.append(ExtractedDoc(
             name=f"{doc_type}.pdf",
+            docType=doc_type,
             status="Mismatch Alert" if cross_checks["status"] == "FAIL" else "Verified",
             score=30 if cross_checks["status"] == "FAIL" else int(confidence),
+            confidence=doc_ocr_conf,
             details=doc_details
         ))
         

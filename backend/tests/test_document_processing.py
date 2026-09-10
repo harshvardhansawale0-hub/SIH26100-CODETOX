@@ -45,7 +45,7 @@ def test_compare_strings():
 def test_run_cross_document_checks():
     req = BidVerifyRequest(
         vendorName="Apex Supplies Ltd.",
-        tenderId="GEM/1",
+        tenderId="GEM/2026/B/123456",
         gstin="27ABCDE1234F1Z5",
         pan="ABCDE1234F"
     )

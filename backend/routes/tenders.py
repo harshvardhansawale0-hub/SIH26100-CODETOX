@@ -1,6 +1,6 @@
 import random
 from datetime import datetime
-from fastapi import APIRouter, HTTPException, status, Query
+from fastapi import APIRouter, HTTPException, status, Query, Request
 from typing import List, Dict, Any, Optional
 from ..models import TenderItem, TenderCreateRequest
 from ..database import get_all_tenders, get_tender_by_id, create_tender, delete_tender, get_all_bids
@@ -17,30 +17,6 @@ def list_tenders():
     for t in tenders:
         t["applicationsCount"] = len([b for b in all_bids if b.get("tenderId") == t.get("id")])
     return tenders
-
-@router.get("/{tender_id}", response_model=Dict[str, Any])
-def get_tender_details(tender_id: str):
-    """
-    Retrieve detailed tender specifications, compliance criteria, and BOQ requirements.
-    """
-    t = get_tender_by_id(tender_id)
-    if not t:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Tender '{tender_id}' not found."
-        )
-    all_bids = get_all_bids()
-    t["applicationsCount"] = len([b for b in all_bids if b.get("tenderId") == tender_id])
-    return t
-
-@router.get("/{tender_id}/applications", response_model=List[Dict[str, Any]])
-def get_tender_applications(tender_id: str):
-    """
-    Buyer retrieves all submitted bidder applications and AI compliance reports for this tender.
-    """
-    all_bids = get_all_bids()
-    tender_bids = [b for b in all_bids if b.get("tenderId") == tender_id]
-    return tender_bids
 
 @router.post("", response_model=Dict[str, Any], status_code=status.HTTP_201_CREATED)
 def publish_tender(payload: TenderCreateRequest):
@@ -89,3 +65,28 @@ def remove_tender(tender_id: str):
         )
     return {"status": "success", "message": f"Tender '{tender_id}' deleted successfully.", "id": tender_id}
 
+@router.get("/{tender_id:path}/applications", response_model=List[Dict[str, Any]])
+def get_tender_applications(tender_id: str):
+    """
+    Buyer retrieves all submitted bidder applications and AI compliance reports for this tender.
+    Supports slash-containing Tender IDs (e.g. GEM/2026/B/891244).
+    """
+    all_bids = get_all_bids()
+    tender_bids = [b for b in all_bids if b.get("tenderId") == tender_id]
+    return tender_bids
+
+@router.get("/{tender_id:path}", response_model=Dict[str, Any])
+def get_tender_details(tender_id: str):
+    """
+    Retrieve detailed tender specifications, compliance criteria, and BOQ requirements.
+    Supports slash-containing Tender IDs (e.g. GEM/2026/B/891244).
+    """
+    t = get_tender_by_id(tender_id)
+    if not t:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Tender '{tender_id}' not found."
+        )
+    all_bids = get_all_bids()
+    t["applicationsCount"] = len([b for b in all_bids if b.get("tenderId") == tender_id])
+    return t
