@@ -289,8 +289,6 @@ def init_db(force_recreate: bool = False):
             audit_trail TEXT NOT NULL
         )
         """)
-
-<<<<<<< HEAD
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

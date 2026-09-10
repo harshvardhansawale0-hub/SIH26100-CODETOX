@@ -47,6 +47,7 @@ def validate_bid_compliance(
     extracted_entities: List[ExtractedEntity] = []
     cross_doc_matches: List[CrossDocMatchResult] = []
     requirement_matches: List[BidRequirementMatchResult] = []
+    extracted_docs: List[Any] = []
 
     # Tender requirements defaults
     target_min_mii = 50.0
@@ -77,9 +78,9 @@ def validate_bid_compliance(
         return False
 
     # 1. GSTIN Validation (GFR Rule 149)
-    doc_gstin = extracted_fields.get("gstin", {}).get("value")
+    doc_gstin = extracted_fields.get("gstin", {}).get("value") or req.gstin
     if doc_gstin:
-        gst_valid = get_validation_status("gstin")
+        gst_valid = get_validation_status("gstin") if processing_results else (len(doc_gstin.strip()) == 15)
         if gst_valid:
             rule_results.append(RuleCheckResult(
                 ruleId="GFR-149-GST", name="GSTIN Verification", category="Statutory Compliance",
@@ -104,9 +105,9 @@ def validate_bid_compliance(
         gst_verified_str = "MISSING_EVIDENCE"
 
     # 2. PAN Verification
-    doc_pan = extracted_fields.get("pan", {}).get("value")
+    doc_pan = extracted_fields.get("pan", {}).get("value") or req.pan
     if doc_pan:
-        pan_valid = get_validation_status("pan")
+        pan_valid = get_validation_status("pan") if processing_results else (len(doc_pan.strip()) == 10)
         if pan_valid:
             rule_results.append(RuleCheckResult(
                 ruleId="GFR-149-PAN", name="PAN Verification", category="Statutory Compliance",
@@ -131,7 +132,7 @@ def validate_bid_compliance(
         pan_verified_str = "MISSING_EVIDENCE"
 
     # 3. DPIIT MII
-    doc_mii = extracted_fields.get("local_content_percentage", {}).get("value")
+    doc_mii = extracted_fields.get("local_content_percentage", {}).get("value") or req.miiDeclared
     mii_tier = "Unknown"
     if doc_mii:
         try:
@@ -153,6 +154,49 @@ def validate_bid_compliance(
     else:
         rule_results.append(RuleCheckResult(ruleId="DPIIT-MII-01", name="DPIIT MII Classification", category="DPIIT Policy", passed=False, details="MII percentage missing from document.", penaltyPoints=0))
 
+    # 4. Financial Turnover Eligibility (GFR Rule 144)
+    turnover_lakhs = parse_currency_amount(req.turnoverClaim) if req.turnoverClaim else 0
+    if turnover_lakhs and turnover_lakhs < target_min_turnover_lakhs:
+        score -= 25
+        flags.append(f"Turnover {req.turnoverClaim} is below minimum requirement of ₹{target_min_turnover_lakhs/100:.1f} Cr.")
+        rule_results.append(RuleCheckResult(
+            ruleId="GFR-144-TO", name="Minimum Financial Turnover", category="Financial Eligibility",
+            passed=False, details=f"Turnover {req.turnoverClaim} below required ₹{target_min_turnover_lakhs/100:.1f} Cr.", penaltyPoints=25
+        ))
+    elif turnover_lakhs:
+        rule_results.append(RuleCheckResult(
+            ruleId="GFR-144-TO", name="Minimum Financial Turnover", category="Financial Eligibility",
+            passed=True, details=f"Turnover {req.turnoverClaim} meets minimum criteria.", penaltyPoints=0
+        ))
+
+    # 5. Prior Experience Eligibility (GFR Rule 144)
+    exp_years = 0
+    if req.experienceClaim:
+        m = re.search(r"(\d+(\.\d+)?)", req.experienceClaim)
+        if m:
+            exp_years = float(m.group(1))
+    if exp_years and exp_years < target_min_exp_years:
+        score -= 20
+        flags.append(f"Experience {req.experienceClaim} is below minimum requirement of {target_min_exp_years} Years.")
+        rule_results.append(RuleCheckResult(
+            ruleId="GFR-144-EXP", name="Prior Experience Threshold", category="Technical Eligibility",
+            passed=False, details=f"Experience {req.experienceClaim} below required {target_min_exp_years} Years.", penaltyPoints=20
+        ))
+    elif exp_years:
+        rule_results.append(RuleCheckResult(
+            ruleId="GFR-144-EXP", name="Prior Experience Threshold", category="Technical Eligibility",
+            passed=True, details=f"Experience {req.experienceClaim} meets minimum criteria.", penaltyPoints=0
+        ))
+
+    # 6. MSME / Udyam Validity Check
+    if req.msmeRegNo and "INVALID" in req.msmeRegNo.upper():
+        score -= 25
+        flags.append("MSME/Udyam registration number is invalid or revoked.")
+        rule_results.append(RuleCheckResult(
+            ruleId="MSME-PP-01", name="MSME/Udyam Registration", category="MSE Preference",
+            passed=False, details="Udyam registration invalid.", penaltyPoints=25
+        ))
+
     # Cross-document penalty
     if cross_checks and cross_checks.get("status") == "FAIL":
         score -= 30
@@ -166,12 +210,15 @@ def validate_bid_compliance(
     if score >= 85:
         status = "Compliant"
         risk = "Low Risk"
+        recommendation = "Accept - Bid meets all GFR 2017 & DPIIT compliance criteria."
     elif score >= 50:
         status = "Flagged"
         risk = "Medium Risk"
+        recommendation = "Review - Minor compliance discrepancies detected. Manual verification recommended."
     else:
         status = "Rejected"
         risk = "Critical High Risk"
+        recommendation = "Reject - Severe compliance violations or fraudulent documentation detected."
     now_str = datetime.now().strftime("%d %b %Y, %I:%M:%S %p")
     report_id = f"RPT-{uuid.uuid4().hex[:8].upper()}"
 
