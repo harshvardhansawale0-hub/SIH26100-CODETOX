@@ -130,6 +130,8 @@ def detect_actions(query: str, reply: str, language: str) -> List[ActionCard]:
 
 def get_offline_response(query: str, language: str) -> Dict[str, Any]:
     """High-accuracy fallback knowledge engine for GeM & GFR procurement rules."""
+    q_lower = (query or "").lower()
+
     def has_kw(k: str) -> bool:
         if len(k) <= 3:
             return bool(re.search(rf"\b{re.escape(k)}\b", q_lower))
