@@ -453,7 +453,7 @@ def init_db(force_recreate: bool = False):
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_presentations_bid ON passport_presentations(bid_id)")
 
     # Dynamic schema migration for tenders table: ensure buyer columns exist in any pre-existing database
-    for col_name in ["created_by", "buyer_email", "buyer_name", "buyer_org"]:
+    for col_name in ["created_by", "buyer_email", "buyer_name", "buyer_org", "buyer_id"]:
         try:
             if _USE_PG:
                 cursor.execute(f"ALTER TABLE tenders ADD COLUMN IF NOT EXISTS {col_name} TEXT DEFAULT ''")
@@ -472,7 +472,30 @@ def init_db(force_recreate: bool = False):
         except Exception:
             pass
 
-    # Auto-seeding disabled to maintain clean database state
+    # Seed benchmark initial data if tables are empty
+    try:
+        cursor.execute("SELECT COUNT(*) FROM users")
+        if _count_result(cursor.fetchone()) == 0:
+            seed_initial_users(cursor)
+
+        cursor.execute("SELECT COUNT(*) FROM tenders")
+        if _count_result(cursor.fetchone()) == 0:
+            seed_initial_tenders(cursor)
+
+        cursor.execute("SELECT COUNT(*) FROM bids")
+        if _count_result(cursor.fetchone()) == 0:
+            seed_initial_bids(cursor)
+
+        cursor.execute("SELECT COUNT(*) FROM contracts")
+        if _count_result(cursor.fetchone()) == 0:
+            seed_initial_contracts(cursor)
+
+        cursor.execute("SELECT COUNT(*) FROM vendors")
+        if _count_result(cursor.fetchone()) == 0:
+            seed_initial_vendors(cursor)
+    except Exception as e:
+        print(f"[!] Warning during initial seeding: {e}")
+
     conn.commit()
     conn.close()
 
@@ -730,8 +753,10 @@ def seed_initial_bids(cursor):
 def seed_initial_users(cursor):
     demo_users = [
         ("National Procurement Authority", "buyer@gov.in", "buyer123", "Defence & Space Procurement Cell", "07GOVND0001A1Z1", "buyer"),
+        ("Dir. Rajesh Verma", "procurement.officer@nic.in", "buyer123", "Ministry of Electronics & IT (MeitY)", "07AAAGM0289C1ZU", "buyer"),
         ("Smart Cities Mission Buyer", "buyer@smartcities.gov.in", "buyer123", "Ministry of Housing and Urban Affairs", "07DRDO1234F1Z8", "buyer"),
         ("Apex Supplies Ltd. (Bidder)", "bidder@apex.in", "bidder123", "Apex Supplies Ltd.", "27AABCB1234F1Z5", "bidder"),
+        ("Harshvardhan Sawale", "vendor.contact@apextech.com", "bidder123", "Apex Technologies & Supplies Ltd.", "27AABCB1234F1Z5", "bidder"),
         ("Kaveri Infotech (Bidder)", "bidder@kaveri.in", "bidder123", "Kaveri Infotech", "27KAVRI5678B1Z2", "bidder")
     ]
     for u in demo_users:
@@ -835,32 +860,39 @@ def seed_initial_tenders(cursor):
         }
     ]
     for t in tenders:
+        buyer_mail = "buyer@gov.in"
+        buyer_name = "National Procurement Authority"
+        buyer_org = t.get("ministry", "Ministry of Defence")
         if _USE_PG:
             cursor.execute("""
             INSERT INTO tenders (
                 id, title, ministry, department, category, estimated_value,
                 emd_amount, published_date, closing_date, status, mii_min_requirement,
-                min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                min_turnover_requirement, min_experience_years, mandatory_docs, boq_items,
+                created_by, buyer_email, buyer_name, buyer_org, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (id) DO NOTHING
             """, (
                 t["id"], t["title"], t["ministry"], t["department"], t["category"],
                 t["estimated_value"], t["emd_amount"], t["published_date"], t["closing_date"],
                 t["status"], t["mii_min_requirement"], t["min_turnover_requirement"],
-                t["min_experience_years"], t["mandatory_docs"], t["boq_items"], t["created_at"]
+                t["min_experience_years"], t["mandatory_docs"], t["boq_items"],
+                buyer_mail, buyer_mail, buyer_name, buyer_org, t["created_at"]
             ))
         else:
             cursor.execute("""
             INSERT OR IGNORE INTO tenders (
                 id, title, ministry, department, category, estimated_value,
                 emd_amount, published_date, closing_date, status, mii_min_requirement,
-                min_turnover_requirement, min_experience_years, mandatory_docs, boq_items, created_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                min_turnover_requirement, min_experience_years, mandatory_docs, boq_items,
+                created_by, buyer_email, buyer_name, buyer_org, created_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 t["id"], t["title"], t["ministry"], t["department"], t["category"],
                 t["estimated_value"], t["emd_amount"], t["published_date"], t["closing_date"],
                 t["status"], t["mii_min_requirement"], t["min_turnover_requirement"],
-                t["min_experience_years"], t["mandatory_docs"], t["boq_items"], t["created_at"]
+                t["min_experience_years"], t["mandatory_docs"], t["boq_items"],
+                buyer_mail, buyer_mail, buyer_name, buyer_org, t["created_at"]
             ))
 
 def seed_initial_contracts(cursor):
@@ -1184,7 +1216,8 @@ def get_all_tenders() -> List[Dict[str, Any]]:
             "createdBy": _row_get(r, "created_by", ""),
             "buyerEmail": _row_get(r, "buyer_email", ""),
             "buyerName": _row_get(r, "buyer_name", "Government Buyer"),
-            "buyerOrg": _row_get(r, "buyer_org", r["ministry"])
+            "buyerOrg": _row_get(r, "buyer_org", r["ministry"]),
+            "buyerId": _row_get(r, "buyer_id", None)
         })
     conn.close()
     return tenders
@@ -1218,7 +1251,8 @@ def get_tender_by_id(tender_id: str) -> Optional[Dict[str, Any]]:
         "createdBy": _row_get(r, "created_by", ""),
         "buyerEmail": _row_get(r, "buyer_email", ""),
         "buyerName": _row_get(r, "buyer_name", "Government Buyer"),
-        "buyerOrg": _row_get(r, "buyer_org", r["ministry"])
+        "buyerOrg": _row_get(r, "buyer_org", r["ministry"]),
+        "buyerId": _row_get(r, "buyer_id", None)
     }
 
 def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
@@ -1228,6 +1262,7 @@ def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
     buyer_email = t.get("buyerEmail") or t.get("createdBy") or ""
     buyer_name = t.get("buyerName") or "Government Buyer"
     buyer_org = t.get("buyerOrg") or t.get("ministry") or ""
+    buyer_id = str(t.get("buyerId") or "")
 
     if _USE_PG:
         cursor.execute("""
@@ -1235,8 +1270,8 @@ def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
             id, title, ministry, department, category, estimated_value,
             emd_amount, published_date, closing_date, status, mii_min_requirement,
             min_turnover_requirement, min_experience_years, mandatory_docs, boq_items,
-            created_by, buyer_email, buyer_name, buyer_org, created_at
-        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            created_by, buyer_email, buyer_name, buyer_org, buyer_id, created_at
+        ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (
             t["id"], t["title"], t["ministry"], t["department"], t["category"],
             t["estimatedValue"], t["emdAmount"], t["publishedDate"], t["closingDate"],
@@ -1245,7 +1280,7 @@ def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
             t.get("minExperienceYears", 3),
             json.dumps(t.get("mandatoryDocs", ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"])),
             json.dumps(t.get("boqItems", [])),
-            created_by, buyer_email, buyer_name, buyer_org,
+            created_by, buyer_email, buyer_name, buyer_org, buyer_id,
             datetime.now().isoformat()
         ))
     else:
@@ -1254,8 +1289,8 @@ def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
             id, title, ministry, department, category, estimated_value,
             emd_amount, published_date, closing_date, status, mii_min_requirement,
             min_turnover_requirement, min_experience_years, mandatory_docs, boq_items,
-            created_by, buyer_email, buyer_name, buyer_org, created_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            created_by, buyer_email, buyer_name, buyer_org, buyer_id, created_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             t["id"], t["title"], t["ministry"], t["department"], t["category"],
             t["estimatedValue"], t["emdAmount"], t["publishedDate"], t["closingDate"],
@@ -1264,11 +1299,17 @@ def create_tender(t: Dict[str, Any]) -> Dict[str, Any]:
             t.get("minExperienceYears", 3),
             json.dumps(t.get("mandatoryDocs", ["PAN Card", "GSTIN Certificate", "UDYAM Certificate", "CA Audited Turnover Statement", "Make in India Declaration"])),
             json.dumps(t.get("boqItems", [])),
-            created_by, buyer_email, buyer_name, buyer_org,
+            created_by, buyer_email, buyer_name, buyer_org, buyer_id,
             datetime.now().isoformat()
         ))
     conn.commit()
     conn.close()
+
+    t["createdBy"] = created_by
+    t["buyerEmail"] = buyer_email
+    t["buyerName"] = buyer_name
+    t["buyerOrg"] = buyer_org
+    t["buyerId"] = buyer_id
     return t
 
 def delete_tender(tender_id: str) -> bool:

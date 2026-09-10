@@ -25,11 +25,12 @@ export default function BuyerDashboard({
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isSelecting, setIsSelecting] = useState(false);
+  const [tenderScopeMode, setTenderScopeMode] = useState('my'); // 'my' or 'all'
 
   // Scope tenders to this Buyer:
-  // Fresh/registered buyer accounts start with ZERO tenders until they publish them.
+  // Fresh/registered buyer accounts see their created tenders.
   // Demo accounts (Dir. Rajesh Verma) show demo tenders.
-  const buyerTenders = useMemo(() => {
+  const myCreatedTenders = useMemo(() => {
     if (!currentUser) return [];
     if (currentUser.isDemo) {
       return tenders;
@@ -37,20 +38,38 @@ export default function BuyerDashboard({
     const userEmail = (currentUser.email || '').trim().toLowerCase();
     const userName = (currentUser.fullName || '').trim().toLowerCase();
     const userOrg = (currentUser.organization || '').trim().toLowerCase();
+    const userId = currentUser.id ? String(currentUser.id) : '';
 
     return tenders.filter(t => {
       const createdBy = (t.createdBy || '').trim().toLowerCase();
       const buyerEmail = (t.buyerEmail || '').trim().toLowerCase();
       const buyerName = (t.buyerName || '').trim().toLowerCase();
       const buyerOrg = (t.buyerOrg || '').trim().toLowerCase();
+      const buyerId = t.buyerId ? String(t.buyerId) : '';
 
-      return (
-        (userEmail && (createdBy === userEmail || buyerEmail === userEmail)) ||
-        (userName && buyerName && buyerName === userName) ||
-        (userOrg && buyerOrg && buyerOrg === userOrg)
-      );
+      // Direct ID or email match
+      if (userId && buyerId && userId === buyerId) return true;
+      if (userEmail && (createdBy === userEmail || buyerEmail === userEmail)) return true;
+
+      // Default/seeded authority account match
+      const isDefaultGovBuyer = userEmail === 'buyer@gov.in' || userEmail === 'procurement.officer@nic.in' || userEmail === 'buyer@gem.gov.in';
+      const isTenderDefaultGov = createdBy === 'buyer@gov.in' || buyerEmail === 'buyer@gov.in' || createdBy === 'buyer@gem.gov.in' || buyerEmail === 'buyer@gem.gov.in' || createdBy === 'procurement.officer@nic.in' || buyerEmail === 'procurement.officer@nic.in';
+      if (isDefaultGovBuyer && isTenderDefaultGov) return true;
+
+      // Organization match or Name match
+      if (userName && buyerName && (buyerName === userName || buyerName.includes(userName) || userName.includes(buyerName))) return true;
+      if (userOrg && buyerOrg && (buyerOrg === userOrg || buyerOrg.includes(userOrg) || userOrg.includes(buyerOrg))) return true;
+
+      return false;
     });
   }, [tenders, currentUser]);
+
+  const buyerTenders = useMemo(() => {
+    if (tenderScopeMode === 'all') {
+      return tenders;
+    }
+    return myCreatedTenders;
+  }, [tenderScopeMode, myCreatedTenders, tenders]);
 
   // Scope applications received: only for tenders belonging to this Buyer
   const buyerBids = useMemo(() => {
@@ -221,43 +240,86 @@ export default function BuyerDashboard({
         </div>
 
         {/* Navigation Sub-Tabs */}
-        <div style={{ display: 'flex', gap: '0.5rem', borderBottom: '1px solid #1e385b', paddingBottom: '0.5rem', marginBottom: '1.5rem' }}>
-          <button
-            onClick={() => { setActiveSubTab('tenders'); setSelectedTenderId('ALL'); }}
-            style={{
-              padding: '0.6rem 1.25rem',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: activeSubTab === 'tenders' ? '#0284c7' : 'transparent',
-              color: activeSubTab === 'tenders' ? '#ffffff' : '#94a3b8',
-              fontWeight: '700',
-              fontSize: '0.88rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem'
-            }}
-          >
-            <FileText size={16} /> 1. Published Bids / Tenders ({buyerTenders.length})
-          </button>
-          <button
-            onClick={() => setActiveSubTab('applications')}
-            style={{
-              padding: '0.6rem 1.25rem',
-              borderRadius: '6px',
-              border: 'none',
-              backgroundColor: activeSubTab === 'applications' ? '#0284c7' : 'transparent',
-              color: activeSubTab === 'applications' ? '#ffffff' : '#94a3b8',
-              fontWeight: '700',
-              fontSize: '0.88rem',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.4rem'
-            }}
-          >
-            <Users size={16} /> 2. Received Bidder Applications & AI Reports ({buyerBids.length})
-          </button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', borderBottom: '1px solid #1e385b', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => { setActiveSubTab('tenders'); setSelectedTenderId('ALL'); }}
+              style={{
+                padding: '0.6rem 1.25rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: activeSubTab === 'tenders' ? '#0284c7' : 'transparent',
+                color: activeSubTab === 'tenders' ? '#ffffff' : '#94a3b8',
+                fontWeight: '700',
+                fontSize: '0.88rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              <FileText size={16} /> 1. Published Bids / Tenders ({buyerTenders.length})
+            </button>
+            <button
+              onClick={() => setActiveSubTab('applications')}
+              style={{
+                padding: '0.6rem 1.25rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: activeSubTab === 'applications' ? '#0284c7' : 'transparent',
+                color: activeSubTab === 'applications' ? '#ffffff' : '#94a3b8',
+                fontWeight: '700',
+                fontSize: '0.88rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem'
+              }}
+            >
+              <Users size={16} /> 2. Received Bidder Applications & AI Reports ({buyerBids.length})
+            </button>
+          </div>
+
+          {/* Scope Mode Switcher: My Created vs All Department */}
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '3px', gap: '4px' }}>
+            <span style={{ fontSize: '0.74rem', color: '#94a3b8', padding: '0 0.4rem', fontWeight: '600' }}>Scope:</span>
+            <button
+              type="button"
+              onClick={() => setTenderScopeMode('my')}
+              style={{
+                padding: '0.25rem 0.65rem',
+                fontSize: '0.75rem',
+                fontWeight: '700',
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                backgroundColor: tenderScopeMode === 'my' ? '#0284c7' : 'transparent',
+                color: tenderScopeMode === 'my' ? '#ffffff' : '#94a3b8',
+                transition: 'all 0.2s ease'
+              }}
+              title="Show tenders created by this authority account"
+            >
+              My Tenders ({myCreatedTenders.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setTenderScopeMode('all')}
+              style={{
+                padding: '0.25rem 0.65rem',
+                fontSize: '0.75rem',
+                fontWeight: '700',
+                borderRadius: '4px',
+                border: 'none',
+                cursor: 'pointer',
+                backgroundColor: tenderScopeMode === 'all' ? '#0284c7' : 'transparent',
+                color: tenderScopeMode === 'all' ? '#ffffff' : '#94a3b8',
+                transition: 'all 0.2s ease'
+              }}
+              title="Show all procurement tenders across the platform/department"
+            >
+              All Tenders ({tenders.length})
+            </button>
+          </div>
         </div>
 
         {/* Filter Controls Bar */}

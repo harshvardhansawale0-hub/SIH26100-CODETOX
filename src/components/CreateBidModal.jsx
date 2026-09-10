@@ -7,9 +7,20 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
   if (!isOpen) return null;
 
   const { t } = useLanguage();
+
+  // Resolve active authority user from prop or local storage fallback
+  const effectiveUser = currentUser || (() => {
+    try {
+      const saved = localStorage.getItem('gem_auth_user') || localStorage.getItem('gem_user');
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
+  })();
+
   const [title, setTitle] = useState('');
-  const [ministry, setMinistry] = useState(currentUser?.organization || 'Ministry of Defence');
-  const [department, setDepartment] = useState(currentUser?.organization ? `${currentUser.organization} Procurement Wing` : 'Defence Research & Development Organisation (DRDO)');
+  const [ministry, setMinistry] = useState(effectiveUser?.organization || 'Ministry of Defence');
+  const [department, setDepartment] = useState(effectiveUser?.organization ? `${effectiveUser.organization} Procurement Wing` : 'Defence Research & Development Organisation (DRDO)');
   const [category, setCategory] = useState('IT Hardware');
   const [estimatedValue, setEstimatedValue] = useState('₹1.85 Cr');
   const [emdAmount, setEmdAmount] = useState('₹3.70 Lakhs (MSE Exempted)');
@@ -64,6 +75,10 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      const userEmail = effectiveUser?.email || (effectiveUser?.fullName ? `${effectiveUser.fullName.toLowerCase().replace(/\s+/g, '.')}@gem.gov.in` : 'buyer@gov.in');
+      const userName = effectiveUser?.fullName || 'Government Buyer';
+      const userOrg = effectiveUser?.organization || ministry;
+
       const payload = {
         title,
         ministry,
@@ -77,10 +92,11 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
         minExperienceYears: Number(minExperienceYears),
         mandatoryDocs,
         boqItems,
-        createdBy: currentUser?.email || 'buyer@gem.gov.in',
-        buyerEmail: currentUser?.email || '',
-        buyerName: currentUser?.fullName || 'Government Buyer',
-        buyerOrg: currentUser?.organization || ministry
+        createdBy: userEmail,
+        buyerEmail: userEmail,
+        buyerName: userName,
+        buyerOrg: userOrg,
+        buyerId: effectiveUser?.id || null
       };
       const created = await gemApi.createTender(payload);
       const tenderWithMeta = {
@@ -88,7 +104,8 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
         createdBy: payload.createdBy,
         buyerEmail: payload.buyerEmail,
         buyerName: payload.buyerName,
-        buyerOrg: payload.buyerOrg
+        buyerOrg: payload.buyerOrg,
+        buyerId: payload.buyerId
       };
       setIsSuccess(true);
       setTimeout(() => {

@@ -214,6 +214,7 @@ class TenderItem(BaseModel):
     buyerEmail: Optional[str] = None
     buyerName: Optional[str] = None
     buyerOrg: Optional[str] = None
+    buyerId: Optional[Any] = None
 
 class TenderCreateRequest(BaseModel):
     title: str
@@ -239,6 +240,7 @@ class TenderCreateRequest(BaseModel):
     buyerEmail: Optional[str] = None
     buyerName: Optional[str] = None
     buyerOrg: Optional[str] = None
+    buyerId: Optional[Any] = None
 
 
 # ==========================================

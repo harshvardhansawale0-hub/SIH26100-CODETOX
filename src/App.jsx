@@ -67,7 +67,16 @@ function MainApp() {
   const [activeCatalogCategory, setActiveCatalogCategory] = useState('Oxygen Gas & Accessories');
 
   // Tenders state (Buyer creates, Bidder applies)
-  const [tenders, setTenders] = useState(initialTenders || []);
+  const [tenders, setTenders] = useState(() => {
+    try {
+      const stored = localStorage.getItem('gem_stored_tenders');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {}
+    return initialTenders || [];
+  });
   const [isLoadingTenders, setIsLoadingTenders] = useState(false);
 
   // Bids state (Bidder submits, Buyer reviews & awards)
@@ -98,7 +107,23 @@ function MainApp() {
         gemApi.getTenders().catch(() => initialTenders),
         gemApi.getBids().catch(() => initialBids)
       ]);
-      if (fetchedTenders && fetchedTenders.length > 0) setTenders(fetchedTenders);
+      if (fetchedTenders && fetchedTenders.length > 0) {
+        // Merge with any locally created tenders in localStorage that might not yet be fetched
+        let storedTenders = [];
+        try {
+          storedTenders = JSON.parse(localStorage.getItem('gem_stored_tenders') || '[]');
+        } catch {}
+        const mergedTenders = [...fetchedTenders];
+        for (const st of storedTenders) {
+          if (st && st.id && !mergedTenders.some(t => t.id === st.id)) {
+            mergedTenders.unshift(st);
+          }
+        }
+        setTenders(mergedTenders);
+        try {
+          localStorage.setItem('gem_stored_tenders', JSON.stringify(mergedTenders));
+        } catch {}
+      }
       if (fetchedBids && fetchedBids.length > 0) setBids(fetchedBids);
     } catch (err) {
       console.warn('Backend load fallback:', err);
@@ -233,12 +258,14 @@ function MainApp() {
 
   // Buyer Flow: Buyer creates new tender with compliance criteria
   const handleTenderCreated = (newTender) => {
+    const userEmail = currentUser?.email || (currentUser?.fullName ? `${currentUser.fullName.toLowerCase().replace(/\s+/g, '.')}@gem.gov.in` : 'buyer@gem.gov.in');
     const tenderWithCreator = {
       ...newTender,
-      createdBy: newTender.createdBy || (currentUser ? currentUser.email : 'buyer'),
-      buyerEmail: newTender.buyerEmail || (currentUser ? currentUser.email : ''),
+      createdBy: newTender.createdBy || userEmail,
+      buyerEmail: newTender.buyerEmail || userEmail,
       buyerName: newTender.buyerName || (currentUser ? currentUser.fullName : 'Government Buyer'),
-      buyerOrg: newTender.buyerOrg || (currentUser ? currentUser.organization : 'Government Procuring Authority')
+      buyerOrg: newTender.buyerOrg || (currentUser ? currentUser.organization : 'Government Procuring Authority'),
+      buyerId: newTender.buyerId || currentUser?.id || null
     };
     setTenders((prev) => {
       const updated = [tenderWithCreator, ...prev];
@@ -673,12 +700,6 @@ function MainApp() {
         onAddVerifiedBid={handleAddVerifiedBid}
       />
 
-      {/* 4.2 Buyer Create Bid & Compliance Criteria Builder */}
-      <CreateBidModal
-        isOpen={isCreateBidOpen}
-        onClose={() => setIsCreateBidOpen(false)}
-        onTenderCreated={handleTenderCreated}
-      />
 
       {/* 4.3 Bid AI Compliance Dossier & Buyer Award Actions */}
       <BidDetailModal
