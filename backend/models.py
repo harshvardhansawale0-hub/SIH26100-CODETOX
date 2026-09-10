@@ -390,3 +390,94 @@ class AuthResponse(BaseModel):
     token: str
     user: Dict[str, Any]
     message: str
+
+
+# ==========================================
+# 8. Compliance Passport Schemas
+# ==========================================
+
+class DocumentVerifyRequest(BaseModel):
+    """Request to verify one or more seller documents."""
+    documents: List[Dict[str, str]]  # [{"docType": "PAN", "docRef": "AABCB1234F"}, ...]
+
+class VerificationRecord(BaseModel):
+    """Single document verification result."""
+    id: str
+    vendorId: int
+    docType: str
+    docRef: str
+    status: str
+    verifiedAt: Optional[str] = None
+    expiresAt: Optional[str] = None
+    verificationMethod: str = "mock"
+    details: Optional[Dict[str, Any]] = None
+
+class PassportPayload(BaseModel):
+    """The credential payload that gets digitally signed."""
+    passportId: str
+    vendorId: int
+    vendorName: str
+    gstinMasked: str
+    panMasked: str
+    udyamNo: Optional[str] = None
+    miiClassification: str
+    verifiedCredentials: List[Dict[str, str]]
+    issuedAt: str
+    expiresAt: str
+    complianceScore: int
+
+class PassportItem(BaseModel):
+    """Full passport record returned to clients."""
+    id: str
+    vendorId: int
+    vendorName: str
+    issuedAt: str
+    expiresAt: str
+    status: str
+    complianceScore: int
+    miiClassification: str
+    verifiedCredentials: List[Dict[str, str]]
+    gstinMasked: str
+    panMasked: str
+    udyamNo: Optional[str] = None
+    signaturePreview: str
+    payloadHash: str
+
+class PassportVerifyRequest(BaseModel):
+    """Request to verify a passport (e.g., during bid submission)."""
+    bidId: Optional[str] = None
+    tenderId: Optional[str] = None
+
+class PassportVerifyResponse(BaseModel):
+    """Result of passport verification."""
+    valid: bool
+    passportId: str
+    vendorName: str
+    status: str
+    signatureValid: bool
+    expiresAt: str
+    verifiedCredentials: List[Dict[str, str]]
+    complianceScore: int
+    message: str
+
+class PassportRevokeRequest(BaseModel):
+    """Request to revoke a passport."""
+    reason: str = "Administrative revocation"
+
+class VendorWithPassport(BaseModel):
+    """Vendor record enriched with passport status."""
+    id: int
+    name: str
+    gstin: str
+    pan: str
+    udyamNo: Optional[str] = None
+    category: str
+    miiClassification: str
+    complianceScore: int
+    riskTier: str
+    blacklisted: bool
+    passportId: Optional[str] = None
+    passportStatus: Optional[str] = None
+    passportExpiresAt: Optional[str] = None
+    verifiedDocsCount: int = 0
+

@@ -279,7 +279,19 @@ export default function Navbar({
           {t('tabContracts') || 'Contracts'}
         </button>
 
-        {/* 5. Auction Tab */}
+        {/* 5. Compliance Passport Tab */}
+        <button
+          className={`nav-tab-btn ${activeTab === 'Passport' ? 'active' : ''}`}
+          onClick={() => {
+            setOpenDropdown(null);
+            setActiveTab('Passport');
+          }}
+        >
+          <ShieldCheck size={14} style={{ marginRight: '4px', verticalAlign: 'middle' }} />
+          {t('tabPassport') || 'Passport'}
+        </button>
+
+        {/* 6. Auction Tab */}
         <button
           className={`nav-tab-btn ${activeTab === 'Auctions' || activeTab === 'Auction' ? 'active' : ''}`}
           onClick={() => {

@@ -119,8 +119,41 @@ def run_direct_service_tests():
         assert pay_updated["paymentStatus"] == "Settled (100%)"
         print(f"[+] 11. CRAC Inspection & 10-Day Payment Settled for Contract {c_id}")
 
+    # 11. Test Compliance Passport: Document Verification Stubs
+    from backend.services.doc_verifier import verify_pan, verify_gst, verify_udyam
+    pan_res = verify_pan("AABCB1234F")
+    assert pan_res["valid"] is True, "Valid PAN check failed"
+    gst_res = verify_gst("27AABCB1234F1Z5")
+    assert gst_res["valid"] is True, "Valid GSTIN check failed"
+    udyam_res = verify_udyam("UDYAM-MH-03-0019284")
+    assert udyam_res["valid"] is True, "Valid Udyam check failed"
+    print(f"[+] 12. Mock Doc Verifier: PAN ({pan_res['panType']}), GST ({gst_res['stateJurisdiction']}), UDYAM ({udyam_res['classification']})")
+
+    # 12. Test Compliance Passport: RSA-2048 Digital Signing & Tamper Detection
+    from backend.services.passport_service import sign_payload, verify_signature, compute_payload_hash, generate_passport_qr
+    test_payload = '{"vendorId": 1, "name": "Apex Supplies Ltd.", "score": 96}'
+    sig = sign_payload(test_payload)
+    assert verify_signature(test_payload, sig) is True, "Valid signature failed verification"
+    assert verify_signature('{"tampered": true}', sig) is False, "Tampered payload did not fail"
+    print(f"[+] 13. RSA-2048 PSS Digital Signature: Valid=True, TamperDetection=Active (SigLen={len(sig)})")
+
+    # 13. Test Compliance Passport: QR Code Generation & Vendor DB Enriched
+    from backend.database import get_all_vendors, get_all_passports
+    all_v = get_all_vendors()
+    assert len(all_v) >= 2, "Vendor master directory empty"
+    qr_bytes = generate_passport_qr({
+        "passportId": "test-passport-uuid",
+        "vendorName": "Apex Supplies Ltd.",
+        "complianceScore": 96,
+        "miiClassification": "Class-I Local",
+        "issuedAt": "2026-09-10T00:00:00",
+        "expiresAt": "2027-09-10T00:00:00"
+    })
+    assert len(qr_bytes) > 100, "QR code generation failed"
+    print(f"[+] 14. Compliance Passport QR Generation ({len(qr_bytes)} bytes PNG) & Master Vendors ({len(all_v)})")
+
     print("\n=======================================================================")
-    print("[✓] ALL DIRECT BACKEND TESTS PASSED SUCCESSFULLY! (11/11 Checks)")
+    print("[✓] ALL DIRECT BACKEND TESTS PASSED SUCCESSFULLY! (14/14 Checks)")
     print("=======================================================================\n")
 
 def test_live_http_api(base_url="http://127.0.0.1:8000"):

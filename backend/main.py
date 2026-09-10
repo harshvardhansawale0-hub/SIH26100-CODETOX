@@ -8,7 +8,7 @@ from fastapi.staticfiles import StaticFiles
 from pathlib import Path
 
 from .database import init_db
-from .routes import bids, verify, auction, tenders, contracts, stats, auth, gemmy
+from .routes import bids, verify, auction, tenders, contracts, stats, auth, gemmy, passport
 
 # Resolve paths relative to the project root (one level up from backend/)
 BACKEND_DIR = Path(__file__).resolve().parent
@@ -65,6 +65,7 @@ app.include_router(contracts.router)
 app.include_router(stats.router)
 app.include_router(auth.router)
 app.include_router(gemmy.router)
+app.include_router(passport.router)
 
 @app.get("/api/health", tags=["Health"])
 def health_check():
@@ -84,7 +85,12 @@ def health_check():
             "/api/contracts",
             "/api/stats/overview",
             "/api/auth/login",
-            "/api/auth/register"
+            "/api/auth/register",
+            "/api/vendors",
+            "/api/passport/{id}",
+            "/api/passport/{id}/verify",
+            "/api/passport/{id}/qrcode",
+            "/api/passport/public-key"
         ]
     }
 

@@ -12,6 +12,7 @@ export default function BidderDashboard({
   bids = [],
   onOpenVerifierWithTender,
   onSelectBid,
+  onNavigateToPassport,
   currentUser = null
 }) {
   const { t } = useLanguage();
@@ -152,6 +153,83 @@ export default function BidderDashboard({
               <span>Launch AI Document Verifier Sandbox</span>
             </button>
           </div>
+        </div>
+
+        {/* Digital Compliance Passport Banner */}
+        <div style={{
+          backgroundColor: '#0c233c',
+          border: '1px solid #0284c7',
+          borderRadius: '12px',
+          padding: '1.1rem 1.4rem',
+          marginBottom: '2rem',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '1rem',
+          background: 'linear-gradient(135deg, rgba(12, 35, 60, 0.95) 0%, rgba(15, 34, 56, 0.95) 100%)',
+          boxShadow: '0 4px 20px rgba(2, 132, 199, 0.15)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+            <div style={{
+              width: '44px',
+              height: '44px',
+              borderRadius: '10px',
+              backgroundColor: 'rgba(2, 132, 199, 0.2)',
+              border: '1px solid #0284c7',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0
+            }}>
+              <ShieldCheck size={24} color="#38bdf8" />
+            </div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                <span style={{ fontWeight: '800', fontSize: '1rem', color: '#ffffff' }}>
+                  Digital Compliance Passport (Reusable Credential)
+                </span>
+                <span style={{
+                  fontSize: '0.72rem',
+                  fontWeight: '700',
+                  color: '#34d399',
+                  backgroundColor: 'rgba(52, 211, 153, 0.15)',
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '999px',
+                  border: '1px solid rgba(52, 211, 153, 0.3)'
+                }}>
+                  RSA-2048 Signed
+                </span>
+              </div>
+              <p style={{ margin: '0.2rem 0 0 0', fontSize: '0.82rem', color: '#94a3b8' }}>
+                Your PAN, GSTIN & UDYAM certificates are verified once and digitally signed. Present your passport QR across all bids without re-uploading documents.
+              </p>
+            </div>
+          </div>
+          {onNavigateToPassport && (
+            <button
+              onClick={onNavigateToPassport}
+              style={{
+                padding: '0.55rem 1.1rem',
+                backgroundColor: 'rgba(2, 132, 199, 0.25)',
+                color: '#38bdf8',
+                border: '1px solid #0284c7',
+                borderRadius: '8px',
+                fontWeight: '700',
+                fontSize: '0.82rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#0284c7'; e.currentTarget.style.color = '#ffffff'; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(2, 132, 199, 0.25)'; e.currentTarget.style.color = '#38bdf8'; }}
+            >
+              <span>View Passport & QR Code</span>
+              <ArrowRight size={14} />
+            </button>
+          )}
         </div>
 
         {/* 4 Core Feature KPI Filter Cards (Requested 1. Active, 2. At Risk, 3. Non-Compliant, 4. Pending Verification) */}

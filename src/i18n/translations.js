@@ -404,7 +404,25 @@ export const translations = {
     gemmyMinimize: "Minimize",
     gemmyMaximize: "Maximize",
     gemmyCitRef: "Citations & Rules",
-    gemmyActions: "Suggested Actions"
+    gemmyActions: "Suggested Actions",
+
+    // Compliance Passport
+    tabPassport: "Compliance Passport",
+    passportTag: "COMPLIANCE PASSPORT (GFR RULE 144/153)",
+    passportTitle: "Digital Compliance Passport",
+    passportSubtitle: "Reusable, cryptographically signed digital credential for instant GeM bid qualification",
+    myPassport: "My Compliance Passport",
+    verifyPassport: "Verify Seller Passport",
+    issuePassport: "Issue Compliance Passport",
+    renewPassport: "Renew Passport",
+    complianceScore: "Compliance Score",
+    verifiedDocs: "Verified Documents",
+    passportStatus: "Passport Status",
+    daysUntilExpiry: "Days Until Expiry",
+    downloadQr: "Download QR Code",
+    verifyMyDocs: "Verify Documents via AI",
+    presentationHistory: "Bid Presentation Audit Trail",
+    revokePassport: "Revoke Passport"
   },
 
   hi: {
@@ -809,7 +827,25 @@ export const translations = {
     gemmyMinimize: "छोटा करें",
     gemmyMaximize: "बड़ा करें",
     gemmyCitRef: "संदर्भ एवं नियम",
-    gemmyActions: "सुझाए गए कार्य"
+    gemmyActions: "सुझाए गए कार्य",
+
+    // Compliance Passport
+    tabPassport: "अनुपालन पासपोर्ट",
+    passportTag: "अनुपालन पासपोर्ट (GFR नियम 144/153)",
+    passportTitle: "डिजिटल अनुपालन पासपोर्ट",
+    passportSubtitle: "GeM बोली योग्यता के लिए पुन: प्रयोज्य डिजिटल क्रेडेंशियल",
+    myPassport: "मेरा अनुपालन पासपोर्ट",
+    verifyPassport: "विक्रेता पासपोर्ट सत्यापित करें",
+    issuePassport: "अनुपालन पासपोर्ट जारी करें",
+    renewPassport: "पासपोर्ट नवीनीकृत करें",
+    complianceScore: "अनुपालन स्कोर",
+    verifiedDocs: "सत्यापित दस्तावेज",
+    passportStatus: "पासपोर्ट स्थिति",
+    daysUntilExpiry: "समाप्ति तक शेष दिन",
+    downloadQr: "QR कोड डाउनलोड करें",
+    verifyMyDocs: "AI द्वारा दस्तावेज सत्यापित करें",
+    presentationHistory: "बोली प्रस्तुति ऑडिट ट्रेल",
+    revokePassport: "पासपोर्ट रद्द करें"
   },
 
   mr: {
@@ -1214,6 +1250,24 @@ export const translations = {
     gemmyMinimize: "लहान करा",
     gemmyMaximize: "मोठे करा",
     gemmyCitRef: "नियम व संदर्भ",
-    gemmyActions: "सुचवलेल्या कृती"
+    gemmyActions: "सुचवलेल्या कृती",
+
+    // Compliance Passport
+    tabPassport: "अनुपालन पासपोर्ट",
+    passportTag: "अनुपालन पासपोर्ट (GFR नियम 144/153)",
+    passportTitle: "डिजिटल अनुपालन पासपोर्ट",
+    passportSubtitle: "GeM बोलीसाठी पुनर्वापरयोग्य डिजिटल प्रमाणपत्र",
+    myPassport: "माझा अनुपालन पासपोर्ट",
+    verifyPassport: "विक्रेता पासपोर्ट पडताळा",
+    issuePassport: "अनुपालन पासपोर्ट जारी करा",
+    renewPassport: "पासपोर्ट नूतनीकरण करा",
+    complianceScore: "अनुपालन गुण",
+    verifiedDocs: "पडताळलेली कागदपत्रे",
+    passportStatus: "पासपोर्ट स्थिती",
+    daysUntilExpiry: "मुदत संपण्यास उर्वरित दिवस",
+    downloadQr: "QR कोड डाउनलोड करा",
+    verifyMyDocs: "AI द्वारे कागदपत्रे पडताळा",
+    presentationHistory: "बोली सादरीकरण ऑडिट ट्रेल",
+    revokePassport: "पासपोर्ट रद्द करा"
   }
 };

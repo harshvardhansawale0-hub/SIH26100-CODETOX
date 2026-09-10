@@ -26,6 +26,7 @@ import AuctionsView from './components/AuctionsView';
 import BusinessOpportunitiesView from './components/BusinessOpportunitiesView';
 import CategoryCatalogView from './components/CategoryCatalogView';
 import AskGemmyModal from './components/AskGemmyModal';
+import CompliancePassportView from './components/CompliancePassportView';
 import { initialBids, initialTenders } from './data/bidsData';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { gemApi } from './services/api';
@@ -550,6 +551,7 @@ function MainApp() {
             currentUser={currentUser}
             onOpenVerifierWithTender={(tender) => handleOpenVerifierForTender(tender)}
             onSelectBid={(bid) => setSelectedBid(bid)}
+            onNavigateToPassport={() => setActiveTab('Passport')}
           />
         ) : (
           <AuthGate
@@ -582,6 +584,11 @@ function MainApp() {
           initialFilter={activeContractFilter}
           initialSearch={activeContractSearch}
         />
+      )}
+
+      {/* Compliance Passport */}
+      {activeTab === 'Passport' && (
+        <CompliancePassportView currentUser={currentUser} currentRole={currentRole} />
       )}
 
       {/* 2.6 Dedicated Live E-Auctions Portal (Reverse & Forward) */}

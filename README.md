@@ -163,6 +163,36 @@ npm run build
 
 ---
 
+---
+
+## 🛂 Digital Compliance Passport (GeM Reusable Credential)
+
+The **Digital Compliance Passport** solves a primary operational pain point on the Government e-Marketplace: sellers having to redundantly verify PAN, GSTIN, and UDYAM certificates every time they submit a tender application. 
+
+With this module, sellers undergo statutory verification **once**, after which the system issues an **RSA-2048 digitally signed, tamper-evident digital credential** encoded into a verifiable QR code. This credential can be presented across unlimited public tenders without repeating OCR document uploads.
+
+```
+┌─────────────────┐       ┌──────────────────────┐       ┌──────────────────────┐
+│ Seller Submits  │  ──>  │ Mock/Govt API Verify  │  ──>  │ RSA-2048 Signed      │
+│ PAN, GST, Udyam │       │ NSDL, GSTN, MSME     │       │ Compliance Passport  │
+└─────────────────┘       └──────────────────────┘       └──────────────────────┘
+                                                                    │
+                                                                    ▼
+┌─────────────────┐       ┌──────────────────────┐       ┌──────────────────────┐
+│ Instant Bid     │  <──  │ Signature Check,     │  <──  │ Present Passport ID  │
+│ Qualification   │       │ Expiry & Revocation  │       │ or QR Code on Tender │
+└─────────────────┘       └──────────────────────┘       └──────────────────────┘
+```
+
+### Key Capabilities
+1. **Multi-Source Verification Engine**: Mock API stubs simulating **NSDL** (PAN format and legal entity checks), **GSTN** (state jurisdiction & active return checks), and **Udyam Registry** (micro/small/medium enterprise validation).
+2. **Cryptographic Signing (RSA-2048 PSS + SHA-256)**: Each passport is signed on the backend using an RSA keypair. Any modification to the payload invalidates the signature immediately.
+3. **Privacy-Preserving QR Generation**: Raw PAN and GSTIN numbers are **masked** (`27XXXX1234X1Z5`, `XXXCB1234X`) in the QR payload. Bids reference the unique Passport UUID for server-side cryptographic lookup.
+4. **Presentation Audit Trail**: Every instance of a passport being presented for a tender is logged immutably in `passport_presentations` with timestamp, bid ID, ip address, and verification verdict.
+5. **Instant Revocation & TTL Management**: Procuring authorities can revoke non-compliant passports in $O(1)$ time with documented justification. Passports enforce a 12-month time-to-live (TTL) tied to underlying certificate validity.
+
+---
+
 ## 📡 Backend API Endpoints Reference
 
 | Method | Endpoint | Description |
@@ -183,6 +213,16 @@ npm run build
 | `GET` | `/api/stats/overview` | Platform KPI metrics and compliance breakdown |
 | `POST` | `/api/auth/login` | SSO login for Officers, Buyers, and Sellers |
 | `POST` | `/api/auth/register` | User and vendor registration |
+| `GET` | `/api/vendors` | Master directory of registered vendors with passport status |
+| `GET` | `/api/vendors/{id}` | Complete vendor dossier with verified documents and passport |
+| `POST` | `/api/vendors/{id}/verify-documents` | Submit PAN, GSTIN, UDYAM for automated verification |
+| `POST` | `/api/vendors/{id}/passport/issue` | Generate, RSA-sign, and issue reusable Compliance Passport |
+| `GET` | `/api/passport/{id}` | Retrieve signed passport credential and metadata |
+| `POST` | `/api/passport/{id}/verify` | Rate-limited signature, expiry, and revocation validation |
+| `POST` | `/api/passport/{id}/revoke` | Administrative revocation with statutory audit log |
+| `GET` | `/api/passport/{id}/qrcode` | Stream high-density PNG QR code containing signed payload |
+| `GET` | `/api/passport/{id}/presentations` | Audit trail of all tenders where the passport was presented |
+| `GET` | `/api/passport/public-key` | Export PEM public key for offline / third-party verification |
 
 
 ---

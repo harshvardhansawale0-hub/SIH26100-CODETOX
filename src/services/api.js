@@ -321,6 +321,80 @@ export const gemApi = {
     } catch {
       // Ignore network errors on logout
     }
+  },
+
+  // 8. Compliance Passport
+  async getVendors() {
+    try {
+      return await request('/api/vendors');
+    } catch {
+      return [
+        { id: 1, name: 'Apex Supplies Ltd.', gstin: '27AABCB1234F1Z5', pan: 'AABCB1234F', udyamNo: 'UDYAM-MH-03-0019284', category: 'IT Hardware', miiClassification: 'Class-I Local Supplier (68%)', complianceScore: 96, riskTier: 'Low Risk', blacklisted: false, passportId: null, passportStatus: null, verifiedDocsCount: 0 },
+        { id: 2, name: 'Kaveri Infotech', gstin: '27KAVRI5678B1Z2', pan: 'KAVRI5678B', udyamNo: 'UDYAM-MH-03-0044192', category: 'IT Hardware', miiClassification: 'Class-I Local Supplier (72%)', complianceScore: 94, riskTier: 'Low Risk', blacklisted: false, passportId: null, passportStatus: null, verifiedDocsCount: 0 }
+      ];
+    }
+  },
+
+  async getVendorById(vendorId) {
+    try {
+      return await request(`/api/vendors/${vendorId}`);
+    } catch {
+      return { vendor: null, verifications: [], passport: null, presentations: [] };
+    }
+  },
+
+  async verifyVendorDocuments(vendorId, documents) {
+    return await request(`/api/vendors/${vendorId}/verify-documents`, {
+      method: 'POST',
+      body: JSON.stringify({ documents })
+    });
+  },
+
+  async issuePassport(vendorId) {
+    return await request(`/api/vendors/${vendorId}/passport/issue`, {
+      method: 'POST'
+    });
+  },
+
+  async getPassport(passportId) {
+    try {
+      return await request(`/api/passport/${passportId}`);
+    } catch {
+      return null;
+    }
+  },
+
+  async verifyPassport(passportId, body = {}) {
+    return await request(`/api/passport/${passportId}/verify`, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    });
+  },
+
+  async revokePassport(passportId, reason = 'Administrative revocation') {
+    return await request(`/api/passport/${passportId}/revoke`, {
+      method: 'POST',
+      body: JSON.stringify({ reason })
+    });
+  },
+
+  async getPassportQrCode(passportId) {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/passport/${passportId}/qrcode`);
+      if (!response.ok) throw new Error('QR fetch failed');
+      const blob = await response.blob();
+      return URL.createObjectURL(blob);
+    } catch {
+      return null;
+    }
+  },
+
+  async getPassportPresentations(passportId) {
+    try {
+      return await request(`/api/passport/${passportId}/presentations`);
+    } catch {
+      return [];
+    }
   }
 };
 

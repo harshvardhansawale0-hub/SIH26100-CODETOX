@@ -213,6 +213,51 @@ def init_db(force_recreate: bool = False):
             timestamp TEXT NOT NULL
         )
         """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS verifications (
+            id TEXT PRIMARY KEY,
+            vendor_id INTEGER NOT NULL,
+            doc_type TEXT NOT NULL,
+            doc_ref TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            verified_at TEXT,
+            expires_at TEXT,
+            verification_method TEXT DEFAULT 'mock',
+            details TEXT DEFAULT '{}',
+            created_at TEXT NOT NULL
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS passports (
+            id TEXT PRIMARY KEY,
+            vendor_id INTEGER NOT NULL,
+            issued_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active',
+            payload_hash TEXT NOT NULL,
+            signature TEXT NOT NULL,
+            signed_payload TEXT NOT NULL,
+            revoked_at TEXT,
+            revocation_reason TEXT,
+            created_at TEXT NOT NULL
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS passport_presentations (
+            id SERIAL PRIMARY KEY,
+            passport_id TEXT NOT NULL,
+            bid_id TEXT,
+            tender_id TEXT,
+            presented_at TEXT NOT NULL,
+            verification_result TEXT NOT NULL,
+            verified_by TEXT,
+            ip_address TEXT,
+            details TEXT DEFAULT '{}'
+        )
+        """)
     else:
         # SQLite table definitions (original)
         cursor.execute("""
@@ -245,6 +290,7 @@ def init_db(force_recreate: bool = False):
         )
         """)
 
+<<<<<<< HEAD
         cursor.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -341,6 +387,54 @@ def init_db(force_recreate: bool = False):
         )
         """)
 
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS verifications (
+            id TEXT PRIMARY KEY,
+            vendor_id INTEGER NOT NULL,
+            doc_type TEXT NOT NULL,
+            doc_ref TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'pending',
+            verified_at TEXT,
+            expires_at TEXT,
+            verification_method TEXT DEFAULT 'mock',
+            details TEXT DEFAULT '{}',
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (vendor_id) REFERENCES vendors(id)
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS passports (
+            id TEXT PRIMARY KEY,
+            vendor_id INTEGER NOT NULL,
+            issued_at TEXT NOT NULL,
+            expires_at TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'active',
+            payload_hash TEXT NOT NULL,
+            signature TEXT NOT NULL,
+            signed_payload TEXT NOT NULL,
+            revoked_at TEXT,
+            revocation_reason TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY (vendor_id) REFERENCES vendors(id)
+        )
+        """)
+
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS passport_presentations (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            passport_id TEXT NOT NULL,
+            bid_id TEXT,
+            tender_id TEXT,
+            presented_at TEXT NOT NULL,
+            verification_result TEXT NOT NULL,
+            verified_by TEXT,
+            ip_address TEXT,
+            details TEXT DEFAULT '{}',
+            FOREIGN KEY (passport_id) REFERENCES passports(id)
+        )
+        """)
+
     # Performance Indexes (same syntax for both)
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_bids_status ON bids(status)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_bids_category ON bids(category)")
@@ -353,6 +447,12 @@ def init_db(force_recreate: bool = False):
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_contracts_bid ON contracts(bid_id)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_vendors_name ON vendors(name)")
     cursor.execute("CREATE INDEX IF NOT EXISTS idx_cartel_tender ON cartel_reports(tender_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_verifications_vendor ON verifications(vendor_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_verifications_status ON verifications(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_passports_vendor ON passports(vendor_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_passports_status ON passports(status)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_presentations_passport ON passport_presentations(passport_id)")
+    cursor.execute("CREATE INDEX IF NOT EXISTS idx_presentations_bid ON passport_presentations(bid_id)")
 
     # Dynamic schema migration for tenders table: ensure buyer columns exist in any pre-existing database
     for col_name in ["created_by", "buyer_email", "buyer_name", "buyer_org"]:
@@ -1348,7 +1448,7 @@ def get_db_stats() -> Dict[str, int]:
     conn = get_connection()
     cursor = conn.cursor()
     stats = {}
-    tables = ["bids", "tenders", "contracts", "vendors", "users", "cartel_reports", "audit_logs"]
+    tables = ["bids", "tenders", "contracts", "vendors", "users", "cartel_reports", "audit_logs", "verifications", "passports", "passport_presentations"]
     for t in tables:
         try:
             cursor.execute(f"SELECT COUNT(*) as count FROM {t}")
@@ -1358,6 +1458,188 @@ def get_db_stats() -> Dict[str, int]:
             stats[t] = 0
     conn.close()
     return stats
+
+# =========================================================================
+# Compliance Passport CRUD Helpers
+# =========================================================================
+
+def get_vendor_by_id(vendor_id: int) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM vendors WHERE id = ?", (vendor_id,))
+    r = cursor.fetchone()
+    conn.close()
+    if not r:
+        return None
+    return {
+        "id": r["id"],
+        "name": r["name"],
+        "gstin": r["gstin"],
+        "pan": r["pan"],
+        "udyamNo": r["udyam_no"],
+        "category": r["category"],
+        "miiClassification": r["mii_classification"],
+        "complianceScore": r["compliance_score"],
+        "riskTier": r["risk_tier"],
+        "blacklisted": bool(r["blacklisted"]),
+        "createdAt": r["created_at"]
+    }
+
+
+def create_verification(verification_id: str, vendor_id: int, doc_type: str, doc_ref: str,
+                        status: str, verified_at: str = None, expires_at: str = None,
+                        verification_method: str = "mock", details: str = "{}") -> Dict[str, Any]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    cursor.execute("""
+    INSERT OR REPLACE INTO verifications (id, vendor_id, doc_type, doc_ref, status, verified_at, expires_at, verification_method, details, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    """, (verification_id, vendor_id, doc_type, doc_ref, status, verified_at, expires_at, verification_method, details, now))
+    conn.commit()
+    conn.close()
+    return {
+        "id": verification_id, "vendorId": vendor_id, "docType": doc_type,
+        "docRef": doc_ref, "status": status, "verifiedAt": verified_at,
+        "expiresAt": expires_at, "verificationMethod": verification_method,
+        "details": json.loads(details) if isinstance(details, str) else details,
+        "createdAt": now
+    }
+
+
+def get_verifications_for_vendor(vendor_id: int) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM verifications WHERE vendor_id = ? ORDER BY created_at DESC", (vendor_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    results = []
+    for r in rows:
+        results.append({
+            "id": r["id"], "vendorId": r["vendor_id"], "docType": r["doc_type"],
+            "docRef": r["doc_ref"], "status": r["status"], "verifiedAt": r["verified_at"],
+            "expiresAt": r["expires_at"], "verificationMethod": r["verification_method"],
+            "details": json.loads(r["details"]) if r["details"] else {},
+            "createdAt": r["created_at"]
+        })
+    return results
+
+
+def create_passport(passport_id: str, vendor_id: int, issued_at: str, expires_at: str,
+                    payload_hash: str, signature: str, signed_payload: str) -> Dict[str, Any]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    # Revoke any existing active passport for this vendor
+    cursor.execute("UPDATE passports SET status = 'superseded', revoked_at = ?, revocation_reason = 'Replaced by new passport' WHERE vendor_id = ? AND status = 'active'",
+                   (now, vendor_id))
+    cursor.execute("""
+    INSERT INTO passports (id, vendor_id, issued_at, expires_at, status, payload_hash, signature, signed_payload, created_at)
+    VALUES (?, ?, ?, ?, 'active', ?, ?, ?, ?)
+    """, (passport_id, vendor_id, issued_at, expires_at, payload_hash, signature, signed_payload, now))
+    conn.commit()
+    conn.close()
+    return {
+        "id": passport_id, "vendorId": vendor_id, "issuedAt": issued_at,
+        "expiresAt": expires_at, "status": "active", "payloadHash": payload_hash,
+        "signature": signature, "signedPayload": signed_payload, "createdAt": now
+    }
+
+
+def get_passport(passport_id: str) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM passports WHERE id = ?", (passport_id,))
+    r = cursor.fetchone()
+    conn.close()
+    if not r:
+        return None
+    return {
+        "id": r["id"], "vendorId": r["vendor_id"], "issuedAt": r["issued_at"],
+        "expiresAt": r["expires_at"], "status": r["status"], "payloadHash": r["payload_hash"],
+        "signature": r["signature"], "signedPayload": r["signed_payload"],
+        "revokedAt": r["revoked_at"], "revocationReason": r["revocation_reason"],
+        "createdAt": r["created_at"]
+    }
+
+
+def get_passport_by_vendor(vendor_id: int) -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM passports WHERE vendor_id = ? AND status = 'active' ORDER BY created_at DESC LIMIT 1", (vendor_id,))
+    r = cursor.fetchone()
+    conn.close()
+    if not r:
+        return None
+    return {
+        "id": r["id"], "vendorId": r["vendor_id"], "issuedAt": r["issued_at"],
+        "expiresAt": r["expires_at"], "status": r["status"], "payloadHash": r["payload_hash"],
+        "signature": r["signature"], "signedPayload": r["signed_payload"],
+        "revokedAt": r["revoked_at"], "revocationReason": r["revocation_reason"],
+        "createdAt": r["created_at"]
+    }
+
+
+def revoke_passport(passport_id: str, reason: str = "Administrative revocation") -> Optional[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    cursor.execute("UPDATE passports SET status = 'revoked', revoked_at = ?, revocation_reason = ? WHERE id = ? AND status = 'active'",
+                   (now, reason, passport_id))
+    conn.commit()
+    conn.close()
+    return get_passport(passport_id)
+
+
+def log_passport_presentation(passport_id: str, bid_id: str = None, tender_id: str = None,
+                               verification_result: str = "valid", verified_by: str = "system",
+                               ip_address: str = None, details: str = "{}"):
+    conn = get_connection()
+    cursor = conn.cursor()
+    now = datetime.now().isoformat()
+    cursor.execute("""
+    INSERT INTO passport_presentations (passport_id, bid_id, tender_id, presented_at, verification_result, verified_by, ip_address, details)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    """, (passport_id, bid_id, tender_id, now, verification_result, verified_by, ip_address, details))
+    conn.commit()
+    conn.close()
+
+
+def get_passport_presentations(passport_id: str) -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM passport_presentations WHERE passport_id = ? ORDER BY presented_at DESC", (passport_id,))
+    rows = cursor.fetchall()
+    conn.close()
+    results = []
+    for r in rows:
+        results.append({
+            "id": r["id"], "passportId": r["passport_id"], "bidId": r["bid_id"],
+            "tenderId": r["tender_id"], "presentedAt": r["presented_at"],
+            "verificationResult": r["verification_result"], "verifiedBy": r["verified_by"],
+            "ipAddress": r["ip_address"],
+            "details": json.loads(r["details"]) if r["details"] else {}
+        })
+    return results
+
+
+def get_all_passports() -> List[Dict[str, Any]]:
+    conn = get_connection()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM passports ORDER BY created_at DESC")
+    rows = cursor.fetchall()
+    conn.close()
+    results = []
+    for r in rows:
+        results.append({
+            "id": r["id"], "vendorId": r["vendor_id"], "issuedAt": r["issued_at"],
+            "expiresAt": r["expires_at"], "status": r["status"], "payloadHash": r["payload_hash"],
+            "signature": r["signature"], "signedPayload": r["signed_payload"],
+            "revokedAt": r["revoked_at"], "revocationReason": r["revocation_reason"],
+            "createdAt": r["created_at"]
+        })
+    return results
+
 
 # =========================================================================
 # CLI Entry Point
