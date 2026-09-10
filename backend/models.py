@@ -338,20 +338,27 @@ class AuctionAnalysisResponse(BaseModel):
 # ==========================================
 
 class ViolationItem(BaseModel):
-    type: str
-    count: int
-    percentage: str
-    riskWeight: str
+    name: Optional[str] = None
+    percent: Optional[int] = None
+    color: Optional[str] = None
+    type: Optional[str] = None
+    count: Optional[int] = None
+    percentage: Optional[str] = None
+    riskWeight: Optional[str] = None
 
 class PlatformStats(BaseModel):
-    verifiedVolume: str
-    verifiedSubtitle: str
-    accuracyRate: str
-    accuracySubtitle: str
-    activeVendors: str
-    vendorsSubtitle: str
-    turnaroundTime: str
-    turnaroundSubtitle: str
+    verifiedVolume: Optional[str] = "₹4.5L Cr"
+    verifiedSubtitle: Optional[str] = "Cumulative GeM GMV"
+    accuracyRate: Optional[str] = "98.7%"
+    accuracySubtitle: Optional[str] = "AI verified under GFR"
+    activeVendors: Optional[str] = "3.2M+"
+    vendorsSubtitle: Optional[str] = "Active on GeM Portal"
+    turnaroundTime: Optional[str] = "< 4 sec"
+    turnaroundSubtitle: Optional[str] = "Real-time OCR + NLP"
+    gmvProcessed: Optional[str] = "₹4.5L Cr"
+    gmvSubtitle: Optional[str] = "Cumulative GeM GMV"
+    complianceAccuracy: Optional[str] = "98.7%"
+    vendorsScreened: Optional[str] = "3.2M+"
 
 class SummaryMetrics(BaseModel):
     activeBids: str

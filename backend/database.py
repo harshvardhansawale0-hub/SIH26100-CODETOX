@@ -462,6 +462,16 @@ def init_db(force_recreate: bool = False):
         except Exception:
             pass
 
+    # Dynamic schema migration for bids table: ensure AI analysis columns exist in pre-existing database
+    for col_name in ["extracted_entities", "cross_doc_matches", "requirement_matches", "compliance_report"]:
+        try:
+            if _USE_PG:
+                cursor.execute(f"ALTER TABLE bids ADD COLUMN IF NOT EXISTS {col_name} TEXT")
+            else:
+                cursor.execute(f"ALTER TABLE bids ADD COLUMN {col_name} TEXT")
+        except Exception:
+            pass
+
     # Auto-seeding disabled to maintain clean database state
     conn.commit()
     conn.close()
