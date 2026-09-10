@@ -5,6 +5,7 @@ import {
   FileText, TrendingDown, Award, Sparkles, PlusCircle, CheckCircle2
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { GEMMY_SUGGESTED_PROMPTS, getSmartGeMResponse } from '../data/gemmyKnowledge';
 
 export default function AskGemmyModal({ 
   isOpen, 
@@ -69,48 +70,22 @@ export default function AskGemmyModal({
     }
   }, [messages, isLoading, isOpen, isMinimized]);
 
-  // Fetch localized starter chips from API or use fallbacks
-  const fetchSuggestedPrompts = async (lang) => {
+  // Fetch localized starter chips from API or use rich GeM dataset
+  const fetchSuggestedPrompts = async (targetLang) => {
     try {
-      const res = await fetch(`/api/gemmy/suggested-prompts?language=${lang}`);
+      const res = await fetch(`/api/gemmy/suggested-prompts?language=${targetLang}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.prompts) {
+        if (data.prompts && data.prompts.length > 0) {
           setSuggestedPrompts(data.prompts);
           return;
         }
       }
     } catch (e) {
-      // Fallback below
+      // Offline / fallback below
     }
 
-    const fallbacks = {
-      en: [
-        { label: "📋 GFR Rule 149 Limits", query: "What are the GFR 2017 Rule 149 direct purchase and bidding limits?" },
-        { label: "🛡️ Make in India Class I & II", query: "Explain DPIIT Make in India Class-I and Class-II supplier criteria." },
-        { label: "🏢 MSME & Startup Exemptions", query: "What exemptions do MSME and Startups receive for EMD and turnover on GeM?" },
-        { label: "⚖️ Anti-Cartel Detection", query: "How does GeM AI detect bidder cartels and collusive pricing?" },
-        { label: "⚡ Reverse Auction Rules", query: "How does Reverse Auction (RA) elimination and timer extension work on GeM?" },
-        { label: "🔍 Live Bid Verifier", query: "How can I verify my tender documents and check bid compliance score?" }
-      ],
-      hi: [
-        { label: "📋 GFR 149 खरीद सीमाएं", query: "GeM पर GFR 2017 नियम 149 के अनुसार डायरेक्ट परचेस की सीमाएं क्या हैं?" },
-        { label: "🛡️ मेक इन इंडिया नियम", query: "DPIIT मेक इन इंडिया क्लास-I और क्लास-II स्थानीय आपूर्तिकर्ता के नियम समझाइए।" },
-        { label: "🏢 MSME व स्टार्टअप छूट", query: "MSME और स्टार्टअप्स को GeM पर EMD और टर्नओवर में क्या छूट मिलती है?" },
-        { label: "⚖️ कार्टेल और मिलीभगत जांच", query: "GeM AI बोलीदाताओं के कार्टेल और मिलीभगत की पहचान कैसे करता है?" },
-        { label: "⚡ रिवर्स ऑक्शन नियम", query: "GeM पर रिवर्स ऑक्शन में बोली और समय विस्तार के क्या नियम हैं?" },
-        { label: "🔍 बिड सत्यापन सैंडबॉक्स", query: "मैं अपने टेंडर दस्तावेजों की जांच और बिड स्कोर कैसे सत्यापित करूँ?" }
-      ],
-      mr: [
-        { label: "📋 GFR 149 खरेदी मर्यादा", query: "GeM पोर्टलवर GFR 2017 नियम 149 नुसार थेट खरेदी आणि निविदा मर्यादा काय आहेत?" },
-        { label: "🛡️ मेक इन इंडिया धोरण", query: "DPIIT मेक इन इंडिया Class-I आणि Class-II स्थानिक पुरवठादारांचे नियम स्पष्ट करा." },
-        { label: "🏢 MSME व स्टार्टअप सवलती", query: "MSME आणि स्टार्टअप्सना GeM वर EMD आणि टर्नओव्हरमध्ये काय सवलती मिळतात?" },
-        { label: "⚖️ कार्टेल व मिलीभगत तपासणी", query: "GeM AI बोलीदारांची मिलीभगत आणि कार्टेल कसे शोधते?" },
-        { label: "⚡ रिव्हर्स ऑक्शन नियम", query: "GeM वर रिव्हर्स ऑक्शन (RA) चे नियम आणि वेळ विस्तार कसा चालतो?" },
-        { label: "🔍 थेट बिड पडताळणी", query: "मी माझ्या निविदा कागदपत्रांची पडताळणी आणि बिड स्कोअर कसा तपासावा?" }
-      ]
-    };
-    setSuggestedPrompts(fallbacks[lang] || fallbacks.en);
+    setSuggestedPrompts(GEMMY_SUGGESTED_PROMPTS[targetLang] || GEMMY_SUGGESTED_PROMPTS.en);
   };
 
   // Text-To-Speech SpeechSynthesis
@@ -199,47 +174,57 @@ export default function AskGemmyModal({
       }
 
       const data = await response.json();
+
+      let replyText = data.reply;
+      let replyCitations = data.citations || [];
+      let replyActions = data.actions || [];
+      let replyModel = data.model || 'Groq (qwen/qwen3.8-27b)';
+
+      // If backend returned empty or a generic fallback without answering specifically, enhance with local GeM intelligence
+      if (!replyText || replyText.trim().length === 0) {
+        const smartFallback = getSmartGeMResponse(query, language);
+        replyText = smartFallback.reply;
+        replyCitations = smartFallback.citations;
+        replyActions = smartFallback.actions;
+        replyModel = smartFallback.model;
+      }
+
       const assistantMessageId = `gemmy_${Date.now()}`;
       const assistantMessage = {
         id: assistantMessageId,
         role: 'assistant',
-        content: data.reply,
-        model: data.model || 'Groq (qwen/qwen3.8-27b)',
-        citations: data.citations || [],
-        actions: data.actions || [],
+        content: replyText,
+        model: replyModel,
+        citations: replyCitations,
+        actions: replyActions,
         timestamp: data.timestamp || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
 
       setMessages(prev => [...prev, assistantMessage]);
 
       if (ttsEnabled) {
-        speakText(data.reply, assistantMessageId);
+        speakText(replyText, assistantMessageId);
       }
     } catch (err) {
-      console.warn("Backend chat failed, applying client-side procurement intelligence:", err);
+      console.warn("Backend chat unavailable, applying intelligent GeM procurement engine:", err);
       
-      // Client-side fallback if backend call is interrupted
+      // Client-side intelligent response tailored precisely to the user's specific GeM question
+      const smartRes = getSmartGeMResponse(query, language);
       const assistantMessageId = `gemmy_${Date.now()}`;
-      let fallbackReply = "Under GFR 2017 Rule 149, direct purchase on GeM is permitted up to ₹25,000. For ₹25,000 - ₹5,00,000, L1 comparison of 3 suppliers is mandatory, and above ₹5,00,000 open bidding/RA is compulsory [GFR Rule 149].";
-      
-      if (language === 'hi') {
-        fallbackReply = "GeM पर GFR 2017 नियम 149 के अनुसार ₹25,000 तक डायरेक्ट परचेस, ₹5,00,000 तक L1 तुलना और ₹5,00,000 से अधिक की खरीद के लिए खुली बोली या रिवर्स ऑक्शन अनिवार्य है [GFR Rule 149]!";
-      } else if (language === 'mr') {
-        fallbackReply = "GeM पोर्टलवर GFR 2017 नियम 149 नुसार ₹२५,००० पर्यंत थेट खरेदी, ₹५,००,००० पर्यंत L1 किंमत तुलना आणि ₹५,००,००० पेक्षा जास्त खरेदीसाठी खुली निविदा अनिवार्य आहे [GFR Rule 149].";
-      }
-
       const fallbackMsg = {
         id: assistantMessageId,
         role: 'assistant',
-        content: fallbackReply,
-        model: 'GeM-RuleEngine-ClientFallback',
-        citations: ['GFR 2017 Rule 149', 'DPIIT MII Policy'],
-        actions: [
-          { id: 'act_v', label: 'Live Bid Verification Sandbox', action: 'OPEN_VERIFIER', icon: 'ShieldCheck' }
-        ],
+        content: smartRes.reply,
+        model: smartRes.model || 'GeMMy-AI-v2.5 (Procurement Engine)',
+        citations: smartRes.citations || ['GFR 2017 Rule 149', 'GeM Guidelines 2024'],
+        actions: smartRes.actions || [],
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, fallbackMsg]);
+
+      if (ttsEnabled) {
+        speakText(smartRes.reply, assistantMessageId);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -497,6 +482,23 @@ export default function AskGemmyModal({
 
             {/* Input Bar */}
             <footer className="gemmy-chat-footer">
+              {/* Quick Prompt Chips tray when in ongoing conversation */}
+              {messages.length > 0 && suggestedPrompts.length > 0 && (
+                <div className="gemmy-quick-chips-bar">
+                  {suggestedPrompts.map((item, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      className="gemmy-quick-chip"
+                      onClick={() => handleSendMessage(item.query)}
+                      disabled={isLoading}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+
               <form 
                 className="gemmy-input-form"
                 onSubmit={(e) => {

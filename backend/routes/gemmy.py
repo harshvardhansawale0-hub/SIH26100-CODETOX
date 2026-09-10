@@ -130,10 +130,13 @@ def detect_actions(query: str, reply: str, language: str) -> List[ActionCard]:
 
 def get_offline_response(query: str, language: str) -> Dict[str, Any]:
     """High-accuracy fallback knowledge engine for GeM & GFR procurement rules."""
-    q_lower = query.lower()
-    
+    def has_kw(k: str) -> bool:
+        if len(k) <= 3:
+            return bool(re.search(rf"\b{re.escape(k)}\b", q_lower))
+        return k in q_lower
+
     # Check for Greetings / Identity
-    if any(k in q_lower for k in ["hi", "hello", "hey", "namaste", "who are you", "who r u", "about you", "नमस्ते", "नमस्कार", "कोण आहेस"]):
+    if any(has_kw(k) for k in ["hi", "hello", "hey", "namaste", "who are you", "who r u", "about you", "नमस्ते", "नमस्कार", "कोण आहेस"]):
         if language == "hi":
             reply = (
                 "**नमस्ते! मैं 'Ask GeMMy (AI)' हूँ — GeM अधिप्राप्ति सहायक।**\n\n"
@@ -175,7 +178,7 @@ def get_offline_response(query: str, language: str) -> Dict[str, Any]:
         }
 
     # 1. GFR Rule 149 / Direct Purchase
-    if any(k in q_lower for k in ["149", "direct purchase", "limit", "threshold", "direct", "25000", "500000", "खरेदी मर्यादा", "डायरेक्ट", "थेट खरेदी"]):
+    if any(has_kw(k) for k in ["149", "direct purchase", "procurement limit", "threshold", "25000", "500000", "खरेदी मर्यादा", "डायरेक्ट", "थेट खरेदी"]):
         if language == "hi":
             reply = (
                 "**GeM पर GFR 2017 नियम 149 के अंतर्गत खरीद सीमाएं:**\n\n"
@@ -267,7 +270,7 @@ def get_offline_response(query: str, language: str) -> Dict[str, Any]:
         citations = ["Public Procurement Policy for MSEs Order 2012", "GFR 2017 Rule 170(i)", "DPIIT Notification 2021"]
 
     # 4. Reverse Auction (RA) Rules
-    elif any(k in q_lower for k in ["reverse auction", "ra", "elimination", "decrement", "auto-extension", "auction", "लिलाव", "रिव्हर्स ऑक्शन", "रिवर्स ऑक्शन"]):
+    elif any(has_kw(k) for k in ["reverse auction", "ra", "elimination", "decrement", "auto-extension", "auction", "लिलाव", "रिव्हर्स ऑक्शन", "रिवर्स ऑक्शन"]):
         if language == "hi":
             reply = (
                 "**GeM पर रिवर्स ऑक्शन (Reverse Auction - RA) संचालन नियम:**\n\n"

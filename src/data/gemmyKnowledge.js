@@ -474,16 +474,41 @@ export function getSmartGeMResponse(query, language = 'en') {
   const qLower = cleanQuery.toLowerCase();
   const lang = ['hi', 'mr', 'en'].includes(language) ? language : 'en';
 
-  // 1. Direct match with knowledge topics
-  for (const topic of GEMMY_KNOWLEDGE_TOPICS) {
-    if (topic.keywords.some(kw => qLower.includes(kw))) {
-      return {
-        reply: topic.responses[lang] || topic.responses.en,
-        citations: topic.citations,
-        actions: topic.actions,
-        model: 'GeMMy-AI-RuleEngine-v2.5'
-      };
+  // Helper for safe word-boundary matching on short acronyms like 'ra', 'h1', 'l1', etc.
+  const hasKeyword = (kw, text) => {
+    const trimmed = kw.trim();
+    if (!trimmed) return false;
+    if (trimmed.length <= 3) {
+      const reg = new RegExp(`(^|[^a-zA-Z0-9])${trimmed}([^a-zA-Z0-9]|$)`, 'i');
+      return reg.test(text);
     }
+    return text.includes(trimmed);
+  };
+
+  // 1. Scored weighted match with knowledge topics
+  let bestTopic = null;
+  let highestScore = 0;
+
+  for (const topic of GEMMY_KNOWLEDGE_TOPICS) {
+    let score = 0;
+    for (const kw of topic.keywords) {
+      if (hasKeyword(kw, qLower)) {
+        score += kw.length >= 6 ? 10 : (kw.length >= 4 ? 5 : 2);
+      }
+    }
+    if (score > highestScore) {
+      highestScore = score;
+      bestTopic = topic;
+    }
+  }
+
+  if (bestTopic && highestScore > 0) {
+    return {
+      reply: bestTopic.responses[lang] || bestTopic.responses.en,
+      citations: bestTopic.citations,
+      actions: bestTopic.actions,
+      model: 'GeMMy-AI-RuleEngine-v2.5'
+    };
   }
 
   // 2. Greetings and polite interaction

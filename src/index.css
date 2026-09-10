@@ -2684,6 +2684,44 @@ body {
   flex-shrink: 0;
 }
 
+.gemmy-quick-chips-bar {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+  scrollbar-width: thin;
+}
+
+.gemmy-quick-chips-bar::-webkit-scrollbar {
+  height: 4px;
+}
+
+.gemmy-quick-chips-bar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.gemmy-quick-chip {
+  flex-shrink: 0;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+
+.gemmy-quick-chip:hover {
+  background: #e0f2fe;
+  border-color: #0284c7;
+  color: #0369a1;
+}
+
+
 .gemmy-input-form {
   display: flex;
   align-items: center;
