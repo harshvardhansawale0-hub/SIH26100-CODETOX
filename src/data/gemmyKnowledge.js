@@ -140,7 +140,7 @@ export const GEMMY_KNOWLEDGE_TOPICS = [
   // 4. Reverse Auction (RA) Rules
   {
     id: 'reverse_auction',
-    keywords: ['reverse auction', 'ra', 'auto-extension', 'auto extension', 'timer', 'h1', 'elimination', 'decrement', 'रिवर्स ऑक्शन', 'लिलाव', 'वेळ विस्तार'],
+    keywords: ['reverse auction', 'ra', 'auto-extension', 'auto extension', 'timer', 'h1', 'elimination', 'decrement', 'रिवर्स ऑक्शन', 'रिव्हर्स ऑक्शन', 'लिलाव', 'लिलावात', 'ऑक्शन', 'वेळ विस्तार'],
     citations: ['GeM Reverse Auction (RA) Guidelines 2024', 'GFR 2017 Rule 149(iii)'],
     actions: [
       { id: 'act_auctions', label: 'View Live E-Auctions Portal', action: 'NAVIGATE_AUCTIONS', icon: 'TrendingDown' },
@@ -367,7 +367,7 @@ export const GEMMY_KNOWLEDGE_TOPICS = [
   // 10. Land Border Restrictions (Rule 144(xi))
   {
     id: 'land_border',
-    keywords: ['border', '144(xi)', 'land border', 'china', 'foreign', 'competent authority', 'सीमावर्ती देश', 'जमीन सीमा'],
+    keywords: ['border', '144(xi)', 'land border', 'china', 'chinese', 'land border sharing', 'foreign bidder', 'competent authority', 'सीमावर्ती देश', 'जमीन सीमा', 'सीमा सामायिक'],
     citations: ['GFR 2017 Rule 144(xi)', 'Ministry of Finance OM F.No.6/18/2019-PPD'],
     actions: [
       { id: 'act_verify', label: 'Verify Bidder Eligibility', action: 'OPEN_VERIFIER', icon: 'ShieldCheck' }
