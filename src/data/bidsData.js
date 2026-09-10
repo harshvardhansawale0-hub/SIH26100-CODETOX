@@ -236,10 +236,10 @@ export const summaryMetrics = {
 export const samplePreloads = {
   perfectBid: {
     vendorName: "Bharat ElectroMech Systems Ltd.",
-    category: "Heavy Electricals & UPS",
-    tenderId: "GEM/2026/B/901844",
-    tenderValue: "₹85,00,000",
-    bidAmount: "₹78,40,000",
+    category: "IT Hardware",
+    tenderId: "GEM/2026/B/891244",
+    tenderValue: "₹1.45 Cr",
+    bidAmount: "₹1.38 Cr",
     gstin: "27AABCB1234F1Z5",
     pan: "AABCB1234F",
     miiDeclared: "82%",
@@ -249,10 +249,10 @@ export const samplePreloads = {
   },
   flaggedBid: {
     vendorName: "Delta Vertex Solutions",
-    category: "CCTV & Security Surveillance",
-    tenderId: "GEM/2026/B/899120",
-    tenderValue: "₹45,00,000",
-    bidAmount: "₹44,80,000",
+    category: "Furniture",
+    tenderId: "GEM/2026/B/890412",
+    tenderValue: "₹38.50 Lakhs",
+    bidAmount: "₹36.00 Lakhs",
     gstin: "07AAACD9981K1Z2",
     pan: "AAACD9981K",
     miiDeclared: "41%",
@@ -262,7 +262,7 @@ export const samplePreloads = {
   },
   fraudBid: {
     vendorName: "Royal Fake Traders Pvt Ltd",
-    category: "Office IT Supplies",
+    category: "Medical Equipment",
     tenderId: "GEM/2026/B/882100",
     tenderValue: "₹30,00,000",
     bidAmount: "₹21,00,000",

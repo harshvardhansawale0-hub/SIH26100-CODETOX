@@ -112,6 +112,18 @@ export const gemApi = {
     }
   },
 
+  async createBid(bidData) {
+    try {
+      return await request('/api/bids', {
+        method: 'POST',
+        body: JSON.stringify(bidData)
+      });
+    } catch (err) {
+      console.warn('[GeM API] Offline bid persistence fallback:', err);
+      return bidData;
+    }
+  },
+
   async updateBidStatus(bidId, newStatus, officerNotes = '', officerName = 'Government Procuring Authority (Buyer)') {
     try {
       return await request(`/api/bids/${bidId}/status`, {

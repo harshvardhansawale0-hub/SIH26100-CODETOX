@@ -80,7 +80,20 @@ function MainApp() {
   const [isLoadingTenders, setIsLoadingTenders] = useState(false);
 
   // Bids state (Bidder submits, Buyer reviews & awards)
-  const [bids, setBids] = useState(initialBids || []);
+  const [bids, setBids] = useState(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem('gem_stored_bids') || '[]');
+      if (stored && stored.length > 0) {
+        const map = new Map();
+        for (const b of (initialBids || [])) map.set(b.id, b);
+        for (const b of stored) {
+          if (b && b.id) map.set(b.id, b);
+        }
+        return Array.from(map.values()).reverse();
+      }
+    } catch {}
+    return initialBids || [];
+  });
   const [isLoadingBids, setIsLoadingBids] = useState(false);
 
   // Modals & Active Selections
@@ -124,7 +137,25 @@ function MainApp() {
           localStorage.setItem('gem_stored_tenders', JSON.stringify(mergedTenders));
         } catch {}
       }
-      if (fetchedBids && fetchedBids.length > 0) setBids(fetchedBids);
+      if (fetchedBids && fetchedBids.length > 0) {
+        let storedBids = [];
+        try {
+          storedBids = JSON.parse(localStorage.getItem('gem_stored_bids') || '[]');
+        } catch {}
+        const map = new Map();
+        for (const b of (initialBids || [])) map.set(b.id, b);
+        for (const b of storedBids) {
+          if (b && b.id) map.set(b.id, b);
+        }
+        for (const b of fetchedBids) {
+          if (b && b.id) map.set(b.id, b);
+        }
+        const mergedBids = Array.from(map.values());
+        setBids(mergedBids);
+        try {
+          localStorage.setItem('gem_stored_bids', JSON.stringify(mergedBids));
+        } catch {}
+      }
     } catch (err) {
       console.warn('Backend load fallback:', err);
     } finally {
@@ -301,12 +332,12 @@ function MainApp() {
   };
 
   // Bidder Flow: Bidder applies and verifies documents via 8-stage pipeline
-  const handleAddVerifiedBid = (newBidResult) => {
+  const handleAddVerifiedBid = async (newBidResult) => {
     const formattedBid = {
       id: newBidResult.bidId || `BID-${Math.floor(10000 + Math.random() * 90000)}`,
       vendor: newBidResult.vendor || (currentUser ? (currentUser.organization || currentUser.fullName) : "Apex Supplies Ltd."),
-      vendorEmail: currentUser ? currentUser.email : null,
-      submittedBy: currentUser ? currentUser.email : null,
+      vendorEmail: newBidResult.vendorEmail || (currentUser ? currentUser.email : null),
+      submittedBy: newBidResult.submittedBy || (currentUser ? currentUser.email : null),
       category: newBidResult.category || "IT Hardware",
       item: `${newBidResult.category || "IT"} Solution`,
       tenderId: newBidResult.tenderId || "GEM/2026/B/891244",
@@ -344,12 +375,19 @@ function MainApp() {
     };
 
     setBids((prev) => {
-      const updated = [formattedBid, ...prev];
+      const filtered = prev.filter(b => b.id !== formattedBid.id);
+      const updated = [formattedBid, ...filtered];
       try {
         localStorage.setItem('gem_stored_bids', JSON.stringify(updated));
       } catch {}
       return updated;
     });
+
+    try {
+      await gemApi.createBid(formattedBid);
+    } catch (err) {
+      console.warn('Backend bid sync error:', err);
+    }
   };
 
   // Buyer Flow: Final Bidder Selection & Award

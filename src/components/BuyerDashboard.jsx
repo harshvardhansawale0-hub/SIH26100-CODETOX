@@ -71,10 +71,36 @@ export default function BuyerDashboard({
     return myCreatedTenders;
   }, [tenderScopeMode, myCreatedTenders, tenders]);
 
-  // Scope applications received: only for tenders belonging to this Buyer
+  // Scope applications received:
+  // - When in 'all' mode: show all bids across the portal
+  // - When in 'my' mode: show applications matching tenders created by this officer
+  // - If officer has 0 created tenders: show all bids so officer dashboard is immediately actionable
   const buyerBids = useMemo(() => {
-    return bids.filter(b => buyerTenders.some(t => t.id === b.tenderId));
-  }, [bids, buyerTenders]);
+    if (tenderScopeMode === 'all') {
+      return bids;
+    }
+    const myTenderIds = new Set(myCreatedTenders.map(t => t.id));
+    const matching = bids.filter(b => myTenderIds.has(b.tenderId));
+    if (myCreatedTenders.length === 0) {
+      return bids;
+    }
+    return matching;
+  }, [bids, myCreatedTenders, tenderScopeMode]);
+
+  const availableTenderOptions = useMemo(() => {
+    const list = [...buyerTenders];
+    const existingIds = new Set(list.map(t => t.id));
+    for (const b of bids) {
+      if (b.tenderId && !existingIds.has(b.tenderId)) {
+        list.push({
+          id: b.tenderId,
+          title: `Tender ${b.tenderId} (${b.category || 'General'})`
+        });
+        existingIds.add(b.tenderId);
+      }
+    }
+    return list;
+  }, [buyerTenders, bids]);
 
   // Buyer Summary KPIs
   const kpis = useMemo(() => {
@@ -297,9 +323,11 @@ export default function BuyerDashboard({
                 color: tenderScopeMode === 'my' ? '#ffffff' : '#94a3b8',
                 transition: 'all 0.2s ease'
               }}
-              title="Show tenders created by this authority account"
+              title={activeSubTab === 'applications' ? "Show applications for my tenders" : "Show tenders created by this authority account"}
             >
-              My Tenders ({myCreatedTenders.length})
+              {activeSubTab === 'applications'
+                ? `My Tenders' Bids (${myCreatedTenders.length > 0 ? bids.filter(b => myCreatedTenders.some(t => t.id === b.tenderId)).length : 0})`
+                : `My Tenders (${myCreatedTenders.length})`}
             </button>
             <button
               type="button"
@@ -315,9 +343,11 @@ export default function BuyerDashboard({
                 color: tenderScopeMode === 'all' ? '#ffffff' : '#94a3b8',
                 transition: 'all 0.2s ease'
               }}
-              title="Show all procurement tenders across the platform/department"
+              title={activeSubTab === 'applications' ? "Show all received applications across department" : "Show all procurement tenders across the platform/department"}
             >
-              All Tenders ({tenders.length})
+              {activeSubTab === 'applications'
+                ? `All Received Bids (${bids.length})`
+                : `All Tenders (${tenders.length})`}
             </button>
           </div>
         </div>
@@ -379,8 +409,8 @@ export default function BuyerDashboard({
                   }}
                 >
                   <option value="ALL">Filter by Tender: All Tenders</option>
-                  {buyerTenders.map((t) => (
-                    <option key={t.id} value={t.id}>{t.id} — {t.title.slice(0, 35)}...</option>
+                  {availableTenderOptions.map((t) => (
+                    <option key={t.id} value={t.id}>{t.id} — {(t.title || '').slice(0, 35)}...</option>
                   ))}
                 </select>
 
@@ -590,6 +620,24 @@ export default function BuyerDashboard({
         {/* View 2: Received Bidder Applications & AI Compliance Dossiers */}
         {activeSubTab === 'applications' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {myCreatedTenders.length === 0 && (
+              <div style={{ backgroundColor: 'rgba(2, 132, 199, 0.12)', border: '1px solid rgba(2, 132, 199, 0.4)', borderRadius: '8px', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                  <ShieldCheck size={18} color="#38bdf8" />
+                  <span style={{ fontSize: '0.84rem', color: '#e0f2fe' }}>
+                    Showing all received vendor submissions across the department ({buyerBids.length}). Create your first tender anytime to track bids exclusively for your authority.
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => onOpenCreateBid && onOpenCreateBid()}
+                  style={{ backgroundColor: '#0284c7', color: '#ffffff', border: 'none', borderRadius: '6px', padding: '0.35rem 0.8rem', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer' }}
+                >
+                  + Create Tender
+                </button>
+              </div>
+            )}
+
             {selectedTenderId !== 'ALL' && (
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#0284c7', color: '#ffffff', padding: '0.6rem 1rem', borderRadius: '6px', fontSize: '0.85rem' }}>
                 <span>Showing applications for Tender: <strong>{selectedTenderId}</strong></span>

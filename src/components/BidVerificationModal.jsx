@@ -1,11 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, CheckCircle2, AlertTriangle, XCircle, FileText, Cpu, ShieldCheck, Download, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { samplePreloads } from '../data/bidsData';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
 
-export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid }) {
+export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid, selectedTender = null, currentUser = null }) {
   if (!isOpen) return null;
 
   const { t } = useLanguage();
@@ -14,6 +14,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     vendorName: '',
     tenderId: '',
     category: '',
+    tenderValue: '',
     bidAmount: '',
     gstin: '',
     pan: '',
@@ -27,6 +28,26 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
   const [scanStep, setScanStep] = useState(0); // 0: Idle, 1: OCR, 2: Rule Engine, 3: Scored
   const [result, setResult] = useState(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      setBidForm(prev => ({
+        vendorName: prev.vendorName || currentUser?.organization || currentUser?.fullName || 'Apex Supplies Ltd.',
+        tenderId: selectedTender?.id || prev.tenderId || 'GEM/2026/B/891244',
+        category: selectedTender?.category || prev.category || 'IT Hardware',
+        tenderValue: selectedTender?.estimatedValue || prev.tenderValue || '₹1.45 Cr',
+        bidAmount: prev.bidAmount || '₹1.38 Cr',
+        gstin: currentUser?.gstin || prev.gstin || '27AABCB1234F1Z5',
+        pan: prev.pan || 'AABCB1234F',
+        miiDeclared: prev.miiDeclared || '75%',
+        turnoverClaim: prev.turnoverClaim || '₹12.4 Cr',
+        msmeRegNo: currentUser?.udyam || prev.msmeRegNo || 'UDYAM-MH-03-0019284',
+        experienceClaim: prev.experienceClaim || '5 Years'
+      }));
+      setResult(null);
+      setScanStep(0);
+    }
+  }, [isOpen, selectedTender, currentUser]);
+
   const stepsList = [
     "Ingesting documents & running EasyOCR / Tesseract...",
     "Extracting GSTIN, PAN, ITR Turnover & Local Content...",
@@ -35,9 +56,26 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
   ];
 
   const handlePreload = (type) => {
-    if (type === 'perfect') setBidForm(samplePreloads.perfectBid);
-    if (type === 'flagged') setBidForm(samplePreloads.flaggedBid);
-    if (type === 'fraud') setBidForm(samplePreloads.fraudBid);
+    let preloadData = null;
+    if (type === 'perfect') preloadData = { ...samplePreloads.perfectBid };
+    if (type === 'flagged') preloadData = { ...samplePreloads.flaggedBid };
+    if (type === 'fraud') preloadData = { ...samplePreloads.fraudBid };
+
+    if (preloadData) {
+      // Preserve active tender being applied to
+      if (selectedTender && selectedTender.id) {
+        preloadData.tenderId = selectedTender.id;
+        preloadData.category = selectedTender.category || preloadData.category;
+        preloadData.tenderValue = selectedTender.estimatedValue || preloadData.tenderValue;
+      }
+      // Preserve logged in vendor identity
+      if (currentUser) {
+        preloadData.vendorName = currentUser.organization || currentUser.fullName || preloadData.vendorName;
+        if (currentUser.gstin) preloadData.gstin = currentUser.gstin;
+        if (currentUser.udyam) preloadData.msmeRegNo = currentUser.udyam;
+      }
+      setBidForm(preloadData);
+    }
     setResult(null);
     setScanStep(0);
   };
@@ -48,12 +86,15 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
       setSelectedFile(file);
       try {
         const uploadRes = await gemApi.uploadDocument(file);
-        console.log('[GeM OCR Forensics] Document parsed:', uploadRes);
-        if (uploadRes.fileId) {
-          setBidForm(prev => ({ ...prev, fileId: uploadRes.fileId }));
+        if (uploadRes && uploadRes.fileId) {
+          setBidForm(prev => ({
+            ...prev,
+            fileId: uploadRes.fileId,
+            uploadedDocNames: [file.name]
+          }));
         }
       } catch (err) {
-        console.warn('OCR upload inspection:', err);
+        console.warn("Document direct upload fallback:", err);
       }
     }
   };
@@ -97,8 +138,18 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     setTimeout(() => setScanStep(3), 1200);
 
     try {
+      const payload = {
+        ...bidForm,
+        tenderId: bidForm.tenderId || selectedTender?.id || 'GEM/2026/B/891244',
+        tenderValue: bidForm.tenderValue || selectedTender?.estimatedValue || '₹1.45 Cr',
+        bidAmount: bidForm.bidAmount || '₹1.38 Cr',
+        vendorName: bidForm.vendorName || currentUser?.organization || currentUser?.fullName || 'Apex Supplies Ltd.',
+        submittedBy: currentUser?.email || null,
+        vendorEmail: currentUser?.email || null
+      };
+
       // Call live FastAPI backend verification
-      const evalResult = await gemApi.verifyBid(bidForm);
+      const evalResult = await gemApi.verifyBid(payload);
 
       setTimeout(() => {
         setIsProcessing(false);
@@ -114,7 +165,16 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
         }
 
         if (onAddVerifiedBid) {
-          onAddVerifiedBid(evalResult);
+          const fullBidResult = {
+            ...evalResult,
+            tenderId: payload.tenderId,
+            tenderValue: payload.tenderValue,
+            bidAmount: payload.bidAmount,
+            vendor: payload.vendorName,
+            submittedBy: payload.submittedBy,
+            vendorEmail: payload.vendorEmail
+          };
+          onAddVerifiedBid(fullBidResult);
         }
       }, 1800);
     } catch (err) {
