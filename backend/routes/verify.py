@@ -113,6 +113,8 @@ def verify_bid_payload(req: BidVerifyRequest):
         "date": now_str,
         "riskLevel": evaluation["risk"],
         "ocrConfidence": evaluation["ocrConfidence"],
+        "submittedBy": req.submittedBy,
+        "vendorEmail": req.vendorEmail,
         "flags": evaluation["flags"],
         "extractedDocs": [doc.model_dump() for doc in evaluation["extractedDocs"]],
         "extractedEntities": [e.model_dump() for e in evaluation["extractedEntities"]],
@@ -148,7 +150,9 @@ def verify_bid_payload(req: BidVerifyRequest):
         requirementMatches=evaluation["requirementMatches"],
         extractedDocs=evaluation["extractedDocs"],
         auditTrail=evaluation["auditTrail"],
-        complianceReport=evaluation["complianceReport"]
+        complianceReport=evaluation["complianceReport"],
+        submittedBy=req.submittedBy,
+        vendorEmail=req.vendorEmail
     )
 
 @router.post("/upload")

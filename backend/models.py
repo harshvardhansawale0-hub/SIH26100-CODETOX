@@ -88,6 +88,8 @@ class BidVerifyRequest(BaseModel):
     dscSerial: Optional[str] = Field(default="DSC-2026-APEX-001", example="DSC-2026-APEX-001")
     fileId: Optional[str] = Field(default=None, description="UUID of the uploaded document to process")
     uploadedDocNames: Optional[List[str]] = Field(default=[])
+    submittedBy: Optional[str] = Field(default=None, description="Email/ID of authenticated user submitting the bid")
+    vendorEmail: Optional[str] = Field(default=None, description="Contact email of vendor enterprise")
 
 class ComplianceReport(BaseModel):
     reportId: str
@@ -131,6 +133,8 @@ class BidVerifyResponse(BaseModel):
     extractedDocs: List[ExtractedDoc] = []
     auditTrail: List[AuditTrailEntry] = []
     complianceReport: Optional[ComplianceReport] = None
+    submittedBy: Optional[str] = None
+    vendorEmail: Optional[str] = None
 
 
 # ==========================================
@@ -156,6 +160,8 @@ class BidItem(BaseModel):
     date: str
     riskLevel: str
     ocrConfidence: str
+    submittedBy: Optional[str] = None
+    vendorEmail: Optional[str] = None
     flags: List[str] = []
     extractedDocs: List[ExtractedDoc] = []
     extractedEntities: List[ExtractedEntity] = []
