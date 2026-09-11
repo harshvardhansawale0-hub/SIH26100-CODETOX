@@ -99,6 +99,7 @@ class BidVerifyRequest(BaseModel):
     uploadedDocNames: Optional[List[str]] = Field(default=[])
     submittedBy: Optional[str] = Field(default=None, description="Email/ID of authenticated user submitting the bid")
     vendorEmail: Optional[str] = Field(default=None, description="Contact email of vendor enterprise")
+    isTestScenario: bool = Field(default=False, description="Flag indicating this is a test scenario")
 
 class ComplianceReport(BaseModel):
     reportId: str

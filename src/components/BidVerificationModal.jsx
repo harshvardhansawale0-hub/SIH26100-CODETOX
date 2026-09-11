@@ -37,6 +37,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
   const [isProcessing, setIsProcessing] = useState(false);
   const [scanStep, setScanStep] = useState(0);
   const [result, setResult] = useState(null);
+  const [isTestScenario, setIsTestScenario] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -55,6 +56,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
       }));
       setResult(null);
       setScanStep(0);
+      setIsTestScenario(false);
       setTenderDoc({ file: null, fileId: null, status: 'idle', errorMsg: '' });
       setGstDoc({ file: null, fileId: null, status: 'idle', errorMsg: '' });
       setPanDoc({ file: null, fileId: null, status: 'idle', errorMsg: '' });
@@ -83,6 +85,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     }
     setResult(null);
     setScanStep(0);
+    setIsTestScenario(true);
   };
 
   const handleFileUpload = async (e, setDocState) => {
@@ -207,7 +210,8 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
         tenderDocumentId: tenderDoc.fileId,
         gstDocumentId: gstDoc.fileId,
         panDocumentId: panDoc.fileId,
-        udyamDocumentId: udyamDoc.fileId
+        udyamDocumentId: udyamDoc.fileId,
+        isTestScenario: isTestScenario
       };
 
       const evalResult = await gemApi.verifyBid(payload);
@@ -271,6 +275,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
         </div>
 
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          {currentUser?.isDemo === true && (
           <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
             <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '0.5rem' }}>
               {t('selectScenario')}
@@ -299,8 +304,9 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
               </button>
             </div>
           </div>
+          )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div>
                 <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>

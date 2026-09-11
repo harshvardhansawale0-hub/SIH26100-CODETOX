@@ -128,6 +128,7 @@ def init_db(force_recreate: bool = False):
             organization TEXT NOT NULL,
             gstin TEXT,
             role TEXT NOT NULL DEFAULT 'bidder',
+            is_demo BOOLEAN NOT NULL DEFAULT FALSE,
             created_at TEXT NOT NULL
         )
         """)
@@ -302,6 +303,7 @@ def init_db(force_recreate: bool = False):
             organization TEXT NOT NULL,
             gstin TEXT,
             role TEXT NOT NULL DEFAULT 'bidder',
+            is_demo BOOLEAN NOT NULL DEFAULT 0,
             created_at TEXT NOT NULL
         )
         """)
@@ -475,6 +477,15 @@ def init_db(force_recreate: bool = False):
                 cursor.execute(f"ALTER TABLE bids ADD COLUMN {col_name} TEXT")
         except Exception:
             pass
+
+    # Dynamic schema migration for users table: ensure is_demo column exists
+    try:
+        if _USE_PG:
+            cursor.execute("ALTER TABLE users ADD COLUMN IF NOT EXISTS is_demo BOOLEAN NOT NULL DEFAULT FALSE")
+        else:
+            cursor.execute("ALTER TABLE users ADD COLUMN is_demo BOOLEAN NOT NULL DEFAULT 0")
+    except Exception:
+        pass
 
     # Seed benchmark initial data if tables are empty
     try:
@@ -756,25 +767,25 @@ def seed_initial_bids(cursor):
 
 def seed_initial_users(cursor):
     demo_users = [
-        ("National Procurement Authority", "buyer@gov.in", "buyer123", "Defence & Space Procurement Cell", "07GOVND0001A1Z1", "buyer"),
-        ("Dir. Rajesh Verma", "procurement.officer@nic.in", "buyer123", "Ministry of Electronics & IT (MeitY)", "07AAAGM0289C1ZU", "buyer"),
-        ("Smart Cities Mission Buyer", "buyer@smartcities.gov.in", "buyer123", "Ministry of Housing and Urban Affairs", "07DRDO1234F1Z8", "buyer"),
-        ("Apex Supplies Ltd. (Bidder)", "bidder@apex.in", "bidder123", "Apex Supplies Ltd.", "27AABCB1234F1Z5", "bidder"),
-        ("Harshvardhan Sawale", "vendor.contact@apextech.com", "bidder123", "Apex Technologies & Supplies Ltd.", "27AABCB1234F1Z5", "bidder"),
-        ("Kaveri Infotech (Bidder)", "bidder@kaveri.in", "bidder123", "Kaveri Infotech", "27KAVRI5678B1Z2", "bidder")
+        ("National Procurement Authority", "buyer@gov.in", "buyer123", "Defence & Space Procurement Cell", "07GOVND0001A1Z1", "buyer", True),
+        ("Dir. Rajesh Verma", "procurement.officer@nic.in", "buyer123", "Ministry of Electronics & IT (MeitY)", "07AAAGM0289C1ZU", "buyer", True),
+        ("Smart Cities Mission Buyer", "buyer@smartcities.gov.in", "buyer123", "Ministry of Housing and Urban Affairs", "07DRDO1234F1Z8", "buyer", True),
+        ("Apex Supplies Ltd. (Bidder)", "bidder@apex.in", "bidder123", "Apex Supplies Ltd.", "27AABCB1234F1Z5", "bidder", True),
+        ("Harshvardhan Sawale", "vendor.contact@apextech.com", "bidder123", "Apex Technologies & Supplies Ltd.", "27AABCB1234F1Z5", "bidder", True),
+        ("Kaveri Infotech (Bidder)", "bidder@kaveri.in", "bidder123", "Kaveri Infotech", "27KAVRI5678B1Z2", "bidder", True)
     ]
     for u in demo_users:
         if _USE_PG:
             cursor.execute("""
-            INSERT INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO users (full_name, email, password_hash, organization, gstin, role, is_demo, created_at)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             ON CONFLICT (email) DO NOTHING
-            """, (u[0], u[1], u[2], u[3], u[4], u[5], datetime.now().isoformat()))
+            """, (u[0], u[1], u[2], u[3], u[4], u[5], u[6], datetime.now().isoformat()))
         else:
             cursor.execute("""
-            INSERT OR IGNORE INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (u[0], u[1], u[2], u[3], u[4], u[5], datetime.now().isoformat()))
+            INSERT OR IGNORE INTO users (full_name, email, password_hash, organization, gstin, role, is_demo, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            """, (u[0], u[1], u[2], u[3], u[4], u[5], u[6], datetime.now().isoformat()))
 
 def seed_initial_tenders(cursor):
     tenders = [
@@ -1490,11 +1501,11 @@ def create_user(full_name: str, email: str, password_hash: str, organization: st
 
     if _USE_PG:
         cursor.execute("""
-        INSERT INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
-        RETURNING id, full_name, email, organization, gstin, role, created_at
+        INSERT INTO users (full_name, email, password_hash, organization, gstin, role, is_demo, created_at)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        RETURNING id, full_name, email, organization, gstin, role, is_demo, created_at
         """, (
-            full_name, clean_email, password_hash, organization, gstin, role, created_at
+            full_name, clean_email, password_hash, organization, gstin, role, False, created_at
         ))
         row = cursor.fetchone()
         conn.commit()
@@ -1502,10 +1513,10 @@ def create_user(full_name: str, email: str, password_hash: str, organization: st
         return dict(row)
     else:
         cursor.execute("""
-        INSERT INTO users (full_name, email, password_hash, organization, gstin, role, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO users (full_name, email, password_hash, organization, gstin, role, is_demo, created_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         """, (
-            full_name, clean_email, password_hash, organization, gstin, role, created_at
+            full_name, clean_email, password_hash, organization, gstin, role, 0, created_at
         ))
         user_id = cursor.lastrowid
         conn.commit()
@@ -1517,6 +1528,7 @@ def create_user(full_name: str, email: str, password_hash: str, organization: st
             "organization": organization,
             "gstin": gstin,
             "role": role,
+            "is_demo": False,
             "created_at": created_at
         }
 

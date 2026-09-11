@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS users (
     organization TEXT NOT NULL,
     gstin TEXT,
     role TEXT NOT NULL DEFAULT 'seller', -- 'buyer', 'seller', 'officer', 'admin'
+    is_demo BOOLEAN NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL
 );
 
@@ -170,11 +171,11 @@ CREATE INDEX IF NOT EXISTS idx_audit_timestamp ON audit_logs(timestamp);
 -- ============================================================================
 
 -- Users
-INSERT OR IGNORE INTO users (id, full_name, email, password_hash, organization, gstin, role, created_at) VALUES
-(1, 'Nodal Procurement Officer', 'officer@gem.gov.in', 'officer123', 'GeM Quality & Vigilance Cell', '07GOVND0001A1Z1', 'officer', '2026-09-01T09:00:00'),
-(2, 'Buyer Desk Officer', 'buyer@drdo.gov.in', 'buyer123', 'DRDO Research Labs, Ministry of Defence', '07DRDO1234F1Z8', 'buyer', '2026-09-01T09:00:00'),
-(3, 'Apex Supplies Vendor', 'contact@apexsupplies.in', 'seller123', 'Apex Supplies Ltd.', '27AABCB1234F1Z5', 'seller', '2026-09-01T09:00:00'),
-(4, 'Kaveri Infotech Manager', 'contact@kaveri.in', 'seller123', 'Kaveri Infotech', '27KAVRI5678B1Z2', 'seller', '2026-09-01T09:00:00');
+INSERT OR IGNORE INTO users (id, full_name, email, password_hash, organization, gstin, role, is_demo, created_at) VALUES
+(1, 'Nodal Procurement Officer', 'officer@gem.gov.in', 'officer123', 'GeM Quality & Vigilance Cell', '07GOVND0001A1Z1', 'officer', 1, '2026-09-01T09:00:00'),
+(2, 'Buyer Desk Officer', 'buyer@drdo.gov.in', 'buyer123', 'DRDO Research Labs, Ministry of Defence', '07DRDO1234F1Z8', 'buyer', 1, '2026-09-01T09:00:00'),
+(3, 'Apex Supplies Vendor', 'contact@apexsupplies.in', 'seller123', 'Apex Supplies Ltd.', '27AABCB1234F1Z5', 'seller', 1, '2026-09-01T09:00:00'),
+(4, 'Kaveri Infotech Manager', 'contact@kaveri.in', 'seller123', 'Kaveri Infotech', '27KAVRI5678B1Z2', 'seller', 1, '2026-09-01T09:00:00');
 
 -- Tenders
 INSERT OR IGNORE INTO tenders (id, title, ministry, department, category, estimated_value, emd_amount, published_date, closing_date, status, mii_min_requirement, boq_items, created_at) VALUES

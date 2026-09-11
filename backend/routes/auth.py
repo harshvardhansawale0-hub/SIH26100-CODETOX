@@ -49,13 +49,15 @@ def login_user(payload: UserLogin):
         )
 
     role = "buyer" if row["role"] in ["buyer", "officer"] else "bidder"
+    is_demo = bool(row.get("is_demo", 0)) if isinstance(row, dict) else bool(row["is_demo"] if "is_demo" in row.keys() else 0)
     user_data = {
         "id": row["id"],
         "fullName": row["full_name"],
         "email": row["email"],
         "organization": row["organization"],
         "gstin": row["gstin"],
-        "role": role
+        "role": role,
+        "isDemo": is_demo
     }
 
     token = f"gem_jwt_{uuid.uuid4().hex[:16]}"
@@ -116,7 +118,8 @@ def register_user(payload: UserRegister):
         "email": new_user["email"],
         "organization": new_user["organization"],
         "gstin": new_user.get("gstin"),
-        "role": assigned_role
+        "role": assigned_role,
+        "isDemo": False
     }
 
     token = f"gem_jwt_{uuid.uuid4().hex[:16]}"

@@ -99,8 +99,20 @@ def process_single_doc(file_id: str, expected_type: str, doc_name_label: str) ->
         print(f"[!] Error processing {doc_name_label}: {type(e).__name__}: {e}")
         return {"error": f"Failed to process {doc_name_label}: {type(e).__name__}: {e}"}
 
+from fastapi import APIRouter, UploadFile, File, HTTPException, Header
+from ..routes.auth import _active_sessions
+
 @router.post("/verify/bid", response_model=BidVerifyResponse)
-def verify_bid_payload(req: BidVerifyRequest):
+def verify_bid_payload(req: BidVerifyRequest, authorization: Optional[str] = Header(None)):
+    user = None
+    if authorization:
+        token = authorization.replace("Bearer ", "").strip()
+        user = _active_sessions.get(token)
+
+    if req.isTestScenario:
+        if not user or not user.get("isDemo"):
+            raise HTTPException(status_code=403, detail="Test scenarios are only available to demo accounts.")
+
     doc_flags = []
     real_extracted_docs = []
     overall_confidence = []
