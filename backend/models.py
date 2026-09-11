@@ -2,6 +2,11 @@ import re
 from typing import List, Optional, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 
+class FieldMatch(BaseModel):
+    status: str
+    entered: str
+    extracted: Optional[str] = None
+
 # ==========================================
 # 1. Verification & Input Schemas
 # ==========================================
@@ -139,6 +144,7 @@ class BidVerifyResponse(BaseModel):
     complianceReport: Optional[ComplianceReport] = None
     submittedBy: Optional[str] = None
     vendorEmail: Optional[str] = None
+    fieldMatches: Dict[str, FieldMatch] = {}
 
 
 # ==========================================
@@ -173,6 +179,7 @@ class BidItem(BaseModel):
     requirementMatches: List[BidRequirementMatchResult] = []
     auditTrail: List[AuditTrailEntry] = []
     complianceReport: Optional[Dict[str, Any]] = None
+    fieldMatches: Dict[str, Dict[str, Any]] = {}
 
 class BidStatusUpdate(BaseModel):
     status: str  # "Compliant", "Flagged", "Non-Compliant", "Selected"

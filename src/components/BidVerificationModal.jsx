@@ -127,21 +127,50 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     return <span style={{fontSize: '0.7rem', color: '#ef4444', display: 'block', marginTop: '0.25rem'}}>✕ {invalidMsg}</span>;
   };
 
-  const renderUploadStatus = (docState, setDocState, inputRef) => {
-    if (docState.status === 'idle') return null;
-    if (docState.status === 'uploading') return <span style={{fontSize: '0.75rem', color: '#f59e0b', display: 'block', marginTop: '0.25rem'}}>⏳ Uploading {docState.file?.name}...</span>;
-    if (docState.status === 'error') return (
+  const renderUploadStatus = (docState, setDocState, inputRef, fieldKey) => {
+    if (docState.status === 'idle') {
+      if (result && result.fieldMatches && result.fieldMatches[fieldKey]) {
+        const match = result.fieldMatches[fieldKey];
+        if (match.status === 'DOCUMENT_MISSING') {
+          return <span style={{fontSize: '0.75rem', color: '#ef4444', display: 'block', marginTop: '0.25rem'}}>❌ Document missing</span>;
+        }
+      }
+      return null;
+    }
+
+    let uploadStatus = null;
+    if (docState.status === 'uploading') uploadStatus = <span style={{fontSize: '0.75rem', color: '#f59e0b', display: 'block', marginTop: '0.25rem'}}>⏳ Uploading {docState.file?.name}...</span>;
+    if (docState.status === 'error') uploadStatus = (
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
         <span style={{fontSize: '0.75rem', color: '#ef4444'}}>✕ {docState.errorMsg}</span>
         <button onClick={() => inputRef.current?.click()} style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}>Retry</button>
       </div>
     );
-    if (docState.status === 'success') return (
+    if (docState.status === 'success') uploadStatus = (
       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem', fontSize: '0.75rem', color: '#10b981' }}>
         <Check size={14} /> <span>{docState.file?.name} uploaded</span>
         <button onClick={() => inputRef.current?.click()} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline', marginLeft: '0.25rem' }}>Replace</button>
         <button onClick={() => removeDocument(setDocState)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', textDecoration: 'underline' }}>Remove</button>
       </div>
+    );
+
+    let matchStatus = null;
+    if (result && result.fieldMatches && result.fieldMatches[fieldKey]) {
+      const match = result.fieldMatches[fieldKey];
+      if (match.status === 'MATCHED') {
+        matchStatus = <div style={{ color: '#10b981', fontSize: '0.75rem', marginTop: '0.25rem' }}>✓ Field matched: {match.extracted}</div>;
+      } else if (match.status === 'NOT_MATCHED') {
+        matchStatus = <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>❌ Field does not match. Extracted: {match.extracted}</div>;
+      } else if (match.status === 'EXTRACTION_FAILED') {
+        matchStatus = <div style={{ color: '#f59e0b', fontSize: '0.75rem', marginTop: '0.25rem' }}>⚠ Extraction failed</div>;
+      }
+    }
+
+    return (
+      <>
+        {uploadStatus}
+        {matchStatus}
+      </>
     );
   };
 
@@ -308,7 +337,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                   <input type="file" ref={gstInputRef} onChange={(e) => handleFileUpload(e, setGstDoc)} style={{ display: 'none' }} accept=".pdf,.png,.jpg,.jpeg" />
                 </div>
                 {renderValidationMsg(gstinState, "Enter a valid 15-character GSTIN")}
-                {renderUploadStatus(gstDoc, setGstDoc, gstInputRef)}
+                {renderUploadStatus(gstDoc, setGstDoc, gstInputRef, "gstin")}
               </div>
               
               <div>
@@ -327,7 +356,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                   </button>
                   <input type="file" ref={udyamInputRef} onChange={(e) => handleFileUpload(e, setUdyamDoc)} style={{ display: 'none' }} accept=".pdf,.png,.jpg,.jpeg" />
                 </div>
-                {renderUploadStatus(udyamDoc, setUdyamDoc, udyamInputRef)}
+                {renderUploadStatus(udyamDoc, setUdyamDoc, udyamInputRef, "udyam")}
               </div>
 
               <div>
@@ -361,7 +390,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                   <input type="file" ref={tenderInputRef} onChange={(e) => handleFileUpload(e, setTenderDoc)} style={{ display: 'none' }} accept=".pdf,.png,.jpg,.jpeg" />
                 </div>
                 {renderValidationMsg(tenderIdState, "Expected GEM/YYYY/X/NNNNNN")}
-                {renderUploadStatus(tenderDoc, setTenderDoc, tenderInputRef)}
+                {renderUploadStatus(tenderDoc, setTenderDoc, tenderInputRef, "tenderId")}
               </div>
 
               <div>
@@ -393,7 +422,7 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                   <input type="file" ref={panInputRef} onChange={(e) => handleFileUpload(e, setPanDoc)} style={{ display: 'none' }} accept=".pdf,.png,.jpg,.jpeg" />
                 </div>
                 {renderValidationMsg(panState, "Expected 5 letters, 4 digits, 1 letter")}
-                {renderUploadStatus(panDoc, setPanDoc, panInputRef)}
+                {renderUploadStatus(panDoc, setPanDoc, panInputRef, "pan")}
               </div>
 
               <div>

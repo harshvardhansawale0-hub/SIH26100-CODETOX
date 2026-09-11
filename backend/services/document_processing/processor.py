@@ -8,6 +8,7 @@ from .extractors.pan import extract_pan_fields
 from .extractors.udyam import extract_udyam_fields
 from .extractors.turnover import extract_turnover_fields
 from .extractors.make_in_india import extract_mii_fields
+from .extractors.tender import extract_tender_fields
 
 def process_document(file_path: str, original_filename: str = "") -> Dict[str, Any]:
     """
@@ -31,6 +32,7 @@ def process_document(file_path: str, original_filename: str = "") -> Dict[str, A
     extracted_fields.update(extract_udyam_fields(pages_text))
     extracted_fields.update(extract_turnover_fields(pages_text))
     extracted_fields.update(extract_mii_fields(pages_text))
+    extracted_fields.update(extract_tender_fields(pages_text))
 
         
     from .validators import validate_pan_format, validate_gst_format, validate_numeric
@@ -45,6 +47,8 @@ def process_document(file_path: str, original_filename: str = "") -> Dict[str, A
             is_valid = validate_gst_format(val)
         elif field_name in ["turnover", "local_content_percentage"]:
             is_valid = validate_numeric(val)
+        elif field_name == "tender_id":
+            is_valid = bool(val)
         else:
             is_valid = bool(val) # fallback for udyam or others
             

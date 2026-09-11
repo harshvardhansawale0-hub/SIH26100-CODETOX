@@ -4,7 +4,7 @@ from typing import Dict, Any, List, Tuple, Optional
 from datetime import datetime
 from ..models import (
     BidVerifyRequest, RuleCheckResult, ExtractedDoc, AuditTrailEntry,
-    ExtractedEntity, CrossDocMatchResult, BidRequirementMatchResult, ComplianceReport
+    ExtractedEntity, CrossDocMatchResult, BidRequirementMatchResult, ComplianceReport, FieldMatch
 )
 
 def parse_currency_amount(val_str: str) -> float:
@@ -27,7 +27,8 @@ def validate_bid_compliance(
     req: BidVerifyRequest, 
     processing_results: Dict[str, Any] = None,
     cross_checks: Dict[str, Any] = None,
-    tender_criteria: Optional[Dict[str, Any]] = None
+    tender_criteria: Optional[Dict[str, Any]] = None,
+    field_matches: Dict[str, FieldMatch] = None
 ) -> Dict[str, Any]:
     """
     Executes the Complete AI Verification Pipeline:
@@ -240,11 +241,23 @@ def validate_bid_compliance(
     # Clamp score
     score = max(0, min(100, score))
 
+    # Check for critical field mismatches
+    has_field_mismatch = False
+    if field_matches:
+        for fkey, fmatch in field_matches.items():
+            if fmatch.status == "NOT_MATCHED":
+                has_field_mismatch = True
+                score -= 50
+                flags.append(f"CRITICAL MISMATCH: {fkey.upper()} entered as '{fmatch.entered}', but document contained '{fmatch.extracted}'.")
+
+    # Clamp score again
+    score = max(0, min(100, score))
+
     # ======================================================
     # STATUS DETERMINATION
     # ======================================================
-    if not has_documentary_evidence:
-        # No documents: always require officer review regardless of score
+    if not has_documentary_evidence or has_field_mismatch:
+        # No documents or critical mismatch: always require officer review regardless of score
         status = "Review Required"
         risk = "High Risk"
     elif score >= 85:
@@ -264,6 +277,8 @@ def validate_bid_compliance(
     # ======================================================
     if not has_documentary_evidence:
         recommendation = "DOCUMENTATION_INCOMPLETE — Mandatory documentary evidence not provided. Procurement Officer must require document submission before qualification decision."
+    elif has_field_mismatch:
+        recommendation = "DOCUMENT_MISMATCH — An entered field does not match the value extracted from its document. Application requires manual review."
     elif score >= 85:
         recommendation = "Recommended for Procurement Officer Approval — All compliance checks passed with documentary evidence."
     elif score >= 50:
