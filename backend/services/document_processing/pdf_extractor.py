@@ -62,7 +62,7 @@ def extract_text_from_pdf(file_path: str) -> Dict[str, Any]:
                             except Exception:
                                 pass
                         # Extract literal strings (...)
-                        lit_matches = re.findall(rb'\((.*?)\)', data)
+                        lit_matches = re.findall(rb'\((.*?)\)', data, re.DOTALL)
                         for lit in lit_matches:
                             text_chunks.append(lit.decode('latin1', errors='ignore'))
 
