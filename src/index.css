@@ -2350,6 +2350,133 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+/* Chatbot Dedicated Language Selector */
+.gemmy-lang-selector-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.gemmy-lang-select-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #ffffff;
+  padding: 0.2rem 0.55rem;
+  border-radius: 9999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  line-height: 1;
+}
+
+.gemmy-lang-select-btn:hover {
+  background: rgba(255, 255, 255, 0.3);
+  border-color: #ffffff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.gemmy-globe-icon {
+  color: #fbbf24;
+}
+
+.gemmy-lang-code-pill {
+  font-size: 0.62rem;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  color: #ffffff;
+}
+
+.gemmy-lang-caret {
+  color: #e2e8f0;
+  transition: transform 0.2s ease;
+}
+
+.gemmy-lang-caret.open {
+  transform: rotate(180deg);
+}
+
+.gemmy-lang-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  box-shadow: 0 14px 30px rgba(11, 26, 45, 0.28), 0 2px 6px rgba(0, 0, 0, 0.08);
+  min-width: 175px;
+  padding: 0.4rem;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease-out;
+}
+
+.gemmy-lang-menu-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0.3rem 0.5rem 0.25rem 0.5rem;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 0.25rem;
+}
+
+.gemmy-lang-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border: none;
+  background: transparent;
+  color: #0f172a;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s ease;
+}
+
+.gemmy-lang-option:hover {
+  background: #f1f5f9;
+  color: #0284c7;
+}
+
+.gemmy-lang-option.selected {
+  background: #0284c7;
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.gemmy-lang-opt-flag {
+  font-size: 1rem;
+}
+
+.gemmy-lang-opt-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+  flex: 1;
+}
+
+.gemmy-lang-opt-text strong {
+  font-size: 0.82rem;
+}
+
+.gemmy-lang-opt-text small {
+  font-size: 0.68rem;
+  opacity: 0.8;
+}
+
+.gemmy-lang-check {
+  color: #fbbf24;
+}
+
 .gemmy-subtitle {
   margin: 0;
   font-size: 0.72rem;
