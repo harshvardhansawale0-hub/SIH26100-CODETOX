@@ -68,9 +68,10 @@ function MainApp() {
 
   // Tenders state (Buyer creates, Bidder applies)
   const [tenders, setTenders] = useState(() => {
-    // Get list of tender IDs the user has locally deleted
     let deletedIds = [];
-    try { deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]'); } catch {}
+    try {
+      deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]');
+    } catch {}
     try {
       const stored = localStorage.getItem('gem_stored_tenders');
       if (stored) {
@@ -80,9 +81,8 @@ function MainApp() {
         }
       }
     } catch {}
-    return deletedIds.length > 0
-      ? (initialTenders || []).filter(t => !deletedIds.includes(t.id))
-      : (initialTenders || []);
+    const base = initialTenders || [];
+    return deletedIds.length > 0 ? base.filter(t => !deletedIds.includes(t.id)) : base;
   });
   const [isLoadingTenders, setIsLoadingTenders] = useState(false);
 
@@ -183,21 +183,24 @@ function MainApp() {
         try {
           storedTenders = JSON.parse(localStorage.getItem('gem_stored_tenders') || '[]');
         } catch {}
+        // Get list of tenders user explicitly deleted (safety net for race conditions)
+        let deletedIds = [];
+        try {
+          deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]');
+        } catch {}
         const mergedTenders = [...fetchedTenders];
         for (const st of storedTenders) {
           if (st && st.id && !mergedTenders.some(t => t.id === st.id)) {
             mergedTenders.unshift(st);
           }
         }
-        // Filter out any tenders the user has locally deleted (safety net)
-        let deletedIds = [];
-        try { deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]'); } catch {}
-        const cleanedTenders = deletedIds.length > 0
+        // Filter out any tenders the user has explicitly deleted
+        const finalTenders = deletedIds.length > 0
           ? mergedTenders.filter(t => !deletedIds.includes(t.id))
           : mergedTenders;
-        setTenders(cleanedTenders);
+        setTenders(finalTenders);
         try {
-          localStorage.setItem('gem_stored_tenders', JSON.stringify(cleanedTenders));
+          localStorage.setItem('gem_stored_tenders', JSON.stringify(finalTenders));
         } catch {}
       }
       if (fetchedBids && fetchedBids.length > 0) {
@@ -375,6 +378,15 @@ function MainApp() {
 
   // Buyer Flow: Buyer deletes a published tender
   const handleDeleteTender = async (tenderId) => {
+    // Track this deletion persistently so refreshes don't bring it back
+    try {
+      const deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]');
+      if (!deletedIds.includes(tenderId)) {
+        deletedIds.push(tenderId);
+        localStorage.setItem('gem_deleted_tenders', JSON.stringify(deletedIds));
+      }
+    } catch {}
+
     setTenders((prev) => {
       const updated = prev.filter((t) => t.id !== tenderId);
       try {
@@ -389,21 +401,14 @@ function MainApp() {
       } catch {}
       return updated;
     });
-    // Track deleted tender ID so it doesn't reappear after refresh
-    try {
-      const deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]');
-      if (!deletedIds.includes(tenderId)) {
-        deletedIds.push(tenderId);
-        localStorage.setItem('gem_deleted_tenders', JSON.stringify(deletedIds));
-      }
-    } catch {}
     try {
       await gemApi.deleteTender(tenderId);
-      // Successfully deleted on server — remove from local deletion tracker
+      // On successful backend delete, we can clear this ID from the deleted tracker
+      // since the backend is now authoritative
       try {
         const deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]');
-        const cleaned = deletedIds.filter(id => id !== tenderId);
-        localStorage.setItem('gem_deleted_tenders', JSON.stringify(cleaned));
+        const remaining = deletedIds.filter(id => id !== tenderId);
+        localStorage.setItem('gem_deleted_tenders', JSON.stringify(remaining));
       } catch {}
     } catch (err) {
       console.warn('Failed to delete tender on server:', err);

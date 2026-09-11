@@ -90,6 +90,7 @@ def publish_tender(payload: TenderCreateRequest, authorization: Optional[str] = 
 def remove_tender(tender_id: str):
     """
     Buyer deletes a tender by ID.
+    Supports slash-containing Tender IDs (e.g. GEM/2026/B/891244).
     """
     deleted = delete_tender(tender_id)
     if not deleted:
