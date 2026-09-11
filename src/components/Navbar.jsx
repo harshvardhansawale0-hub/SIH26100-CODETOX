@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Search, User, Building2, Landmark, PlusCircle, UploadCloud, CheckCircle2, ShieldCheck, ChevronDown, Lock, LogOut, LogIn, Sparkles } from 'lucide-react';
+import { Search, User, Building2, Landmark, PlusCircle, UploadCloud, CheckCircle2, ShieldCheck, ChevronDown, Lock, LogOut, LogIn, Home, Sparkles } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -78,6 +78,26 @@ export default function Navbar({
 
       {/* Navigation Tabs with Dropdowns */}
       <nav className="nav-menu-links">
+        {/* Dedicated Primary Homepage Tab for ALL Users */}
+        <button
+          className={`nav-tab-btn ${activeTab === 'Forward' ? 'active' : ''}`}
+          onClick={() => {
+            setOpenDropdown(null);
+            setActiveTab('Forward');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            color: activeTab === 'Forward' ? '#38bdf8' : 'inherit',
+            fontWeight: activeTab === 'Forward' ? '800' : '600'
+          }}
+          title="Return to GeM Homepage"
+        >
+          <Home size={15} />
+          <span>{lang === 'hi' ? 'मुख्य पृष्ठ' : (lang === 'mr' ? 'मुख्य पृष्ठ' : 'Homepage')}</span>
+        </button>
         {/* 1. Forward Auction Dropdown */}
         <div className="nav-dropdown-container">
           <button

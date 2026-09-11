@@ -168,62 +168,6 @@ export default function PopularProductCategories({ onCategoryClick, onOpenGemmy 
         </div>
       </div>
 
-      {/* Right-Side Quick Social Floating Dock */}
-      <aside className="gem-social-dock" aria-label="GeM Social Media and Navigation">
-        <a
-          href="https://instagram.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-ig"
-          title="Instagram"
-        >
-          📷
-        </a>
-        <a
-          href="https://facebook.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-fb"
-          title="Facebook"
-        >
-          f
-        </a>
-        <a
-          href="https://twitter.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-tw"
-          title="X (Twitter)"
-        >
-          𝕏
-        </a>
-        <a
-          href="https://youtube.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-yt"
-          title="YouTube"
-        >
-          ▶
-        </a>
-        <a
-          href="https://linkedin.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-li"
-          title="LinkedIn"
-        >
-          in
-        </a>
-        <button
-          type="button"
-          className="social-dock-icon social-top"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          title="Back to Top"
-        >
-          ︽
-        </button>
-      </aside>
     </section>
   );
 }
