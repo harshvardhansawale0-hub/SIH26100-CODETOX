@@ -42,6 +42,8 @@ export default function Navbar({
     setOpenDropdown(null);
     if (tab) setActiveTab(tab);
     if (action) action();
+  };
+
   const isBuyerAuthenticated = currentUser && currentUser.role === 'buyer';
   const isBidderAuthenticated = currentUser && currentUser.role === 'bidder';
 
@@ -346,7 +348,6 @@ export default function Navbar({
             </button>
           </div>
         ) : (
-          {/* Single Unified Login Button on Default Homepage */}
           <button
             className="btn-sign-in"
             style={{

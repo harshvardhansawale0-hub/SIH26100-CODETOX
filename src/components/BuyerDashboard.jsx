@@ -32,6 +32,14 @@ export default function BuyerDashboard({
   const [isSelecting, setIsSelecting] = useState(false);
   const [tenderScopeMode, setTenderScopeMode] = useState('my'); // 'my' or 'all'
 
+  // Dynamic available categories for filter
+  const availableCategories = useMemo(() => {
+    const cats = new Set(['IT Hardware', 'Software & Cloud Services', 'Medical Equipment & Healthcare Devices', 'Office Furniture & Modular Fixtures']);
+    for (const t of tenders || []) if (t.category) cats.add(t.category);
+    for (const b of bids || []) if (b.category) cats.add(b.category);
+    return Array.from(cats).sort();
+  }, [tenders, bids]);
+
   // Scope tenders to this Buyer:
   // Fresh/registered buyer accounts see their created tenders.
   // Demo accounts (Dir. Rajesh Verma) show demo tenders.
@@ -468,10 +476,9 @@ export default function BuyerDashboard({
               }}
             >
               <option value="ALL">All Categories</option>
-              <option value="IT Hardware">IT Hardware</option>
-              <option value="Furniture">Furniture</option>
-              <option value="Software">Software</option>
-              <option value="Medical Equipment">Medical Equipment</option>
+              {availableCategories.map((cat) => (
+                <option key={cat} value={cat}>{cat}</option>
+              ))}
             </select>
 
             {activeSubTab === 'applications' && (

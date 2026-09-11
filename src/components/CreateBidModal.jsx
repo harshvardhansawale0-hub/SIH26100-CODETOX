@@ -3,7 +3,28 @@ import { X, Plus, Trash2, CheckCircle2, ShieldCheck, AlertCircle, FileText } fro
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
 
-export default function CreateBidModal({ isOpen, onClose, onTenderCreated, currentUser }) {
+const GEM_MARKET_CATEGORIES = [
+  "IT Hardware",
+  "Software & Cloud Services",
+  "Medical Equipment & Healthcare Devices",
+  "Pharmaceuticals & Hospital Consumables",
+  "Office Furniture & Modular Fixtures",
+  "Industrial Machinery & Heavy Electricals",
+  "Defence, Security & Surveillance Systems",
+  "Vehicles & Electric Mobility (EV)",
+  "Civil Infrastructure & Construction Materials",
+  "Solar Energy & Renewable Utilities",
+  "Facilities Management, Cleaning & Sanitation",
+  "Laboratory, Scientific & Testing Instruments",
+  "Textiles, Uniforms & Protective Gear",
+  "Telecommunications & Networking Equipment",
+  "Agricultural Machinery & Rural Technologies",
+  "Office Stationery, Paper & Printing Services",
+  "Aviation, Drones & Aerospace Components",
+  "Other"
+];
+
+export default function CreateBidModal({ isOpen, onClose, onTenderCreated, currentUser = null }) {
   if (!isOpen) return null;
 
   const { t } = useLanguage();
@@ -12,16 +33,27 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
   const effectiveUser = currentUser || (() => {
     try {
       const saved = localStorage.getItem('gem_auth_user') || localStorage.getItem('gem_user');
-      return saved ? JSON.parse(saved) : null;
+      return saved ? JSON.parse(saved) : {
+        fullName: "Dir. Rajesh Verma",
+        email: "procurement.officer@nic.in",
+        organization: "Ministry of Electronics & IT (MeitY)",
+        designation: "Chief Procurement Officer"
+      };
     } catch {
-      return null;
+      return {
+        fullName: "Dir. Rajesh Verma",
+        email: "procurement.officer@nic.in",
+        organization: "Ministry of Electronics & IT (MeitY)",
+        designation: "Chief Procurement Officer"
+      };
     }
   })();
 
   const [title, setTitle] = useState('');
-  const [ministry, setMinistry] = useState(effectiveUser?.organization || 'Ministry of Defence');
-  const [department, setDepartment] = useState(effectiveUser?.organization ? `${effectiveUser.organization} Procurement Wing` : 'Defence Research & Development Organisation (DRDO)');
+  const [ministry, setMinistry] = useState(effectiveUser?.organization || 'Ministry of Electronics & IT (MeitY)');
+  const [department, setDepartment] = useState(effectiveUser?.organization ? `${effectiveUser.organization} Procurement Wing` : 'Digital India Corporation');
   const [category, setCategory] = useState('IT Hardware');
+  const [customCategory, setCustomCategory] = useState('');
   const [estimatedValue, setEstimatedValue] = useState('₹1.85 Cr');
   const [emdAmount, setEmdAmount] = useState('₹3.70 Lakhs (MSE Exempted)');
   const [closingDate, setClosingDate] = useState('25 Sep 2026');
@@ -79,11 +111,15 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
       const userName = effectiveUser?.fullName || 'Government Buyer';
       const userOrg = effectiveUser?.organization || ministry;
 
+      const finalCategory = (category === 'Other' && customCategory.trim())
+        ? customCategory.trim()
+        : category;
+
       const payload = {
         title,
         ministry,
         department,
-        category,
+        category: finalCategory,
         estimatedValue,
         emdAmount,
         closingDate,
@@ -210,20 +246,39 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: '0.75rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
-                    Category *
+                    Market Category *
                   </label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     style={{ width: '100%', padding: '0.55rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.85rem', backgroundColor: '#ffffff' }}
                   >
-                    <option value="IT Hardware">IT Hardware</option>
-                    <option value="Furniture">Furniture</option>
-                    <option value="Software">Software</option>
-                    <option value="Medical Equipment">Medical Equipment</option>
-                    <option value="Solar Energy">Solar Energy</option>
-                    <option value="Vehicles">Vehicles</option>
+                    {GEM_MARKET_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat === 'Other' ? '★ Other (Specify Custom Category)' : cat}
+                      </option>
+                    ))}
                   </select>
+                  {category === 'Other' && (
+                    <div style={{ marginTop: '0.45rem' }}>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Type custom category name..."
+                        value={customCategory}
+                        onChange={(e) => setCustomCategory(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '0.45rem 0.55rem',
+                          borderRadius: '6px',
+                          border: '2px solid #0284c7',
+                          fontSize: '0.82rem',
+                          backgroundColor: '#f0f9ff'
+                        }}
+                        autoFocus
+                      />
+                    </div>
+                  )}
                 </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.3rem' }}>
