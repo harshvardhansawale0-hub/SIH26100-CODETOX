@@ -56,7 +56,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
   const [customCategory, setCustomCategory] = useState('');
   const [estimatedValue, setEstimatedValue] = useState('₹1.85 Cr');
   const [emdAmount, setEmdAmount] = useState('₹3.70 Lakhs (MSE Exempted)');
-  const [closingDate, setClosingDate] = useState('25 Sep 2026');
+  const [closingDate, setClosingDate] = useState('2026-09-25');
   
   // Compliance Criteria Builder
   const [miiMinRequirement, setMiiMinRequirement] = useState('50% (Class-I)');
@@ -309,7 +309,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
                     Bid Closing Date *
                   </label>
                   <input
-                    type="text"
+                    type="date"
                     required
                     value={closingDate}
                     onChange={(e) => setClosingDate(e.target.value)}
