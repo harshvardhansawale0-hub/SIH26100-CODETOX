@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 from collections import defaultdict
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request, status, UploadFile, File, Form
 from fastapi.responses import Response
 
 from ..database import (
@@ -24,6 +24,7 @@ from ..models import (
     PassportRevokeRequest
 )
 from ..services.doc_verifier import verify_document
+from ..services.ocr_forensics import extract_document_id
 from ..services.passport_service import (
     build_passport_payload, sign_payload, verify_signature,
     compute_payload_hash, generate_passport_qr, get_public_key_pem,
@@ -175,6 +176,84 @@ def verify_vendor_documents(vendor_id: int, req: DocumentVerifyRequest):
         )
 
     return results
+
+
+@router.post("/vendors/{vendor_id}/verify-document-upload")
+async def verify_vendor_document_upload(
+    vendor_id: int,
+    file: UploadFile = File(...),
+    docType: str = Form(...),
+    manualId: str = Form(...)
+):
+    """
+    Accept an uploaded document file (PDF, image, text), run OCR/text extraction to extract the document ID,
+    and compare it with the manualId provided by the user.
+    If matched, record as verified document with 30-day validity.
+    """
+    vendor = get_vendor_by_id(vendor_id)
+    if not vendor:
+        raise HTTPException(status_code=404, detail=f"Vendor with id {vendor_id} not found")
+
+    file_bytes = await file.read()
+    file_name = file.filename or "uploaded_document"
+    doc_type_clean = docType.upper().strip()
+    manual_id_clean = manualId.strip()
+
+    # OCR Extraction and matching
+    ocr_result = extract_document_id(
+        file_name=file_name,
+        file_bytes=file_bytes,
+        doc_type=doc_type_clean,
+        manual_id=manual_id_clean
+    )
+
+    is_match = ocr_result["match"]
+    v_status = "verified" if is_match else "failed"
+    verified_at = datetime.now().isoformat() if is_match else None
+    
+    from datetime import timedelta
+    expires_at = (datetime.now() + timedelta(days=30)).isoformat() if is_match else None
+
+    verification_id = str(uuid.uuid4())
+    record = create_verification(
+        verification_id=verification_id,
+        vendor_id=vendor_id,
+        doc_type=doc_type_clean,
+        doc_ref=manual_id_clean,
+        status=v_status,
+        verified_at=verified_at,
+        expires_at=expires_at,
+        verification_method="ocr_scan",
+        details=json.dumps({
+            "fileName": file_name,
+            "extractedId": ocr_result.get("extractedId"),
+            "manualId": manual_id_clean,
+            "match": is_match,
+            "confidence": ocr_result.get("confidence"),
+            "details": ocr_result.get("details"),
+            "rawTextSnippet": ocr_result.get("rawTextSnippet")
+        })
+    )
+
+    log_audit_event(
+        event_type="DOCUMENT_OCR_VERIFICATION",
+        entity_id=f"vendor-{vendor_id}",
+        user_agent="CompliancePassportOCR",
+        details=json.dumps({
+            "docType": doc_type_clean,
+            "manualId": manual_id_clean[:4] + "****" if len(manual_id_clean) > 4 else "****",
+            "match": is_match,
+            "status": v_status,
+            "fileName": file_name
+        })
+    )
+
+    return {
+        "success": is_match,
+        "verification": record,
+        "ocrResult": ocr_result,
+        "message": "Document verified successfully! OCR match confirmed." if is_match else f"OCR Mismatch: Uploaded document contained '{ocr_result.get('extractedId') or 'unrecognized ID'}', which did not match manual ID '{manual_id_clean}'."
+    }
 
 
 # =========================================================================

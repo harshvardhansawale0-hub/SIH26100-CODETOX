@@ -47,19 +47,19 @@ export default function PassportVerifyModal({ isOpen, onClose, passportId, bidId
   const renderContent = () => {
     if (loading) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', color: '#94a3b8' }}>
-          <ShieldCheck size={48} className="spin-animation" style={{ color: '#38bdf8', marginBottom: '16px', animation: 'spin 2s linear infinite' }} />
-          <p style={{ fontFamily: 'monospace' }}>Verifying Digital Passport...</p>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', color: '#64748b' }}>
+          <ShieldCheck size={48} className="spin-animation" style={{ color: '#0284c7', marginBottom: '16px', animation: 'spin 2s linear infinite' }} />
+          <p style={{ fontWeight: '600', color: '#0f172a' }}>Verifying Digital Passport on GeM Blockchain...</p>
         </div>
       );
     }
 
     if (error) {
       return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', color: '#ef4444' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', color: '#dc2626' }}>
           <XCircle size={48} style={{ marginBottom: '16px' }} />
-          <h4 className="serif-heading" style={{ margin: '0 0 8px 0' }}>Verification Failed</h4>
-          <p style={{ color: '#94a3b8', margin: 0 }}>{error}</p>
+          <h4 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: '800', color: '#991b1b' }}>Verification Failed</h4>
+          <p style={{ color: '#64748b', margin: 0 }}>{error}</p>
         </div>
       );
     }
@@ -69,68 +69,85 @@ export default function PassportVerifyModal({ isOpen, onClose, passportId, bidId
     const { status, vendorName, complianceScore, credentials, signatureValid, message, expiryDate } = result;
 
     let StatusIcon = CheckCircle2;
-    let statusColor = '#10b981';
+    let statusColor = '#059669';
+    let statusBg = '#ecfdf5';
+    let statusBorder = '#a7f3d0';
     let statusText = 'PASSPORT VALID';
 
     if (status === 'invalid' || status === 'revoked' || !signatureValid) {
       StatusIcon = XCircle;
-      statusColor = '#ef4444';
+      statusColor = '#dc2626';
+      statusBg = '#fef2f2';
+      statusBorder = '#fecaca';
       statusText = !signatureValid ? 'SIGNATURE INVALID' : status === 'revoked' ? 'PASSPORT REVOKED' : 'PASSPORT INVALID';
     } else if (status === 'expired') {
       StatusIcon = Clock;
-      statusColor = '#f59e0b';
+      statusColor = '#d97706';
+      statusBg = '#fffbeb';
+      statusBorder = '#fde68a';
       statusText = 'PASSPORT EXPIRED';
     }
 
     return (
-      <div style={{ padding: '20px' }}>
+      <div style={{ padding: '24px' }}>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginBottom: '24px' }}>
-          <StatusIcon 
-            size={64} 
-            style={{ 
-              color: statusColor, 
-              marginBottom: '16px',
-              transition: 'transform 0.3s ease',
-              transform: 'scale(1.1)' 
-            }} 
-          />
+          <div style={{
+            width: '80px',
+            height: '80px',
+            borderRadius: '50%',
+            backgroundColor: statusBg,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: '16px',
+            border: `2px solid ${statusBorder}`
+          }}>
+            <StatusIcon 
+              size={44} 
+              style={{ 
+                color: statusColor,
+                transition: 'transform 0.3s ease',
+              }} 
+            />
+          </div>
           <div 
             style={{ 
-              backgroundColor: `${statusColor}22`, 
+              backgroundColor: statusBg, 
               color: statusColor, 
-              padding: '6px 16px', 
+              padding: '6px 18px', 
               borderRadius: '999px',
-              fontWeight: 'bold',
-              fontSize: '14px',
-              marginBottom: '16px',
-              border: `1px solid ${statusColor}55`
+              fontWeight: '800',
+              fontSize: '13px',
+              letterSpacing: '0.5px',
+              marginBottom: '14px',
+              border: `1px solid ${statusBorder}`
             }}
           >
             {statusText}
           </div>
           
-          <h4 style={{ fontSize: '20px', margin: '0 0 8px 0', color: '#ffffff' }}>{vendorName || 'Unknown Vendor'}</h4>
-          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', color: '#94a3b8', fontSize: '14px' }}>
-            <span>Score: <strong style={{ color: '#38bdf8' }}>{complianceScore || 0}/100</strong></span>
+          <h4 style={{ fontSize: '20px', fontWeight: '800', margin: '0 0 6px 0', color: '#0f172a' }}>{vendorName || 'Verified Vendor Partner'}</h4>
+          <div style={{ display: 'flex', gap: '14px', alignItems: 'center', color: '#64748b', fontSize: '13px', fontWeight: '500' }}>
+            <span>Score: <strong style={{ color: '#0284c7', fontWeight: '800' }}>{complianceScore || 0}/100</strong></span>
             <span>•</span>
-            <span>Expires: {expiryDate || 'N/A'}</span>
+            <span>Expiry Date: <strong style={{ color: '#334155' }}>{expiryDate || 'N/A'}</strong></span>
           </div>
         </div>
 
         {message && (
-          <div style={{ backgroundColor: '#081729', borderLeft: `4px solid ${statusColor}`, padding: '12px', marginBottom: '20px', color: '#e2e8f0', fontSize: '14px' }}>
+          <div style={{ backgroundColor: '#f8fafc', borderLeft: `4px solid ${statusColor}`, padding: '12px 16px', borderRadius: '0 8px 8px 0', marginBottom: '20px', color: '#334155', fontSize: '13px', border: '1px solid #e2e8f0', borderLeftWidth: '4px' }}>
             {message}
           </div>
         )}
 
         <div style={{ marginBottom: '20px' }}>
-          <h5 style={{ color: '#94a3b8', margin: '0 0 12px 0', fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Verified Credentials</h5>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+          <h5 style={{ color: '#64748b', margin: '0 0 10px 0', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: '800' }}>Verified Credentials</h5>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
             {credentials && credentials.length > 0 ? (
               credentials.map((cred, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#081729', padding: '10px', borderRadius: '6px', border: '1px solid #1e385b' }}>
-                  <ShieldCheck size={16} color="#10b981" />
-                  <span style={{ color: '#e2e8f0', fontSize: '13px' }}>{cred}</span>
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px', backgroundColor: '#f8fafc', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <ShieldCheck size={16} color="#059669" />
+                  <span style={{ color: '#1e293b', fontSize: '12.5px', fontWeight: '600' }}>{cred}</span>
                 </div>
               ))
             ) : (
@@ -139,17 +156,17 @@ export default function PassportVerifyModal({ isOpen, onClose, passportId, bidId
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#081729', padding: '12px', borderRadius: '6px', border: '1px solid #1e385b', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#e2e8f0' }}>
-            <Fingerprint size={18} color="#94a3b8" />
-            <span style={{ fontSize: '14px' }}>Digital Signature</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#334155' }}>
+            <Fingerprint size={18} color="#0284c7" />
+            <span style={{ fontSize: '13.5px', fontWeight: '600' }}>Digital Cryptographic Signature</span>
           </div>
           {signatureValid ? (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#10b981', fontSize: '13px', fontWeight: 'bold' }}>
-              <CheckCircle2 size={14} /> Valid
+            <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#059669', fontSize: '13px', fontWeight: '800', backgroundColor: '#ecfdf5', padding: '3px 10px', borderRadius: '6px', border: '1px solid #a7f3d0' }}>
+              <CheckCircle2 size={14} /> Validated
             </span>
           ) : (
-            <span style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#ef4444', fontSize: '13px', fontWeight: 'bold' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#dc2626', fontSize: '13px', fontWeight: '800', backgroundColor: '#fef2f2', padding: '3px 10px', borderRadius: '6px', border: '1px solid #fecaca' }}>
               <AlertTriangle size={14} /> Invalid
             </span>
           )}
@@ -159,16 +176,18 @@ export default function PassportVerifyModal({ isOpen, onClose, passportId, bidId
           <button 
             onClick={onClose}
             style={{ 
-              backgroundColor: '#1e385b', 
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 
               color: '#ffffff', 
               border: 'none', 
-              padding: '10px 20px', 
-              borderRadius: '6px', 
+              padding: '10px 24px', 
+              borderRadius: '8px', 
               cursor: 'pointer',
-              fontWeight: '500'
+              fontWeight: '700',
+              fontSize: '13px',
+              boxShadow: '0 2px 6px rgba(2, 132, 199, 0.25)'
             }}
           >
-            Close
+            Close Check
           </button>
         </div>
       </div>
@@ -176,30 +195,30 @@ export default function PassportVerifyModal({ isOpen, onClose, passportId, bidId
   };
 
   return (
-    <div className="modal-overlay" onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.7)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+    <div className="modal-overlay" onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
       <div 
         className="modal-content-box" 
         onClick={e => e.stopPropagation()} 
         style={{ 
           maxWidth: '560px', 
           width: '100%', 
-          backgroundColor: '#0f2238', 
-          borderRadius: '8px',
-          border: '1px solid #1e385b',
-          boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
+          backgroundColor: '#ffffff', 
+          borderRadius: '16px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.2)',
           overflow: 'hidden'
         }}
       >
-        <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #1e385b', backgroundColor: '#061120' }}>
+        <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '18px 24px', borderBottom: '1px solid #e2e8f0', background: 'linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%)' }}>
           <div>
-            <span className="section-tag" style={{ backgroundColor: '#0284c7', color: '#fff', padding: '4px 8px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold', letterSpacing: '0.05em' }}>PASSPORT VERIFICATION</span>
-            <h3 className="modal-title serif-heading" style={{ margin: '8px 0 0 0', color: '#ffffff', fontSize: '18px' }}>Compliance Passport Check</h3>
+            <span style={{ backgroundColor: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: '800', letterSpacing: '0.05em' }}>PASSPORT VERIFICATION</span>
+            <h3 style={{ margin: '6px 0 0 0', color: '#0f172a', fontSize: '18px', fontWeight: '800' }}>Compliance Passport Check</h3>
           </div>
-          <button className="modal-close-btn" onClick={onClose} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer', padding: '4px' }}>
+          <button className="modal-close-btn" onClick={onClose} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}>
             <X size={20} />
           </button>
         </div>
-        <div className="modal-body" style={{ color: '#ffffff' }}>
+        <div className="modal-body" style={{ color: '#0f172a' }}>
           {renderContent()}
         </div>
       </div>

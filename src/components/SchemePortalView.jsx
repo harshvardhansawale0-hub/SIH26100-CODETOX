@@ -174,21 +174,23 @@ export default function SchemePortalView({
   const isCurrentSchemeRegistered = !!registeredSchemes[activeScheme];
 
   return (
-    <div style={{ backgroundColor: '#071526', minHeight: '85vh', padding: '2rem 1.5rem', color: '#ffffff' }}>
+    <div style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0f9ff 35%, #fff7ed 70%, #ffffff 100%)', minHeight: '88vh', padding: '2rem 1.5rem', color: '#0f172a', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}>
       <div className="container-custom">
         {/* Top Header */}
         <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-              <span className="section-tag" style={{ margin: 0 }}>OFFICIAL GOVERNMENT OF INDIA SCHEMES</span>
-              <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.3)', fontWeight: '700' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+              <span className="section-tag" style={{ margin: 0, background: 'linear-gradient(135deg, #e0f2fe 0%, #fed7aa 100%)', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: '800' }}>
+                OFFICIAL GOVERNMENT OF INDIA SCHEMES
+              </span>
+              <span style={{ fontSize: '0.75rem', backgroundColor: '#eff6ff', color: '#0284c7', padding: '3px 8px', borderRadius: '6px', border: '1px solid #bfdbfe', fontWeight: '700' }}>
                 Statutory Procurement Mandates
               </span>
             </div>
-            <h1 className="serif-heading" style={{ fontSize: '2.4rem', margin: '0.2rem 0', color: '#ffffff' }}>
+            <h1 style={{ fontSize: '2.2rem', fontWeight: '800', margin: '0.2rem 0', color: '#0f172a', letterSpacing: '-0.02em' }}>
               Government Initiatives & Enrolment Portal
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '850px', margin: 0 }}>
+            <p style={{ color: '#475569', fontSize: '0.95rem', maxWidth: '850px', margin: 0, lineHeight: '1.5' }}>
               Dedicated portal for statutory procurement schemes. Access official policy guidelines, enroll your enterprise with scheme-specific credentials, and participate in reserved public procurement tenders.
             </p>
           </div>
@@ -196,23 +198,25 @@ export default function SchemePortalView({
             <button 
               onClick={onNavigateHome}
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                color: '#e2e8f0',
-                border: '1px solid #1e385b',
+                width: '40px',
+                height: '40px',
+                padding: 0,
+                backgroundColor: '#ffffff',
+                color: '#0284c7',
+                border: '1px solid #cbd5e1',
                 borderRadius: '8px',
-                padding: '0.65rem 1.15rem',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.45rem',
-                fontWeight: '700',
-                fontSize: '0.85rem',
+                justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease'
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                transition: 'all 0.2s ease',
+                flexShrink: 0
               }}
               title="Return to GeM Homepage"
+              aria-label="Return to GeM Homepage"
             >
-              <Home size={15} color="#38bdf8" />
-              <span>🏠 Homepage</span>
+              <Home size={18} color="#0284c7" />
             </button>
           )}
         </div>
@@ -237,41 +241,41 @@ export default function SchemePortalView({
                 role="button"
                 tabIndex={0}
                 style={{
-                  backgroundColor: isActive ? '#0f2238' : '#0b1a2d',
-                  border: `2px solid ${isActive ? scheme.color : '#1e385b'}`,
+                  backgroundColor: '#ffffff',
+                  border: `2px solid ${isActive ? scheme.color : '#e2e8f0'}`,
                   borderRadius: '12px',
                   padding: '1.25rem',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
                   position: 'relative',
-                  boxShadow: isActive ? `0 8px 24px ${scheme.color}25` : 'none'
+                  boxShadow: isActive ? `0 8px 24px ${scheme.color}25` : '0 2px 8px rgba(0,0,0,0.04)'
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.75rem' }}>
                   <div style={{ 
                     backgroundColor: `${scheme.color}15`, 
                     padding: '8px', 
-                    borderRadius: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
+                    borderRadius: '8px', 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center' 
                   }}>
                     {scheme.icon}
                   </div>
                   {isReg ? (
-                    <span style={{ fontSize: '0.7rem', backgroundColor: '#10b98125', color: '#10b981', border: '1px solid #10b981', padding: '2px 7px', borderRadius: '10px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                    <span style={{ fontSize: '0.7rem', backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #86efac', padding: '2px 7px', borderRadius: '10px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '3px' }}>
                       <BadgeCheck size={12} /> ENROLLED
                     </span>
                   ) : (
-                    <span style={{ fontSize: '0.7rem', backgroundColor: `${scheme.color}20`, color: scheme.color, padding: '2px 7px', borderRadius: '4px', fontWeight: '800' }}>
+                    <span style={{ fontSize: '0.7rem', backgroundColor: `${scheme.color}15`, color: scheme.color, border: `1px solid ${scheme.color}30`, padding: '2px 7px', borderRadius: '4px', fontWeight: '800' }}>
                       {scheme.quotaStat}
                     </span>
                   )}
                 </div>
-                <h3 style={{ fontSize: '1.15rem', fontWeight: '700', color: '#ffffff', margin: '0 0 0.25rem 0' }}>
+                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: '0 0 0.25rem 0' }}>
                   {scheme.name}
                 </h3>
-                <span style={{ fontSize: '0.78rem', color: '#94a3b8', display: 'block' }}>
+                <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'block' }}>
                   {scheme.badge}
                 </span>
               </div>
@@ -282,25 +286,26 @@ export default function SchemePortalView({
         {/* Success Alert Banner if Enrolled */}
         {successMessage && (
           <div style={{ 
-            backgroundColor: 'rgba(16, 185, 129, 0.15)', 
-            border: '1px solid #10b981', 
-            borderRadius: '10px', 
+            backgroundColor: '#ecfdf5', 
+            border: '1px solid #a7f3d0', 
+            borderRadius: '12px', 
             padding: '1.25rem', 
             marginBottom: '2rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
-            gap: '1rem'
+            gap: '1rem',
+            boxShadow: '0 2px 8px rgba(5, 150, 105, 0.08)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <BadgeCheck size={28} color="#10b981" />
+              <BadgeCheck size={28} color="#059669" />
               <div>
-                <h4 style={{ margin: '0 0 2px 0', color: '#10b981', fontSize: '1.05rem', fontWeight: '800' }}>
+                <h4 style={{ margin: '0 0 2px 0', color: '#059669', fontSize: '1.05rem', fontWeight: '800' }}>
                   Enrollment Successful: {successMessage.scheme}
                 </h4>
-                <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1' }}>
-                  Certificate Generated with Registration ID: <strong className="mono-text" style={{ color: '#ffffff' }}>{successMessage.regId}</strong>. Your account is now eligible for preferential procurement quotas.
+                <p style={{ margin: 0, fontSize: '0.85rem', color: '#334155' }}>
+                  Certificate Generated with Registration ID: <strong className="mono-text" style={{ color: '#0f172a' }}>{successMessage.regId}</strong>. Your account is now eligible for preferential procurement quotas.
                 </p>
               </div>
             </div>
@@ -308,17 +313,18 @@ export default function SchemePortalView({
               type="button"
               onClick={() => onNavigateToTenders && onNavigateToTenders(activeScheme)}
               style={{
-                backgroundColor: '#10b981',
-                color: '#071526',
+                background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                color: '#ffffff',
                 border: 'none',
                 borderRadius: '6px',
-                padding: '0.5rem 1rem',
+                padding: '0.55rem 1.15rem',
                 fontSize: '0.85rem',
                 fontWeight: '800',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem'
+                gap: '0.4rem',
+                boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
               }}
             >
               <span>View Reserved Tenders</span>
@@ -330,58 +336,58 @@ export default function SchemePortalView({
         {/* 2-Column Main Section: Left = Scheme Info & Directives, Right = Registration Form */}
         <div style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
           {/* Left Column: Scheme Information & Mandates */}
-          <div style={{ backgroundColor: '#0b1a2d', border: `1px solid ${currentScheme.color}50`, borderRadius: '14px', padding: '1.75rem' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.75rem', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
-              <div style={{ backgroundColor: `${currentScheme.color}20`, padding: '10px', borderRadius: '10px' }}>
+              <div style={{ backgroundColor: `${currentScheme.color}15`, padding: '10px', borderRadius: '10px' }}>
                 {currentScheme.icon}
               </div>
               <div>
-                <h2 style={{ fontSize: '1.4rem', color: '#ffffff', margin: 0, fontWeight: '800' }}>
+                <h2 style={{ fontSize: '1.35rem', color: '#0f172a', margin: 0, fontWeight: '800' }}>
                   {currentScheme.name}
                 </h2>
-                <span style={{ fontSize: '0.82rem', color: currentScheme.color, fontWeight: '700' }}>
+                <span style={{ fontSize: '0.82rem', color: currentScheme.color, fontWeight: '800' }}>
                   {currentScheme.mandate}
                 </span>
               </div>
             </div>
 
-            <p style={{ fontSize: '0.95rem', color: '#cbd5e1', lineHeight: 1.6, marginBottom: '1.5rem' }}>
+            <p style={{ fontSize: '0.92rem', color: '#334155', lineHeight: 1.6, marginBottom: '1.5rem' }}>
               {currentScheme.tagline}. GeM provides automated evaluation of this statutory qualification at the tender ingestion stage.
             </p>
 
-            <div style={{ backgroundColor: '#061120', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem', marginBottom: '1.5rem' }}>
-              <h4 style={{ fontSize: '0.9rem', color: '#38bdf8', margin: '0 0 0.75rem 0', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+            <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1.25rem', marginBottom: '1.5rem' }}>
+              <h4 style={{ fontSize: '0.9rem', color: '#0284c7', margin: '0 0 0.75rem 0', textTransform: 'uppercase', letterSpacing: '0.04em', display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: '800' }}>
                 <Info size={16} /> Official Policy Directives
               </h4>
               <ul style={{ paddingLeft: '1.2rem', margin: 0, display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                 {currentScheme.policyHighlights.map((point, idx) => (
-                  <li key={idx} style={{ fontSize: '0.88rem', color: '#e2e8f0', lineHeight: 1.5 }}>
+                  <li key={idx} style={{ fontSize: '0.88rem', color: '#334155', lineHeight: 1.5 }}>
                     {point}
                   </li>
                 ))}
               </ul>
             </div>
 
-            <div style={{ backgroundColor: '#0f2238', borderRadius: '8px', padding: '1rem', border: '1px solid #1e385b' }}>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+            <div style={{ backgroundColor: '#fff7ed', borderRadius: '8px', padding: '1rem', border: '1px solid #fed7aa' }}>
+              <span style={{ fontSize: '0.75rem', color: '#ea580c', textTransform: 'uppercase', display: 'block', marginBottom: '4px', fontWeight: '800' }}>
                 Eligibility Criteria
               </span>
-              <p style={{ fontSize: '0.85rem', color: '#cbd5e1', margin: 0, lineHeight: 1.5 }}>
+              <p style={{ fontSize: '0.85rem', color: '#334155', margin: 0, lineHeight: 1.5 }}>
                 {currentScheme.eligibility}
               </p>
             </div>
 
             {/* Scheme Related Metrics */}
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '1rem', marginTop: '1.5rem' }}>
-              <div style={{ backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '8px', padding: '1rem' }}>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Procurement Target</span>
+              <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '700' }}>Procurement Target</span>
                 <div style={{ fontSize: '1.3rem', fontWeight: '800', color: currentScheme.color, marginTop: '4px' }}>
                   {currentScheme.quotaStat}
                 </div>
               </div>
-              <div style={{ backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '8px', padding: '1rem' }}>
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Active Reserved Bids</span>
-                <div style={{ fontSize: '1.3rem', fontWeight: '800', color: '#38bdf8', marginTop: '4px' }}>
+              <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1rem' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '700' }}>Active Reserved Bids</span>
+                <div style={{ fontSize: '1.3rem', fontWeight: '800', color: '#0284c7', marginTop: '4px' }}>
                   {schemeTenders.length} Live Tenders
                 </div>
               </div>
@@ -389,18 +395,18 @@ export default function SchemePortalView({
           </div>
 
           {/* Right Column: Interactive Scheme-Specific Registration Form */}
-          <div style={{ backgroundColor: '#0b1a2d', border: '1px solid #1e385b', borderRadius: '14px', padding: '1.75rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '1px solid #1e385b', paddingBottom: '1rem' }}>
+          <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.75rem', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem', borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem' }}>
               <div>
-                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', margin: 0, fontWeight: '700' }}>
+                <h3 style={{ fontSize: '1.25rem', color: '#0f172a', margin: 0, fontWeight: '800' }}>
                   Particular Scheme Registration
                 </h3>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
                   Apply for statutory enrollment under {currentScheme.name}
                 </span>
               </div>
               {isCurrentSchemeRegistered && (
-                <span style={{ backgroundColor: '#10b98120', color: '#10b981', border: '1px solid #10b981', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800' }}>
+                <span style={{ backgroundColor: '#dcfce7', color: '#166534', border: '1px solid #86efac', padding: '4px 10px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: '800' }}>
                   {registeredSchemes[activeScheme].regId}
                 </span>
               )}
@@ -410,7 +416,7 @@ export default function SchemePortalView({
               {/* Common Enterprise Fields */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                     Enterprise / Supplier Name
                   </label>
                   <input
@@ -418,11 +424,11 @@ export default function SchemePortalView({
                     value={formData.orgName}
                     onChange={e => setFormData({ ...formData, orgName: e.target.value })}
                     required
-                    style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                    style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                   />
                 </div>
                 <div>
-                  <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                  <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                     GSTIN Number
                   </label>
                   <input
@@ -431,7 +437,7 @@ export default function SchemePortalView({
                     onChange={e => setFormData({ ...formData, gstin: e.target.value })}
                     placeholder="27AABCB1234F1Z5"
                     required
-                    style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                    style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                   />
                 </div>
               </div>
@@ -441,20 +447,20 @@ export default function SchemePortalView({
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         Supplier Classification
                       </label>
                       <select
                         value={formData.miiClass}
                         onChange={e => setFormData({ ...formData, miiClass: e.target.value })}
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                       >
                         <option value="Class-I">Class-I Local Supplier (50% or more)</option>
                         <option value="Class-II">Class-II Local Supplier (20% - 50%)</option>
                       </select>
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         Local Content Percentage (%)
                       </label>
                       <input
@@ -464,13 +470,13 @@ export default function SchemePortalView({
                         value={formData.localContentPercent}
                         onChange={e => setFormData({ ...formData, localContentPercent: e.target.value })}
                         required
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#f59e0b', fontWeight: '700', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#ea580c', fontWeight: '800', fontSize: '0.85rem' }}
                       />
                     </div>
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         Manufacturing Plant State
                       </label>
                       <input
@@ -478,11 +484,11 @@ export default function SchemePortalView({
                         value={formData.plantState}
                         onChange={e => setFormData({ ...formData, plantState: e.target.value })}
                         required
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         Manufacturing District / Facility
                       </label>
                       <input
@@ -490,7 +496,7 @@ export default function SchemePortalView({
                         value={formData.plantDistrict}
                         onChange={e => setFormData({ ...formData, plantDistrict: e.target.value })}
                         required
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                       />
                     </div>
                   </div>
@@ -501,7 +507,7 @@ export default function SchemePortalView({
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         Women Equity / Shareholding (%)
                       </label>
                       <input
@@ -511,11 +517,11 @@ export default function SchemePortalView({
                         value={formData.womenOwnershipPercent}
                         onChange={e => setFormData({ ...formData, womenOwnershipPercent: e.target.value })}
                         required
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#ec4899', fontWeight: '700', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#db2777', fontWeight: '800', fontSize: '0.85rem' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         SHG / NRLM Reg Number
                       </label>
                       <input
@@ -524,12 +530,12 @@ export default function SchemePortalView({
                         onChange={e => setFormData({ ...formData, shgRegistrationId: e.target.value })}
                         placeholder="NRLM-XX-0000"
                         required
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                       />
                     </div>
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                    <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                       Lead Artisan / Woman Entrepreneur Name
                     </label>
                     <input
@@ -537,7 +543,7 @@ export default function SchemePortalView({
                       value={formData.womenLeaderName}
                       onChange={e => setFormData({ ...formData, womenLeaderName: e.target.value })}
                       required
-                      style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                      style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                     />
                   </div>
                 </>
@@ -547,7 +553,7 @@ export default function SchemePortalView({
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         DPIIT Recognition Number
                       </label>
                       <input
@@ -556,11 +562,11 @@ export default function SchemePortalView({
                         onChange={e => setFormData({ ...formData, dpiitNumber: e.target.value })}
                         placeholder="DIPP12345"
                         required
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#3b82f6', fontWeight: '700', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#2563eb', fontWeight: '800', fontSize: '0.85rem' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         Technology Domain
                       </label>
                       <input
@@ -568,12 +574,12 @@ export default function SchemePortalView({
                         value={formData.techDomain}
                         onChange={e => setFormData({ ...formData, techDomain: e.target.value })}
                         required
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                       />
                     </div>
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                    <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                       Innovation Summary & Core IP
                     </label>
                     <textarea
@@ -581,7 +587,7 @@ export default function SchemePortalView({
                       value={formData.innovationSummary}
                       onChange={e => setFormData({ ...formData, innovationSummary: e.target.value })}
                       required
-                      style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem', resize: 'vertical' }}
+                      style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem', resize: 'vertical' }}
                     />
                   </div>
                 </>
@@ -591,7 +597,7 @@ export default function SchemePortalView({
                 <>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.85rem' }}>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         Udyam Registration Number
                       </label>
                       <input
@@ -600,17 +606,17 @@ export default function SchemePortalView({
                         onChange={e => setFormData({ ...formData, udyamNumber: e.target.value })}
                         placeholder="UDYAM-MH-03-0000000"
                         required
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#10b981', fontWeight: '700', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#059669', fontWeight: '800', fontSize: '0.85rem' }}
                       />
                     </div>
                     <div>
-                      <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                      <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                         Enterprise Category
                       </label>
                       <select
                         value={formData.enterpriseType}
                         onChange={e => setFormData({ ...formData, enterpriseType: e.target.value })}
-                        style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                        style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                       >
                         <option value="Micro Enterprise">Micro Enterprise (&lt; ₹1 Cr / ₹5 Cr)</option>
                         <option value="Small Enterprise">Small Enterprise (&lt; ₹10 Cr / ₹50 Cr)</option>
@@ -618,13 +624,13 @@ export default function SchemePortalView({
                     </div>
                   </div>
                   <div>
-                    <label style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '4px' }}>
+                    <label style={{ fontSize: '0.8rem', color: '#334155', fontWeight: '700', display: 'block', marginBottom: '4px' }}>
                       Social Category (Sub-Quota Earmarking)
                     </label>
                     <select
                       value={formData.socialCategory}
                       onChange={e => setFormData({ ...formData, socialCategory: e.target.value })}
-                      style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.55rem', color: '#fff', fontSize: '0.85rem' }}
+                      style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.55rem', color: '#0f172a', fontSize: '0.85rem' }}
                     >
                       <option value="General">General (25% MSE Quota)</option>
                       <option value="SC/ST Owned">SC / ST Owned (4% Dedicated Sub-Quota)</option>
@@ -637,7 +643,7 @@ export default function SchemePortalView({
               {/* Statutory Undertaking Checkbox */}
               <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', marginTop: '0.5rem' }}>
                 <input type="checkbox" id="statutoryCheck" defaultChecked required style={{ marginTop: '3px' }} />
-                <label htmlFor="statutoryCheck" style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.4 }}>
+                <label htmlFor="statutoryCheck" style={{ fontSize: '0.78rem', color: '#64748b', lineHeight: 1.4 }}>
                   I solemnly certify under penalty of GFR debarment that the statutory claims, certifications, and manufacturing particulars submitted herein comply with official Ministry guidelines.
                 </label>
               </div>
@@ -647,12 +653,12 @@ export default function SchemePortalView({
                 type="submit"
                 disabled={isSubmitting}
                 style={{
-                  backgroundColor: currentScheme.color,
-                  color: '#071526',
+                  background: `linear-gradient(135deg, ${currentScheme.color} 0%, #ea580c 100%)`,
+                  color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
                   padding: '0.75rem',
-                  fontSize: '0.95rem',
+                  fontSize: '0.92rem',
                   fontWeight: '800',
                   cursor: isSubmitting ? 'not-allowed' : 'pointer',
                   display: 'flex',
@@ -660,7 +666,7 @@ export default function SchemePortalView({
                   justifyContent: 'center',
                   gap: '0.5rem',
                   marginTop: '0.5rem',
-                  boxShadow: `0 4px 14px ${currentScheme.color}40`,
+                  boxShadow: '0 3px 12px rgba(234, 88, 12, 0.25)',
                   transition: 'all 0.2s'
                 }}
               >
@@ -678,13 +684,13 @@ export default function SchemePortalView({
         </div>
 
         {/* Bottom Section: Reserved Tenders Matching This Scheme */}
-        <div style={{ backgroundColor: '#081729', border: '1px solid #1e385b', borderRadius: '12px', padding: '1.5rem' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.5rem', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.75rem' }}>
             <div>
-              <h3 style={{ fontSize: '1.2rem', color: '#ffffff', margin: 0, fontWeight: '700' }}>
+              <h3 style={{ fontSize: '1.2rem', color: '#0f172a', margin: 0, fontWeight: '800' }}>
                 Reserved Public Tenders under {currentScheme.name}
               </h3>
-              <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: '2px 0 0 0' }}>
+              <p style={{ color: '#64748b', fontSize: '0.85rem', margin: '2px 0 0 0' }}>
                 Live procurement opportunities reserving preference or quota for enrolled vendors
               </p>
             </div>
@@ -692,9 +698,9 @@ export default function SchemePortalView({
               type="button"
               onClick={() => onNavigateToTenders && onNavigateToTenders(activeScheme)}
               style={{
-                backgroundColor: '#1e385b',
-                color: '#38bdf8',
-                border: '1px solid rgba(56, 189, 248, 0.4)',
+                backgroundColor: '#f1f5f9',
+                color: '#0284c7',
+                border: '1px solid #cbd5e1',
                 borderRadius: '6px',
                 padding: '0.5rem 1rem',
                 fontSize: '0.82rem',
@@ -715,8 +721,8 @@ export default function SchemePortalView({
               <div 
                 key={t.id}
                 style={{
-                  backgroundColor: '#0f2238',
-                  border: '1px solid #1e385b',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #e2e8f0',
                   borderRadius: '8px',
                   padding: '1rem 1.25rem',
                   display: 'flex',
@@ -728,26 +734,26 @@ export default function SchemePortalView({
               >
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '4px' }}>
-                    <span className="mono-text" style={{ color: '#38bdf8', fontSize: '0.82rem', fontWeight: '700' }}>{t.id}</span>
-                    <span style={{ fontSize: '0.7rem', backgroundColor: `${currentScheme.color}20`, color: currentScheme.color, padding: '1px 6px', borderRadius: '4px', fontWeight: '800' }}>
+                    <span className="mono-text" style={{ color: '#0284c7', fontSize: '0.82rem', fontWeight: '800' }}>{t.id}</span>
+                    <span style={{ fontSize: '0.7rem', backgroundColor: `${currentScheme.color}15`, color: currentScheme.color, border: `1px solid ${currentScheme.color}30`, padding: '1px 6px', borderRadius: '4px', fontWeight: '800' }}>
                       {currentScheme.badge}
                     </span>
                   </div>
-                  <h4 style={{ margin: 0, fontSize: '0.98rem', color: '#ffffff' }}>{t.title}</h4>
-                  <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{t.ministry} • {t.department}</span>
+                  <h4 style={{ margin: 0, fontSize: '0.98rem', color: '#0f172a', fontWeight: '700' }}>{t.title}</h4>
+                  <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{t.ministry} • {t.department}</span>
                 </div>
 
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
                   <div style={{ textAlign: 'right' }}>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>Estimated Value</span>
-                    <span style={{ color: '#38bdf8', fontWeight: '700', fontSize: '0.95rem' }}>{t.estimatedValue}</span>
+                    <span style={{ fontSize: '0.75rem', color: '#64748b', display: 'block' }}>Estimated Value</span>
+                    <span style={{ color: '#ea580c', fontWeight: '800', fontSize: '0.95rem' }}>{t.estimatedValue}</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => onOpenVerifier && onOpenVerifier(t)}
                     style={{
-                      backgroundColor: '#10b981',
-                      color: '#071526',
+                      background: 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                      color: '#ffffff',
                       border: 'none',
                       borderRadius: '6px',
                       padding: '0.5rem 1rem',
@@ -756,7 +762,8 @@ export default function SchemePortalView({
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.35rem'
+                      gap: '0.35rem',
+                      boxShadow: '0 2px 6px rgba(5, 150, 105, 0.25)'
                     }}
                   >
                     <span>Apply With Scheme Benefits</span>

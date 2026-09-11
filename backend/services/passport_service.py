@@ -158,8 +158,8 @@ def build_passport_payload(vendor: dict, verifications: list) -> dict:
     passport_id = str(uuid.uuid4())
     now = datetime.now()
 
-    # Calculate expiry: 12 months or earliest cert expiry, whichever is sooner
-    default_expiry = now + timedelta(days=365)
+    # Calculate expiry: 1 month (30 days) or earliest cert expiry, whichever is sooner
+    default_expiry = now + timedelta(days=30)
     earliest_cert_expiry = default_expiry
 
     verified_credentials = []

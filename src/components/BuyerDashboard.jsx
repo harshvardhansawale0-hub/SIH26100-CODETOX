@@ -228,176 +228,192 @@ export default function BuyerDashboard({
   };
 
   return (
-    <div style={{ backgroundColor: '#071526', minHeight: '88vh', padding: '2.5rem 1.5rem', color: '#ffffff' }}>
+    <div style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0f9ff 35%, #fff7ed 70%, #ffffff 100%)', minHeight: '88vh', padding: '2rem 1.5rem', color: '#0f172a' }}>
       <div className="container-custom">
-        {/* Top Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.25rem', marginBottom: '2rem' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem' }}>
-              <span style={{ backgroundColor: '#0284c7', color: '#ffffff', fontSize: '0.75rem', fontWeight: '800', padding: '0.2rem 0.6rem', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                BUYER PORTAL
-              </span>
-              <span style={{ color: '#38bdf8', fontSize: '0.85rem', fontWeight: '600' }}>
-                Government / Procuring Authority
-              </span>
-              {currentUser && (
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', backgroundColor: 'rgba(255, 255, 255, 0.05)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid #1e385b' }}>
-                  Logged in: <strong style={{ color: '#38bdf8' }}>{currentUser.fullName}</strong> ({currentUser.organization || 'Govt Authority'})
+        {/* Top Header Banner */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(224, 242, 254, 0.8) 0%, rgba(254, 243, 199, 0.5) 50%, rgba(255, 237, 213, 0.8) 100%)',
+          border: '1px solid #fed7aa',
+          borderRadius: '14px',
+          padding: '1.5rem',
+          boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
+          marginBottom: '2rem'
+        }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.25rem' }}>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.35rem', flexWrap: 'wrap' }}>
+                <span style={{ backgroundColor: '#0284c7', color: '#ffffff', fontSize: '0.75rem', fontWeight: '800', padding: '0.2rem 0.6rem', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  BUYER PORTAL
                 </span>
-              )}
+                <span style={{ color: '#0369a1', fontSize: '0.85rem', fontWeight: '700' }}>
+                  Government / Procuring Authority
+                </span>
+                {currentUser && (
+                  <span style={{ fontSize: '0.75rem', color: '#475569', backgroundColor: '#ffffff', padding: '0.2rem 0.55rem', borderRadius: '4px', border: '1px solid #cbd5e1' }}>
+                    Logged in: <strong style={{ color: '#0284c7' }}>{currentUser.fullName}</strong> ({currentUser.organization || 'Govt Authority'})
+                  </span>
+                )}
+              </div>
+              <h1 className="heading-page" style={{ fontSize: '2rem', color: '#0f172a', margin: 0, fontWeight: '800' }}>
+                Autonomous Procurement & Bidder Selection
+              </h1>
+              <p style={{ color: '#475569', fontSize: '0.92rem', marginTop: '0.3rem', marginBottom: 0 }}>
+                Create tenders, define compliance requirements, review AI verification dossiers, and make final bidder awards.
+              </p>
             </div>
-            <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: 0 }}>
-              Autonomous Procurement & Bidder Selection
-            </h1>
-            <p style={{ color: '#94a3b8', fontSize: '0.92rem', marginTop: '0.3rem' }}>
-              Create tenders, define compliance requirements, review AI verification dossiers, and make final bidder awards.
-            </p>
-          </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-            {onNavigateHome && (
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+              {onNavigateHome && (
+                <button
+                  onClick={onNavigateHome}
+                  style={{
+                    width: '40px',
+                    height: '40px',
+                    padding: 0,
+                    backgroundColor: '#ffffff',
+                    color: '#0284c7',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                    flexShrink: 0
+                  }}
+                  title="Return to GeM Homepage"
+                  aria-label="Return to GeM Homepage"
+                >
+                  <Home size={18} color="#0284c7" />
+                </button>
+              )}
               <button
-                onClick={onNavigateHome}
+                onClick={() => setIsCreateModalOpen(true)}
                 style={{
-                  padding: '0.7rem 1.25rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                  color: '#e2e8f0',
-                  fontWeight: '700',
-                  fontSize: '0.88rem',
+                  padding: '0.7rem 1.4rem',
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff',
+                  fontWeight: '800',
+                  fontSize: '0.9rem',
                   borderRadius: '8px',
-                  border: '1px solid #1e385b',
+                  border: 'none',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.45rem',
+                  gap: '0.5rem',
+                  boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)',
                   transition: 'all 0.2s ease'
                 }}
-                title="Return to GeM Homepage"
               >
-                <Home size={16} color="#38bdf8" />
-                <span>🏠 Homepage</span>
+                <PlusCircle size={18} /> Create New Bid / Tender
               </button>
-            )}
-            <button
-              onClick={() => setIsCreateModalOpen(true)}
-              style={{
-                padding: '0.7rem 1.4rem',
-                backgroundColor: '#0284c7',
-                color: '#ffffff',
-                fontWeight: '800',
-                fontSize: '0.9rem',
-                borderRadius: '8px',
-                border: 'none',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)',
-                transition: 'all 0.2s ease'
-              }}
-            >
-              <PlusCircle size={18} /> Create New Bid / Tender
-            </button>
+            </div>
           </div>
         </div>
 
         {/* 4 Stat KPI Cards */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
-          <div style={{ backgroundColor: '#0c1f36', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94a3b8', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+          <div style={{ backgroundColor: '#ffffff', background: 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 100%)', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
               <span>Published Tenders</span>
-              <FileText size={18} color="#38bdf8" />
+              <FileText size={18} color="#0284c7" />
             </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#ffffff' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a' }}>
               {kpis.totalTenders}
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>Active in Buyer catalog</span>
+            <span style={{ fontSize: '0.75rem', color: '#0369a1', fontWeight: '600' }}>Active in Buyer catalog</span>
           </div>
 
-          <div style={{ backgroundColor: '#0c1f36', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94a3b8', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+          <div style={{ backgroundColor: '#ffffff', background: 'linear-gradient(135deg, #ffffff 0%, #faf5ff 100%)', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
               <span>Applications Received</span>
-              <Users size={18} color="#a855f7" />
+              <Users size={18} color="#9333ea" />
             </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#ffffff' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#0f172a' }}>
               {kpis.totalApps}
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#c084fc' }}>Verified via OCR & GFR rules</span>
+            <span style={{ fontSize: '0.75rem', color: '#7e22ce', fontWeight: '600' }}>Verified via OCR & GFR rules</span>
           </div>
 
-          <div style={{ backgroundColor: '#0c1f36', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94a3b8', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+          <div style={{ backgroundColor: '#ffffff', background: 'linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%)', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '1.25rem', boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
               <span>AI Compliant Bids</span>
-              <CheckCircle2 size={18} color="#34d399" />
+              <CheckCircle2 size={18} color="#059669" />
             </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#34d399' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#059669' }}>
               {kpis.compliantCount}
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#34d399' }}>Eligible for L1 Award</span>
+            <span style={{ fontSize: '0.75rem', color: '#065f46', fontWeight: '600' }}>Eligible for L1 Award</span>
           </div>
 
           <div
             onClick={() => setActiveSubTab('awarded')}
             style={{
-              backgroundColor: '#0c1f36',
-              border: activeSubTab === 'awarded' ? '2px solid #f59e0b' : '1px solid #1e385b',
-              borderRadius: '10px',
+              backgroundColor: '#ffffff',
+              background: 'linear-gradient(135deg, #ffffff 0%, #fffbeb 100%)',
+              border: activeSubTab === 'awarded' ? '2px solid #f59e0b' : '1px solid #e2e8f0',
+              borderRadius: '12px',
               padding: '1.25rem',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
-              boxShadow: activeSubTab === 'awarded' ? '0 4px 16px rgba(245, 158, 11, 0.25)' : 'none'
+              boxShadow: activeSubTab === 'awarded' ? '0 4px 16px rgba(245, 158, 11, 0.2)' : '0 2px 8px rgba(15, 23, 42, 0.04)'
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94a3b8', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#64748b', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
               <span>Bids Awarded / Won</span>
-              <Award size={18} color="#f59e0b" />
+              <Award size={18} color="#d97706" />
             </div>
-            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#f59e0b' }}>
+            <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#d97706' }}>
               {kpis.awardedCount}
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#fbbf24' }}>Click to view execution keymaps</span>
+            <span style={{ fontSize: '0.75rem', color: '#b45309', fontWeight: '600' }}>Click to view execution keymaps</span>
           </div>
         </div>
 
         {/* Navigation Sub-Tabs */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', borderBottom: '1px solid #1e385b', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             {onNavigateHome && (
               <button
                 onClick={onNavigateHome}
                 style={{
-                  padding: '0.6rem 1.15rem',
+                  width: '38px',
+                  height: '38px',
+                  padding: 0,
                   borderRadius: '6px',
-                  border: '1px solid #1e385b',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  color: '#38bdf8',
-                  fontWeight: '700',
-                  fontSize: '0.88rem',
+                  border: '1px solid #cbd5e1',
+                  backgroundColor: '#ffffff',
+                  color: '#0284c7',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.4rem',
-                  transition: 'all 0.2s ease'
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+                  flexShrink: 0
                 }}
                 title="Return to GeM Homepage"
+                aria-label="Return to GeM Homepage"
               >
-                <Home size={15} /> 🏠 Homepage
+                <Home size={17} color="#0284c7" />
               </button>
             )}
             <button
               onClick={() => { setActiveSubTab('tenders'); setSelectedTenderId('ALL'); setSelectedKeymapTenderId(null); }}
               style={{
-                padding: '0.6rem 1.25rem',
+                padding: '0.55rem 1.15rem',
                 borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeSubTab === 'tenders' ? '#0284c7' : 'transparent',
-                color: activeSubTab === 'tenders' ? '#ffffff' : '#94a3b8',
+                border: activeSubTab === 'tenders' ? '1px solid #0284c7' : '1px solid #cbd5e1',
+                backgroundColor: activeSubTab === 'tenders' ? '#0284c7' : '#ffffff',
+                color: activeSubTab === 'tenders' ? '#ffffff' : '#475569',
                 fontWeight: '700',
-                fontSize: '0.88rem',
+                fontSize: '0.85rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem'
+                gap: '0.4rem',
+                boxShadow: activeSubTab === 'tenders' ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none'
               }}
             >
               <FileText size={16} /> 1. Published Bids / Tenders ({buyerTenders.length})
@@ -405,17 +421,18 @@ export default function BuyerDashboard({
             <button
               onClick={() => { setActiveSubTab('applications'); setSelectedKeymapTenderId(null); }}
               style={{
-                padding: '0.6rem 1.25rem',
+                padding: '0.55rem 1.15rem',
                 borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeSubTab === 'applications' ? '#0284c7' : 'transparent',
-                color: activeSubTab === 'applications' ? '#ffffff' : '#94a3b8',
+                border: activeSubTab === 'applications' ? '1px solid #0284c7' : '1px solid #cbd5e1',
+                backgroundColor: activeSubTab === 'applications' ? '#0284c7' : '#ffffff',
+                color: activeSubTab === 'applications' ? '#ffffff' : '#475569',
                 fontWeight: '700',
-                fontSize: '0.88rem',
+                fontSize: '0.85rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem'
+                gap: '0.4rem',
+                boxShadow: activeSubTab === 'applications' ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none'
               }}
             >
               <Users size={16} /> 2. Received Bidder Applications & AI Reports ({buyerBids.length})
@@ -423,18 +440,18 @@ export default function BuyerDashboard({
             <button
               onClick={() => { setActiveSubTab('awarded'); setSelectedKeymapTenderId(null); }}
               style={{
-                padding: '0.6rem 1.25rem',
+                padding: '0.55rem 1.15rem',
                 borderRadius: '6px',
-                border: 'none',
-                backgroundColor: activeSubTab === 'awarded' ? '#f59e0b' : 'transparent',
-                color: activeSubTab === 'awarded' ? '#000000' : '#fbbf24',
+                border: activeSubTab === 'awarded' ? '1px solid #d97706' : '1px solid #fed7aa',
+                backgroundColor: activeSubTab === 'awarded' ? '#f59e0b' : '#fffbeb',
+                color: activeSubTab === 'awarded' ? '#000000' : '#b45309',
                 fontWeight: '800',
-                fontSize: '0.88rem',
+                fontSize: '0.85rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                boxShadow: activeSubTab === 'awarded' ? '0 2px 10px rgba(245, 158, 11, 0.4)' : 'none'
+                boxShadow: activeSubTab === 'awarded' ? '0 2px 10px rgba(245, 158, 11, 0.3)' : 'none'
               }}
             >
               <Award size={16} /> 🏆 3. Awarded Tenders & Keymap Approvals ({awardedTendersList.length})
@@ -442,8 +459,8 @@ export default function BuyerDashboard({
           </div>
 
           {/* Scope Mode Switcher: My Created vs All Department */}
-          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '3px', gap: '4px' }}>
-            <span style={{ fontSize: '0.74rem', color: '#94a3b8', padding: '0 0.4rem', fontWeight: '600' }}>Scope:</span>
+          <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '3px', gap: '4px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+            <span style={{ fontSize: '0.74rem', color: '#64748b', padding: '0 0.4rem', fontWeight: '600' }}>Scope:</span>
             <button
               type="button"
               onClick={() => setTenderScopeMode('my')}
@@ -455,7 +472,7 @@ export default function BuyerDashboard({
                 border: 'none',
                 cursor: 'pointer',
                 backgroundColor: tenderScopeMode === 'my' ? '#0284c7' : 'transparent',
-                color: tenderScopeMode === 'my' ? '#ffffff' : '#94a3b8',
+                color: tenderScopeMode === 'my' ? '#ffffff' : '#64748b',
                 transition: 'all 0.2s ease'
               }}
               title={activeSubTab === 'applications' ? "Show applications for my tenders" : "Show tenders created by this authority account"}
@@ -475,7 +492,7 @@ export default function BuyerDashboard({
                 border: 'none',
                 cursor: 'pointer',
                 backgroundColor: tenderScopeMode === 'all' ? '#0284c7' : 'transparent',
-                color: tenderScopeMode === 'all' ? '#ffffff' : '#94a3b8',
+                color: tenderScopeMode === 'all' ? '#ffffff' : '#64748b',
                 transition: 'all 0.2s ease'
               }}
               title={activeSubTab === 'applications' ? "Show all received applications across department" : "Show all procurement tenders across the platform/department"}
@@ -488,7 +505,7 @@ export default function BuyerDashboard({
         </div>
 
         {/* Filter Controls Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', backgroundColor: '#0c1f36', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid #1e385b', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', backgroundColor: '#ffffff', padding: '0.85rem 1rem', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)', marginBottom: '1.25rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: '240px' }}>
             <Search size={16} color="#64748b" />
             <input
@@ -498,10 +515,10 @@ export default function BuyerDashboard({
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%',
-                backgroundColor: '#071526',
-                border: '1px solid #1e385b',
-                color: '#ffffff',
-                padding: '0.4rem 0.65rem',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #cbd5e1',
+                color: '#0f172a',
+                padding: '0.45rem 0.75rem',
                 borderRadius: '6px',
                 fontSize: '0.85rem'
               }}
@@ -513,10 +530,10 @@ export default function BuyerDashboard({
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
               style={{
-                backgroundColor: '#071526',
-                border: '1px solid #1e385b',
-                color: '#ffffff',
-                padding: '0.4rem 0.75rem',
+                backgroundColor: '#f8fafc',
+                border: '1px solid #cbd5e1',
+                color: '#0f172a',
+                padding: '0.45rem 0.75rem',
                 borderRadius: '6px',
                 fontSize: '0.83rem'
               }}
@@ -533,10 +550,10 @@ export default function BuyerDashboard({
                   value={selectedTenderId}
                   onChange={(e) => setSelectedTenderId(e.target.value)}
                   style={{
-                    backgroundColor: '#071526',
-                    border: '1px solid #1e385b',
-                    color: '#38bdf8',
-                    padding: '0.4rem 0.75rem',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    color: '#0369a1',
+                    padding: '0.45rem 0.75rem',
                     borderRadius: '6px',
                     fontSize: '0.83rem',
                     fontWeight: '600'
@@ -552,10 +569,10 @@ export default function BuyerDashboard({
                   value={statusFilter}
                   onChange={(e) => setStatusFilter(e.target.value)}
                   style={{
-                    backgroundColor: '#071526',
-                    border: '1px solid #1e385b',
-                    color: '#ffffff',
-                    padding: '0.4rem 0.75rem',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    color: '#0f172a',
+                    padding: '0.45rem 0.75rem',
                     borderRadius: '6px',
                     fontSize: '0.83rem'
                   }}
@@ -575,14 +592,14 @@ export default function BuyerDashboard({
         {activeSubTab === 'tenders' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {buyerTenders.length === 0 ? (
-              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '12px', border: '1px dashed #2563eb' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(56, 189, 248, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
-                  <FileText size={28} color="#38bdf8" />
+              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px dashed #0284c7', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(2, 132, 199, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                  <FileText size={28} color="#0284c7" />
                 </div>
-                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: '800', marginBottom: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', color: '#0f172a', fontWeight: '800', marginBottom: '0.5rem' }}>
                   Zero Published Tenders
                 </h3>
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '540px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '540px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
                   You currently have 0 active tenders in your Buyer account. As a Government Procuring Authority, click below to upload your procurement tenders from zero with customized GFR 2017 & Make-in-India compliance criteria.
                 </p>
                 <button
@@ -599,7 +616,7 @@ export default function BuyerDashboard({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)'
+                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)'
                   }}
                 >
                   <PlusCircle size={18} />
@@ -607,8 +624,8 @@ export default function BuyerDashboard({
                 </button>
               </div>
             ) : filteredTenders.length === 0 ? (
-              <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '8px', border: '1px solid #1e385b' }}>
-                <p style={{ color: '#94a3b8' }}>No published tenders match your search criteria.</p>
+              <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <p style={{ color: '#64748b' }}>No published tenders match your search criteria.</p>
               </div>
             ) : (
               filteredTenders.map((tender) => {
@@ -620,78 +637,79 @@ export default function BuyerDashboard({
                   <div
                     key={tender.id}
                     style={{
-                      backgroundColor: '#0c1f36',
-                      border: isAwarded ? '1px solid #f59e0b' : '1px solid #1e385b',
-                      borderRadius: '10px',
+                      backgroundColor: '#ffffff',
+                      border: isAwarded ? '1px solid #fed7aa' : '1px solid #e2e8f0',
+                      borderRadius: '12px',
                       padding: '1.25rem',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '1rem',
+                      boxShadow: '0 4px 16px rgba(15, 23, 42, 0.05)',
                       transition: 'all 0.2s ease'
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <div style={{ flex: 1, minWidth: '280px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                          <span style={{ fontSize: '0.78rem', color: '#38bdf8', fontFamily: 'monospace', fontWeight: '700' }}>
+                          <span style={{ fontSize: '0.78rem', color: '#0369a1', fontFamily: 'monospace', fontWeight: '800' }}>
                             {tender.id}
                           </span>
-                          <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: '#1e385b', color: '#94a3b8', fontWeight: '600' }}>
+                          <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: '#f1f5f9', color: '#334155', fontWeight: '600' }}>
                             {tender.category}
                           </span>
                           {isAwarded ? (
-                            <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: 'rgba(245, 158, 11, 0.2)', color: '#fbbf24', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '0.25rem', border: '1px solid #fde68a' }}>
                               <Award size={12} /> Awarded
                             </span>
                           ) : (
-                            <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: 'rgba(52, 211, 153, 0.2)', color: '#34d399', fontWeight: '700' }}>
+                            <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: '#ecfdf5', color: '#065f46', fontWeight: '800', border: '1px solid #a7f3d0' }}>
                               Active Bidding
                             </span>
                           )}
                         </div>
-                        <h3 style={{ fontSize: '1.15rem', color: '#ffffff', margin: 0, fontWeight: '700' }}>
+                        <h3 style={{ fontSize: '1.15rem', color: '#0f172a', margin: 0, fontWeight: '800' }}>
                           {tender.title}
                         </h3>
-                        <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginTop: '0.2rem' }}>
+                        <span style={{ fontSize: '0.82rem', color: '#475569', display: 'block', marginTop: '0.2rem' }}>
                           {tender.ministry} • {tender.department}
                         </span>
                       </div>
 
                       <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '0.75rem', color: '#94a3b8', display: 'block' }}>Estimated Value</span>
-                        <span style={{ fontSize: '1.25rem', fontWeight: '800', color: '#38bdf8' }}>{tender.estimatedValue}</span>
-                        <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block' }}>Closing: {tender.closingDate}</span>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>Estimated Value</span>
+                        <span style={{ fontSize: '1.25rem', fontWeight: '900', color: '#0284c7' }}>{tender.estimatedValue}</span>
+                        <span style={{ fontSize: '0.74rem', color: '#d97706', display: 'block', marginTop: '2px' }}>Closing: <strong>{tender.closingDate}</strong></span>
                       </div>
                     </div>
 
                     {/* Compliance Criteria Defined by Buyer */}
-                    <div style={{ backgroundColor: '#071526', border: '1px solid #162c47', borderRadius: '8px', padding: '0.75rem 1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontSize: '0.82rem' }}>
+                    <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '0.75rem 1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontSize: '0.82rem' }}>
                       <div>
-                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Min MII Requirement:</span>
-                        <strong style={{ color: '#e2e8f0' }}>{tender.miiMinRequirement}</strong>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase' }}>Min MII Requirement:</span>
+                        <strong style={{ color: '#059669' }}>{tender.miiMinRequirement}</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Min Annual Turnover:</span>
-                        <strong style={{ color: '#e2e8f0' }}>{tender.minTurnoverRequirement || '₹2.0 Cr'}</strong>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase' }}>Min Annual Turnover:</span>
+                        <strong style={{ color: '#0f172a' }}>{tender.minTurnoverRequirement || '₹2.0 Cr'}</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Commercial Experience:</span>
-                        <strong style={{ color: '#e2e8f0' }}>{tender.minExperienceYears || 3} Years Minimum</strong>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase' }}>Commercial Experience:</span>
+                        <strong style={{ color: '#0f172a' }}>{tender.minExperienceYears || 3} Years Minimum</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>EMD Specification:</span>
-                        <strong style={{ color: '#e2e8f0' }}>{tender.emdAmount}</strong>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase' }}>EMD Specification:</span>
+                        <strong style={{ color: '#0f172a' }}>{tender.emdAmount}</strong>
                       </div>
                     </div>
 
                     {/* Applications & Actions Row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #162c47', paddingTop: '0.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem', flexWrap: 'wrap', gap: '0.75rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', fontSize: '0.84rem' }}>
-                        <span style={{ color: '#94a3b8' }}>
-                          Applications Received: <strong style={{ color: '#ffffff' }}>{tenderBids.length}</strong>
+                        <span style={{ color: '#475569' }}>
+                          Applications Received: <strong style={{ color: '#0f172a' }}>{tenderBids.length}</strong>
                         </span>
                         {tenderBids.length > 0 && (
-                          <span style={{ color: hasCompliant ? '#34d399' : '#fbbf24', fontSize: '0.78rem', fontWeight: '600' }}>
+                          <span style={{ color: hasCompliant ? '#059669' : '#d97706', fontSize: '0.78rem', fontWeight: '700' }}>
                             {hasCompliant ? '✓ Qualified L1 Candidates Available' : '⚠️ Under Evaluation / Review Required'}
                           </span>
                         )}
@@ -738,7 +756,7 @@ export default function BuyerDashboard({
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.35rem',
-                              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)'
+                              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
                             }}
                           >
                             <Award size={14} /> 🏆 View & Approve Keymap
@@ -749,9 +767,9 @@ export default function BuyerDashboard({
                           onClick={() => handleDeleteTender(tender)}
                           style={{
                             padding: '0.45rem 0.85rem',
-                            backgroundColor: 'rgba(239, 68, 68, 0.12)',
-                            color: '#f87171',
-                            border: '1px solid rgba(239, 68, 68, 0.35)',
+                            backgroundColor: '#fee2e2',
+                            color: '#b91c1c',
+                            border: '1px solid #fecaca',
                             borderRadius: '6px',
                             fontWeight: '700',
                             fontSize: '0.82rem',
@@ -762,7 +780,7 @@ export default function BuyerDashboard({
                             transition: 'all 0.2s ease'
                           }}
                           onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = '#ef4444'; e.currentTarget.style.color = '#ffffff'; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'rgba(239, 68, 68, 0.12)'; e.currentTarget.style.color = '#f87171'; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = '#fee2e2'; e.currentTarget.style.color = '#b91c1c'; }}
                           title="Permanently delete this tender"
                         >
                           <Trash2 size={14} /> Delete
@@ -780,10 +798,10 @@ export default function BuyerDashboard({
         {activeSubTab === 'applications' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {myCreatedTenders.length === 0 && (
-              <div style={{ backgroundColor: 'rgba(2, 132, 199, 0.12)', border: '1px solid rgba(2, 132, 199, 0.4)', borderRadius: '8px', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
+              <div style={{ backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '8px', padding: '0.75rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                  <ShieldCheck size={18} color="#38bdf8" />
-                  <span style={{ fontSize: '0.84rem', color: '#e0f2fe' }}>
+                  <ShieldCheck size={18} color="#0284c7" />
+                  <span style={{ fontSize: '0.84rem', color: '#0369a1' }}>
                     Showing all received vendor submissions across the department ({buyerBids.length}). Create your first tender anytime to track bids exclusively for your authority.
                   </span>
                 </div>
@@ -810,8 +828,8 @@ export default function BuyerDashboard({
             )}
 
             {filteredApplications.length === 0 ? (
-              <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '8px', border: '1px solid #1e385b' }}>
-                <p style={{ color: '#94a3b8' }}>No bidder applications found for the selected filter.</p>
+              <div style={{ padding: '3rem', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <p style={{ color: '#64748b' }}>No bidder applications found for the selected filter.</p>
               </div>
             ) : (
               filteredApplications.map((bid) => {
@@ -824,45 +842,45 @@ export default function BuyerDashboard({
                   <div
                     key={bid.id}
                     style={{
-                      backgroundColor: '#0c1f36',
-                      border: isSelected ? '2px solid #f59e0b' : (isCompliant ? '1px solid #10b981' : (isFlagged ? '1px solid #f59e0b' : '1px solid #ef4444')),
-                      borderRadius: '10px',
+                      backgroundColor: '#ffffff',
+                      border: isSelected ? '2px solid #f59e0b' : (isCompliant ? '1px solid #86efac' : (isFlagged ? '1px solid #fde68a' : '1px solid #fecaca')),
+                      borderRadius: '12px',
                       padding: '1.25rem',
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '1rem',
-                      boxShadow: isSelected ? '0 0 20px rgba(245, 158, 11, 0.2)' : 'none'
+                      boxShadow: isSelected ? '0 4px 20px rgba(245, 158, 11, 0.2)' : '0 4px 16px rgba(15, 23, 42, 0.05)'
                     }}
                   >
                     {/* Header Strip */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '0.75rem' }}>
                       <div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
-                          <span style={{ fontSize: '0.75rem', fontFamily: 'monospace', color: '#38bdf8', fontWeight: '700' }}>
+                          <span style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: '#0369a1', fontWeight: '800' }}>
                             {bid.id}
                           </span>
-                          <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+                          <span style={{ fontSize: '0.75rem', color: '#64748b' }}>
                             Applied for Tender: <strong>{bid.tenderId}</strong>
                           </span>
                           {isSelected && (
-                            <span style={{ fontSize: '0.75rem', backgroundColor: '#f59e0b', color: '#000000', fontWeight: '800', padding: '0.15rem 0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                            <span style={{ fontSize: '0.75rem', backgroundColor: '#fef3c7', color: '#92400e', fontWeight: '800', padding: '0.15rem 0.5rem', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '0.25rem', border: '1px solid #fde68a' }}>
                               <Award size={12} /> WINNING BIDDER (AWARDED)
                             </span>
                           )}
                         </div>
-                        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff', margin: 0 }}>
+                        <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
                           {bid.vendor}
                         </h3>
-                        <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-                          Category: {bid.category} • Quoted: <strong style={{ color: '#38bdf8' }}>{bid.bidAmount}</strong> (Tender Est: {bid.tenderValue})
+                        <span style={{ fontSize: '0.82rem', color: '#475569' }}>
+                          Category: {bid.category} • Quoted: <strong style={{ color: '#0284c7' }}>{bid.bidAmount}</strong> (Tender Est: {bid.tenderValue})
                         </span>
                       </div>
 
                       {/* Score & Status Pill */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                         <div style={{ textAlign: 'right' }}>
-                          <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>AI Score</span>
-                          <span style={{ fontSize: '1.6rem', fontWeight: '900', color: isCompliant ? '#34d399' : (isFlagged ? '#fbbf24' : '#f87171') }}>
+                          <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', textTransform: 'uppercase' }}>AI Score</span>
+                          <span style={{ fontSize: '1.6rem', fontWeight: '900', color: isCompliant ? '#059669' : (isFlagged ? '#d97706' : '#dc2626') }}>
                             {bid.score}<span style={{ fontSize: '0.85rem', color: '#64748b' }}>/100</span>
                           </span>
                         </div>
@@ -874,9 +892,9 @@ export default function BuyerDashboard({
                               borderRadius: '6px',
                               fontSize: '0.82rem',
                               fontWeight: '800',
-                              backgroundColor: isCompliant ? 'rgba(16, 185, 129, 0.2)' : (isFlagged ? 'rgba(245, 158, 11, 0.2)' : 'rgba(239, 68, 68, 0.2)'),
-                              color: isCompliant ? '#34d399' : (isFlagged ? '#fbbf24' : '#f87171'),
-                              border: `1px solid ${isCompliant ? '#10b981' : (isFlagged ? '#f59e0b' : '#ef4444')}`,
+                              backgroundColor: isCompliant ? '#ecfdf5' : (isFlagged ? '#fffbeb' : '#fef2f2'),
+                              color: isCompliant ? '#065f46' : (isFlagged ? '#92400e' : '#991b1b'),
+                              border: `1px solid ${isCompliant ? '#a7f3d0' : (isFlagged ? '#fde68a' : '#fecaca')}`,
                               display: 'inline-block'
                             }}
                           >
@@ -887,31 +905,31 @@ export default function BuyerDashboard({
                     </div>
 
                     {/* Key Verification Parameter Badges */}
-                    <div style={{ backgroundColor: '#071526', borderRadius: '8px', border: '1px solid #162c47', padding: '0.75rem 1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontSize: '0.82rem' }}>
+                    <div style={{ backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', padding: '0.75rem 1rem', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.75rem', fontSize: '0.82rem' }}>
                       <div>
-                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Make in India (MII):</span>
-                        <strong style={{ color: '#e2e8f0' }}>{bid.miiContent}</strong>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase' }}>Make in India (MII):</span>
+                        <strong style={{ color: '#059669' }}>{bid.miiContent}</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>Audited Turnover:</span>
-                        <strong style={{ color: '#e2e8f0' }}>{bid.turnover}</strong>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase' }}>Audited Turnover:</span>
+                        <strong style={{ color: '#0f172a' }}>{bid.turnover}</strong>
                       </div>
                       <div>
-                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>GSTIN & PAN Status:</span>
-                        <strong style={{ color: bid.gstStatus?.includes('ACTIVE') ? '#34d399' : '#f87171' }}>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase' }}>GSTIN & PAN Status:</span>
+                        <strong style={{ color: bid.gstStatus?.includes('ACTIVE') ? '#059669' : '#dc2626' }}>
                           {bid.gstStatus}
                         </strong>
                       </div>
                       <div>
-                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem' }}>OCR Forensics Confidence:</span>
-                        <strong style={{ color: '#38bdf8' }}>{bid.ocrConfidence}</strong>
+                        <span style={{ color: '#64748b', display: 'block', fontSize: '0.72rem', textTransform: 'uppercase' }}>OCR Forensics Confidence:</span>
+                        <strong style={{ color: '#0284c7' }}>{bid.ocrConfidence}</strong>
                       </div>
                     </div>
 
                     {/* Flags / Discrepancies if any */}
                     {bid.flags && bid.flags.length > 0 && (
-                      <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', padding: '0.6rem 0.85rem', fontSize: '0.82rem', color: '#fca5a5' }}>
-                        <strong style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#f87171', marginBottom: '0.2rem' }}>
+                      <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '6px', padding: '0.6rem 0.85rem', fontSize: '0.82rem', color: '#991b1b' }}>
+                        <strong style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#dc2626', marginBottom: '0.2rem' }}>
                           <AlertTriangle size={14} /> AI Discrepancy Alerts:
                         </strong>
                         <ul style={{ margin: 0, paddingLeft: '1.25rem' }}>
@@ -923,7 +941,7 @@ export default function BuyerDashboard({
                     )}
 
                     {/* Actions: Inspect AI Report & Final Bidder Selection */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #162c47', paddingTop: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1px solid #e2e8f0', paddingTop: '0.75rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                       <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
                         Submission Timestamp: {bid.date}
                       </div>
@@ -933,9 +951,9 @@ export default function BuyerDashboard({
                           onClick={() => onSelectBid(bid)}
                           style={{
                             padding: '0.45rem 0.85rem',
-                            backgroundColor: '#0c1f36',
-                            border: '1px solid #1e385b',
-                            color: '#38bdf8',
+                            backgroundColor: '#f0f9ff',
+                            border: '1px solid #bae6fd',
+                            color: '#0284c7',
                             borderRadius: '6px',
                             fontSize: '0.82rem',
                             fontWeight: '700',
@@ -965,7 +983,7 @@ export default function BuyerDashboard({
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.35rem',
-                              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.3)'
+                              boxShadow: '0 2px 8px rgba(16, 185, 129, 0.25)'
                             }}
                           >
                             <Award size={14} /> Final Selection (Award Tender)
@@ -990,7 +1008,7 @@ export default function BuyerDashboard({
                               display: 'flex',
                               alignItems: 'center',
                               gap: '0.35rem',
-                              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)'
+                              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.3)'
                             }}
                           >
                             <Award size={14} /> 🏆 View & Approve Keymap
@@ -1008,12 +1026,12 @@ export default function BuyerDashboard({
         {/* TAB 3: AWARDED TENDERS & SEQUENTIAL MILESTONE APPROVAL KEYMAP */}
         {activeSubTab === 'awarded' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-            <div style={{ backgroundColor: '#0c1f36', border: '1px solid #1e385b', borderRadius: '10px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #fed7aa', borderRadius: '10px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)' }}>
               <div>
-                <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#d97706', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                   <Award size={14} /> PROCUREMENT OFFICER EXECUTION KEYMAP (GFR 2017 & 225)
                 </span>
-                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#475569' }}>
                   Review and check off each statutory milestone sequentially: <strong>1. Tender Approved &rarr; 2. Stock Supplied / Consignment Received &rarr; 3. CRAC Inspection &rarr; 4. Invoice Verification &rarr; 5. PFMS Payment Settlement</strong>. Checkboxes enforce statutory sequence.
                 </p>
               </div>
@@ -1024,9 +1042,9 @@ export default function BuyerDashboard({
                   style={{
                     padding: '0.4rem 0.8rem',
                     fontSize: '0.78rem',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid #1e385b',
-                    color: '#38bdf8',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #cbd5e1',
+                    color: '#0284c7',
                     borderRadius: '6px',
                     cursor: 'pointer',
                     fontWeight: '700'
@@ -1038,14 +1056,14 @@ export default function BuyerDashboard({
             </div>
 
             {displayedAwardedTenders.length === 0 ? (
-              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '12px', border: '1px dashed #f59e0b' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
-                  <Award size={28} color="#f59e0b" />
+              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px dashed #f59e0b', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                  <Award size={28} color="#d97706" />
                 </div>
-                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: '800', marginBottom: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.25rem', color: '#0f172a', fontWeight: '800', marginBottom: '0.5rem' }}>
                   Zero Awarded Contracts Found
                 </h3>
-                <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '520px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                <p style={{ color: '#64748b', fontSize: '0.9rem', maxWidth: '520px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
                   No tenders have been awarded yet. Review received bidder applications in the "Received Applications" tab and select qualified L1 compliant vendors to initialize their sequential milestone keymaps.
                 </p>
                 <button
@@ -1062,7 +1080,7 @@ export default function BuyerDashboard({
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)'
+                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)'
                   }}
                 >
                   <Users size={17} />

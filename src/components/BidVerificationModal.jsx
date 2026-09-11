@@ -449,7 +449,21 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
             type="button"
             onClick={handleStartVerification}
             disabled={isProcessing}
-            style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', backgroundColor: '#0b1a2d', color: '#ffffff', fontSize: '0.95rem', fontWeight: '700', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 12px rgba(11, 26, 45, 0.25)' }}
+            style={{
+              padding: '0.8rem 1.6rem',
+              borderRadius: '8px',
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+              color: '#ffffff',
+              fontSize: '0.95rem',
+              fontWeight: '800',
+              border: 'none',
+              cursor: isProcessing ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '0.5rem',
+              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.25)'
+            }}
           >
             {isProcessing ? (
               <>
@@ -465,46 +479,46 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
           </button>
 
           {isProcessing && (
-            <div style={{ backgroundColor: '#0f2238', color: '#ffffff', padding: '1rem 1.25rem', borderRadius: '8px', border: '1px solid #1e385b' }}>
+            <div style={{ backgroundColor: '#f0f9ff', color: '#0f172a', padding: '1.25rem', borderRadius: '10px', border: '1px solid #bae6fd' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '0.85rem', color: '#7dd3fc', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: '0.85rem', color: '#0369a1', fontFamily: 'monospace', fontWeight: '700' }}>
                   {["Parsing OCR", "Validating Fields", "Cross-Checking", "Applying Rules"][scanStep - 1] || "Processing..."}
                 </span>
-                <span style={{ fontSize: '0.75rem', color: '#f5a623', fontWeight: '700' }}>
+                <span style={{ fontSize: '0.75rem', color: '#ea580c', fontWeight: '800' }}>
                   {scanStep * 25}% Complete
                 </span>
               </div>
-              <div style={{ width: '100%', height: '4px', backgroundColor: '#1e385b', borderRadius: '9999px', overflow: 'hidden' }}>
-                <div style={{ width: `${scanStep * 25}%`, height: '100%', backgroundColor: '#f59e0b', transition: 'width 0.4s ease' }}></div>
+              <div style={{ width: '100%', height: '6px', backgroundColor: '#e0f2fe', borderRadius: '9999px', overflow: 'hidden' }}>
+                <div style={{ width: `${scanStep * 25}%`, height: '100%', background: 'linear-gradient(90deg, #0284c7, #f59e0b)', transition: 'width 0.4s ease' }}></div>
               </div>
             </div>
           )}
 
           {result && result.error && !isProcessing && (
-            <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', padding: '1.5rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div style={{ backgroundColor: '#fef2f2', border: '1px solid #fecaca', borderRadius: '12px', padding: '1.5rem', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <AlertTriangle size={24} />
-              <span style={{ fontSize: '0.95rem', fontWeight: '600' }}>{result.message}</span>
+              <span style={{ fontSize: '0.95rem', fontWeight: '700' }}>{result.message}</span>
             </div>
           )}
 
           {result && !result.error && !isProcessing && (
-            <div style={{ backgroundColor: '#081729', border: '1px solid #1e385b', borderRadius: '12px', padding: '1.5rem', color: '#ffffff' }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #162c47', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.75rem', color: '#0f172a', boxShadow: '0 8px 24px rgba(15, 23, 42, 0.06)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
                 <div>
-                  <span style={{ fontSize: '0.75rem', color: '#7dd3fc', fontFamily: 'monospace' }}>
+                  <span style={{ fontSize: '0.75rem', color: '#0284c7', fontFamily: 'monospace', fontWeight: '800' }}>
                     AUDIT REPORT #{result.bidId}
                   </span>
-                  <h4 style={{ fontSize: '1.25rem', fontWeight: '800', margin: '0.2rem 0' }}>
+                  <h4 style={{ fontSize: '1.3rem', fontWeight: '800', color: '#0f172a', margin: '0.2rem 0' }}>
                     {result.vendor}
                   </h4>
-                  <span style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                  <span style={{ fontSize: '0.82rem', color: '#64748b' }}>
                     Tender: {result.tenderId} | Category: {result.category}
                   </span>
                 </div>
 
                 <div style={{ textAlign: 'right' }}>
-                  <div style={{ fontSize: '2rem', fontWeight: '900', fontFamily: 'Lora, serif', color: result.status === 'Compliant' ? '#34d399' : result.status === 'Flagged' ? '#fbbf24' : '#f87171' }}>
-                    {result.score}<span style={{ fontSize: '1rem', color: '#94a3b8' }}>/100</span>
+                  <div style={{ fontSize: '2.2rem', fontWeight: '900', color: result.status === 'Compliant' ? '#059669' : result.status === 'Flagged' ? '#d97706' : '#dc2626' }}>
+                    {result.score}<span style={{ fontSize: '1.1rem', color: '#94a3b8' }}>/100</span>
                   </div>
                   <span
                     className={`d-status-badge ${result.status.toLowerCase()}`}
@@ -516,52 +530,52 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.25rem' }}>
-                <div style={{ backgroundColor: '#0f2238', padding: '0.75rem', borderRadius: '6px', border: '1px solid #1e385b' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>{t('localContent')}</span>
-                  <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#ffffff' }}>{result.miiVerified}</span>
+                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', fontWeight: '700' }}>{t('localContent')}</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#0f172a' }}>{result.miiVerified}</span>
                 </div>
-                <div style={{ backgroundColor: '#0f2238', padding: '0.75rem', borderRadius: '6px', border: '1px solid #1e385b' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>GST & Tax Standing</span>
-                  <span style={{ fontSize: '0.88rem', fontWeight: '700', color: result.gstVerified === 'LOCAL_VALIDATION_PASSED' || result.gstVerified === 'EXTERNAL_VERIFICATION_NOT_CONFIGURED' ? '#34d399' : result.gstVerified === 'MISSING_EVIDENCE' ? '#fbbf24' : '#f87171' }}>{result.gstVerified}</span>
+                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', fontWeight: '700' }}>GST & Tax Standing</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '800', color: result.gstVerified === 'LOCAL_VALIDATION_PASSED' || result.gstVerified === 'EXTERNAL_VERIFICATION_NOT_CONFIGURED' ? '#059669' : result.gstVerified === 'MISSING_EVIDENCE' ? '#d97706' : '#dc2626' }}>{result.gstVerified}</span>
                 </div>
-                <div style={{ backgroundColor: '#0f2238', padding: '0.75rem', borderRadius: '6px', border: '1px solid #1e385b' }}>
-                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>{t('ocrConfidence')}</span>
-                  <span style={{ fontSize: '0.88rem', fontWeight: '700', color: '#38bdf8' }}>{result.ocrConfidence}</span>
+                <div style={{ backgroundColor: '#f8fafc', padding: '0.85rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <span style={{ fontSize: '0.72rem', color: '#64748b', display: 'block', fontWeight: '700' }}>{t('ocrConfidence')}</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: '800', color: '#0284c7' }}>{result.ocrConfidence}</span>
                 </div>
               </div>
 
               {result.flags.length > 0 ? (
-                <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '1rem', marginBottom: '1.25rem' }}>
-                  <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+                <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fde68a', borderRadius: '10px', padding: '1.1rem', marginBottom: '1.25rem' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: '800', color: '#b45309', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
                     <AlertTriangle size={16} /> {t('discrepanciesTitle')} ({result.flags.length})
                   </span>
-                  <ul style={{ paddingLeft: '1.25rem', fontSize: '0.82rem', color: '#cbd5e1', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                  <ul style={{ paddingLeft: '1.25rem', fontSize: '0.84rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                     {result.flags.map((flag, idx) => (
-                      <li key={idx}>{flag}</li>
+                      <li key={idx} style={{ fontWeight: '500' }}>{flag}</li>
                     ))}
                   </ul>
                 </div>
               ) : (
-                <div style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', padding: '0.85rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#34d399', fontSize: '0.85rem', fontWeight: '600' }}>
-                  <CheckCircle2 size={18} />
+                <div style={{ backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '10px', padding: '1rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#065f46', fontSize: '0.88rem', fontWeight: '700' }}>
+                  <CheckCircle2 size={18} color="#059669" />
                   {t('allPassedTitle')}
                 </div>
               )}
 
               <div
                 style={{
-                  backgroundColor: result.status === 'Compliant' ? 'rgba(16, 185, 129, 0.1)' : (result.status === 'Flagged' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)'),
-                  border: `1px solid ${result.status === 'Compliant' ? 'rgba(16, 185, 129, 0.3)' : (result.status === 'Flagged' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(239, 68, 68, 0.3)')}`,
-                  borderRadius: '8px',
-                  padding: '1rem',
+                  backgroundColor: result.status === 'Compliant' ? '#ecfdf5' : (result.status === 'Flagged' ? '#fffbeb' : '#fef2f2'),
+                  border: `1px solid ${result.status === 'Compliant' ? '#a7f3d0' : (result.status === 'Flagged' ? '#fde68a' : '#fecaca')}`,
+                  borderRadius: '10px',
+                  padding: '1.1rem',
                   marginBottom: '1.25rem',
                   fontSize: '0.88rem'
                 }}
               >
-                <strong style={{ display: 'block', color: result.status === 'Compliant' ? '#34d399' : (result.status === 'Flagged' ? '#fbbf24' : '#f87171'), marginBottom: '0.25rem' }}>
+                <strong style={{ display: 'block', color: result.status === 'Compliant' ? '#047857' : (result.status === 'Flagged' ? '#b45309' : '#b91c1c'), marginBottom: '0.25rem' }}>
                   🤖 AI Recommendation for Government Buyer:
                 </strong>
-                <p style={{ margin: 0, color: '#e2e8f0', lineHeight: 1.5 }}>
+                <p style={{ margin: 0, color: '#334155', lineHeight: 1.5 }}>
                   {result.status === 'Compliant' ? 'Application verified and meets requirements. Ready for L1 award.' : result.status === 'Flagged' ? 'Application requires manual review due to discrepancies or marginal shortfalls.' : 'Application rejected due to critical non-compliance or document mismatch.'}
                 </p>
               </div>
@@ -570,14 +584,14 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  style={{ padding: '0.5rem 1rem', borderRadius: '6px', backgroundColor: 'transparent', border: '1px solid #1e385b', color: '#ffffff', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+                  style={{ padding: '0.55rem 1.15rem', borderRadius: '8px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', color: '#334155', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}
                 >
                   <Download size={15} /> {t('downloadPdf')}
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  style={{ padding: '0.5rem 1.25rem', borderRadius: '6px', backgroundColor: '#f59e0b', border: 'none', color: '#ffffff', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
+                  style={{ padding: '0.55rem 1.4rem', borderRadius: '8px', background: 'linear-gradient(135deg, #ea580c 0%, #f59e0b 100%)', border: 'none', color: '#ffffff', fontSize: '0.85rem', fontWeight: '800', cursor: 'pointer', boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)' }}
                 >
                   {t('doneClose')}
                 </button>

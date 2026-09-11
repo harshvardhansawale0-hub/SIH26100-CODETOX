@@ -86,10 +86,10 @@ export default function AwardedTenderKeymap({
 
   if (!milestoneData || !milestoneData.steps) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '12px', border: '1px solid #1e385b' }}>
-        <Clock size={32} color="#94a3b8" style={{ margin: '0 auto 0.75rem' }} />
-        <h4 style={{ color: '#ffffff', margin: 0 }}>Milestone Keymap Initializing...</h4>
-        <p style={{ color: '#94a3b8', fontSize: '0.85rem' }}>No execution timeline data available yet for this contract.</p>
+      <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+        <Clock size={32} color="#64748b" style={{ margin: '0 auto 0.75rem' }} />
+        <h4 style={{ color: '#0f172a', margin: 0, fontWeight: '700' }}>Milestone Keymap Initializing...</h4>
+        <p style={{ color: '#64748b', fontSize: '0.85rem' }}>No execution timeline data available yet for this contract.</p>
       </div>
     );
   }
@@ -273,18 +273,18 @@ export default function AwardedTenderKeymap({
 
   return (
     <div style={{
-      backgroundColor: '#0a192f',
-      border: '1px solid #1e3a5f',
+      backgroundColor: '#ffffff',
+      border: '1px solid #e2e8f0',
       borderRadius: '16px',
       overflow: 'hidden',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.45)',
-      color: '#ffffff'
+      boxShadow: '0 4px 20px rgba(15, 23, 42, 0.06)',
+      color: '#0f172a'
     }}>
       {/* Top Banner & Contract Context */}
       <div style={{
-        background: 'linear-gradient(135deg, #0f2b48 0%, #0c1d33 100%)',
+        background: 'linear-gradient(135deg, rgba(224, 242, 254, 0.8) 0%, rgba(254, 243, 199, 0.5) 50%, rgba(255, 237, 213, 0.8) 100%)',
         padding: '1.5rem',
-        borderBottom: '1px solid #1e3a5f'
+        borderBottom: '1px solid #fed7aa'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
@@ -305,19 +305,19 @@ export default function AwardedTenderKeymap({
                 <Award size={13} /> AWARDED CONTRACT
               </span>
 
-              <span style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: '#38bdf8', backgroundColor: 'rgba(56, 189, 248, 0.1)', border: '1px solid rgba(56, 189, 248, 0.25)', padding: '0.15rem 0.55rem', borderRadius: '4px' }}>
+              <span style={{ fontSize: '0.78rem', fontFamily: 'monospace', color: '#0369a1', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', padding: '0.15rem 0.55rem', borderRadius: '4px', fontWeight: '700' }}>
                 PO: {milestoneData.contractId}
               </span>
 
-              <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
-                Tender Ref: <strong style={{ color: '#ffffff' }}>{milestoneData.tenderId}</strong>
+              <span style={{ fontSize: '0.78rem', color: '#475569' }}>
+                Tender Ref: <strong style={{ color: '#0f172a' }}>{milestoneData.tenderId}</strong>
               </span>
 
               {isOfficer ? (
                 <span style={{
                   fontSize: '0.72rem',
-                  backgroundColor: 'rgba(2, 132, 199, 0.25)',
-                  color: '#38bdf8',
+                  backgroundColor: 'rgba(2, 132, 199, 0.12)',
+                  color: '#0369a1',
                   border: '1px solid #0284c7',
                   padding: '0.15rem 0.55rem',
                   borderRadius: '999px',
@@ -331,8 +331,8 @@ export default function AwardedTenderKeymap({
               ) : (
                 <span style={{
                   fontSize: '0.72rem',
-                  backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                  color: '#34d399',
+                  backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                  color: '#065f46',
                   border: '1px solid #10b981',
                   padding: '0.15rem 0.55rem',
                   borderRadius: '999px',
@@ -346,18 +346,18 @@ export default function AwardedTenderKeymap({
               )}
             </div>
 
-            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#ffffff', margin: 0 }}>
+            <h3 style={{ fontSize: '1.4rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
               {tender?.title || `Contract for ${milestoneData.vendorName}`}
             </h3>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginTop: '0.45rem', fontSize: '0.85rem', color: '#94a3b8', flexWrap: 'wrap' }}>
-              <span>Vendor: <strong style={{ color: '#34d399' }}>{milestoneData.vendorName}</strong></span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', marginTop: '0.45rem', fontSize: '0.85rem', color: '#475569', flexWrap: 'wrap' }}>
+              <span>Vendor: <strong style={{ color: '#059669' }}>{milestoneData.vendorName}</strong></span>
               <span>•</span>
-              <span>Buyer: <strong style={{ color: '#ffffff' }}>{milestoneData.buyerOrg || tender?.ministry || 'Procuring Authority'}</strong></span>
+              <span>Buyer: <strong style={{ color: '#0f172a' }}>{milestoneData.buyerOrg || tender?.ministry || 'Procuring Authority'}</strong></span>
               <span>•</span>
-              <span>Contract Value: <strong style={{ color: '#38bdf8' }}>{milestoneData.awardedValue}</strong></span>
+              <span>Contract Value: <strong style={{ color: '#0284c7' }}>{milestoneData.awardedValue}</strong></span>
               <span>•</span>
-              <span>Awarded Date: <strong style={{ color: '#ffffff' }}>{milestoneData.poDate}</strong></span>
+              <span>Awarded Date: <strong style={{ color: '#0f172a' }}>{milestoneData.poDate}</strong></span>
             </div>
           </div>
 
@@ -365,9 +365,9 @@ export default function AwardedTenderKeymap({
             <button
               onClick={onClose}
               style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                border: '1px solid #1e3a5f',
-                color: '#94a3b8',
+                backgroundColor: '#ffffff',
+                border: '1px solid #cbd5e1',
+                color: '#475569',
                 borderRadius: '8px',
                 padding: '0.45rem 0.75rem',
                 cursor: 'pointer',
@@ -382,27 +382,27 @@ export default function AwardedTenderKeymap({
         </div>
 
         {/* Sequential Milestone Progress Bar */}
-        <div style={{ marginTop: '1.5rem', backgroundColor: 'rgba(7, 21, 38, 0.8)', padding: '1rem 1.25rem', borderRadius: '10px', border: '1px solid #1e3a5f' }}>
+        <div style={{ marginTop: '1.5rem', backgroundColor: '#ffffff', padding: '1rem 1.25rem', borderRadius: '10px', border: '1px solid #fed7aa', boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem', flexWrap: 'wrap', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-              Execution Lifecycle Progress: <strong style={{ color: progressPercent === 100 ? '#34d399' : '#38bdf8' }}>{progressPercent}% Complete ({completedCount}/5 Milestones)</strong>
+            <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              Execution Lifecycle Progress: <strong style={{ color: progressPercent === 100 ? '#059669' : '#0284c7' }}>{progressPercent}% Complete ({completedCount}/5 Milestones)</strong>
             </span>
-            <span style={{ fontSize: '0.78rem', color: progressPercent === 100 ? '#34d399' : '#fbbf24', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: '700' }}>
+            <span style={{ fontSize: '0.78rem', color: progressPercent === 100 ? '#059669' : '#d97706', display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: '700' }}>
               {progressPercent === 100 ? (
                 <>
-                  <CheckCircle2 size={14} color="#34d399" />
+                  <CheckCircle2 size={14} color="#059669" />
                   <span>100% Settled & Disbursed via PFMS</span>
                 </>
               ) : (
                 <>
-                  <Clock size={14} color="#fbbf24" />
+                  <Clock size={14} color="#d97706" />
                   <span>Current Active Stage: {STAGE_CONFIG.find(s => s.key === activeStepKey)?.shortTitle || 'In Progress'}</span>
                 </>
               )}
             </span>
           </div>
 
-          <div style={{ width: '100%', height: '10px', backgroundColor: '#071526', borderRadius: '999px', overflow: 'hidden', border: '1px solid #1e385b' }}>
+          <div style={{ width: '100%', height: '10px', backgroundColor: '#e2e8f0', borderRadius: '999px', overflow: 'hidden', border: '1px solid #cbd5e1' }}>
             <div style={{
               width: `${progressPercent}%`,
               height: '100%',
@@ -428,8 +428,8 @@ export default function AwardedTenderKeymap({
                     width: '28px',
                     height: '28px',
                     borderRadius: '50%',
-                    backgroundColor: isApproved ? '#10b981' : (isActive ? '#0284c7' : '#0f2238'),
-                    border: isApproved ? '2px solid #34d399' : (isActive ? '2px solid #38bdf8' : '1px solid #1e385b'),
+                    backgroundColor: isApproved ? '#10b981' : (isActive ? '#0284c7' : '#f1f5f9'),
+                    border: isApproved ? '2px solid #34d399' : (isActive ? '2px solid #38bdf8' : '1px solid #cbd5e1'),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -437,14 +437,14 @@ export default function AwardedTenderKeymap({
                     fontSize: '0.75rem',
                     fontWeight: '800',
                     marginBottom: '0.25rem',
-                    boxShadow: isActive ? '0 0 10px rgba(56, 189, 248, 0.6)' : 'none'
+                    boxShadow: isActive ? '0 0 10px rgba(56, 189, 248, 0.4)' : 'none'
                   }}>
                     {isApproved ? <CheckCircle2 size={16} /> : cfg.step}
                   </div>
                   <span style={{
                     fontSize: '0.7rem',
                     fontWeight: isApproved || isActive ? '700' : '500',
-                    color: isApproved ? '#34d399' : (isActive ? '#38bdf8' : '#64748b'),
+                    color: isApproved ? '#059669' : (isActive ? '#0284c7' : '#64748b'),
                     lineHeight: '1.2'
                   }}>
                     {cfg.shortTitle}
@@ -470,15 +470,15 @@ export default function AwardedTenderKeymap({
             <div
               key={stepKey}
               style={{
-                backgroundColor: isApproved ? 'rgba(16, 185, 129, 0.05)' : (isActive ? 'rgba(2, 132, 199, 0.08)' : '#0c1f36'),
+                backgroundColor: isApproved ? '#f0fdf4' : (isActive ? '#f0f9ff' : '#f8fafc'),
                 border: isApproved
-                  ? '1px solid #10b981'
-                  : (isActive ? '2px solid #0284c7' : '1px solid #1e385b'),
+                  ? '1px solid #86efac'
+                  : (isActive ? '2px solid #0284c7' : '1px solid #e2e8f0'),
                 borderRadius: '12px',
                 padding: '1.25rem',
                 position: 'relative',
                 transition: 'all 0.2s ease',
-                boxShadow: isActive ? '0 4px 20px rgba(2, 132, 199, 0.2)' : 'none'
+                boxShadow: isActive ? '0 4px 16px rgba(2, 132, 199, 0.12)' : '0 2px 6px rgba(0,0,0,0.02)'
               }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
@@ -488,19 +488,19 @@ export default function AwardedTenderKeymap({
                     width: '46px',
                     height: '46px',
                     borderRadius: '10px',
-                    backgroundColor: isApproved ? 'rgba(16, 185, 129, 0.15)' : (isActive ? 'rgba(2, 132, 199, 0.2)' : 'rgba(255, 255, 255, 0.04)'),
-                    border: isApproved ? '1px solid #10b981' : (isActive ? '1px solid #0284c7' : '1px solid #1e385b'),
+                    backgroundColor: isApproved ? '#ecfdf5' : (isActive ? '#e0f2fe' : '#ffffff'),
+                    border: isApproved ? '1px solid #86efac' : (isActive ? '1px solid #7dd3fc' : '1px solid #e2e8f0'),
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexShrink: 0
                   }}>
-                    <Icon size={24} color={isApproved ? '#34d399' : (isActive ? '#38bdf8' : '#94a3b8')} />
+                    <Icon size={24} color={isApproved ? '#059669' : (isActive ? '#0284c7' : '#64748b')} />
                   </div>
 
                   <div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap', marginBottom: '0.25rem' }}>
-                      <span style={{ fontSize: '0.72rem', fontWeight: '800', color: isApproved ? '#34d399' : (isActive ? '#38bdf8' : '#94a3b8'), textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                      <span style={{ fontSize: '0.72rem', fontWeight: '800', color: isApproved ? '#059669' : (isActive ? '#0284c7' : '#64748b'), textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                         STAGE {stageCfg.step} OF 5
                       </span>
 
@@ -508,8 +508,9 @@ export default function AwardedTenderKeymap({
                         <span style={{
                           fontSize: '0.7rem',
                           fontWeight: '800',
-                          backgroundColor: 'rgba(16, 185, 129, 0.2)',
-                          color: '#34d399',
+                          backgroundColor: '#ecfdf5',
+                          color: '#065f46',
+                          border: '1px solid #a7f3d0',
                           padding: '0.1rem 0.5rem',
                           borderRadius: '4px',
                           display: 'inline-flex',
@@ -524,8 +525,9 @@ export default function AwardedTenderKeymap({
                         <span style={{
                           fontSize: '0.7rem',
                           fontWeight: '800',
-                          backgroundColor: 'rgba(2, 132, 199, 0.2)',
-                          color: '#38bdf8',
+                          backgroundColor: '#e0f2fe',
+                          color: '#0369a1',
+                          border: '1px solid #bae6fd',
                           padding: '0.1rem 0.5rem',
                           borderRadius: '4px',
                           display: 'inline-flex',
@@ -540,36 +542,37 @@ export default function AwardedTenderKeymap({
                         <span style={{
                           fontSize: '0.7rem',
                           color: '#64748b',
-                          backgroundColor: 'rgba(255, 255, 255, 0.03)',
+                          backgroundColor: '#f1f5f9',
                           padding: '0.1rem 0.4rem',
-                          borderRadius: '4px'
+                          borderRadius: '4px',
+                          border: '1px solid #e2e8f0'
                         }}>
                           PENDING PRIOR STAGES
                         </span>
                       )}
                     </div>
 
-                    <h4 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#ffffff', margin: '0 0 0.35rem 0' }}>
+                    <h4 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#0f172a', margin: '0 0 0.35rem 0' }}>
                       {stageCfg.title}
                     </h4>
 
-                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', lineHeight: '1.45' }}>
+                    <p style={{ margin: 0, fontSize: '0.85rem', color: '#475569', lineHeight: '1.45' }}>
                       {stepData.subtitle || stageCfg.description}
                     </p>
 
                     {/* Step Specific Details / Metadata */}
                     {stepKey === 'tender_approved' && (
-                      <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                        <span>Award Document: <strong style={{ color: '#38bdf8' }}>{stepData.docRef || 'LOA-GEM-2026-9901.pdf'}</strong></span>
+                      <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                        <span>Award Document: <strong style={{ color: '#0284c7' }}>{stepData.docRef || 'LOA-GEM-2026-9901.pdf'}</strong></span>
                         <span>•</span>
-                        <span>Contract Signed: <strong style={{ color: '#34d399' }}>DSC Certified (RSA-2048)</strong></span>
+                        <span>Contract Signed: <strong style={{ color: '#059669' }}>DSC Certified (RSA-2048)</strong></span>
                       </div>
                     )}
 
                     {stepKey === 'stock_supplied' && (
-                      <div style={{ marginTop: '0.75rem', backgroundColor: 'rgba(7, 21, 38, 0.6)', padding: '0.75rem', borderRadius: '8px', border: '1px solid #1e385b' }}>
+                      <div style={{ marginTop: '0.75rem', backgroundColor: '#ffffff', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                          <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#0284c7', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <Truck size={13} /> Consignment Dispatch Particulars:
                           </span>
                           {!isOfficer && (
@@ -587,14 +590,15 @@ export default function AwardedTenderKeymap({
                               style={{
                                 padding: '0.25rem 0.6rem',
                                 fontSize: '0.72rem',
-                                backgroundColor: 'rgba(56, 189, 248, 0.15)',
-                                color: '#38bdf8',
-                                border: '1px solid rgba(56, 189, 248, 0.3)',
+                                backgroundColor: '#e0f2fe',
+                                color: '#0369a1',
+                                border: '1px solid #bae6fd',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.25rem'
+                                gap: '0.25rem',
+                                fontWeight: '600'
                               }}
                             >
                               <Edit3 size={11} /> {stepData.dispatchDetails ? 'Update Dispatch Info' : 'Submit Delivery Challan'}
@@ -605,24 +609,24 @@ export default function AwardedTenderKeymap({
                         {stepData.dispatchDetails ? (
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', fontSize: '0.78rem' }}>
                             <div>
-                              <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.7rem' }}>Delivery Challan</span>
-                              <strong style={{ color: '#ffffff' }}>{stepData.dispatchDetails.challanNo}</strong>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.7rem' }}>Delivery Challan</span>
+                              <strong style={{ color: '#0f172a' }}>{stepData.dispatchDetails.challanNo}</strong>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.7rem' }}>Carrier / Logistics</span>
-                              <strong style={{ color: '#ffffff' }}>{stepData.dispatchDetails.carrier}</strong>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.7rem' }}>Carrier / Logistics</span>
+                              <strong style={{ color: '#0f172a' }}>{stepData.dispatchDetails.carrier}</strong>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.7rem' }}>Tracking Waybill</span>
-                              <strong style={{ color: '#38bdf8' }}>{stepData.dispatchDetails.trackingId}</strong>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.7rem' }}>Tracking Waybill</span>
+                              <strong style={{ color: '#0284c7' }}>{stepData.dispatchDetails.trackingId}</strong>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.7rem' }}>Dispatch Date</span>
-                              <strong style={{ color: '#ffffff' }}>{stepData.dispatchDetails.dispatchDate}</strong>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.7rem' }}>Dispatch Date</span>
+                              <strong style={{ color: '#0f172a' }}>{stepData.dispatchDetails.dispatchDate}</strong>
                             </div>
                           </div>
                         ) : (
-                          <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                          <span style={{ fontSize: '0.78rem', color: '#64748b', fontStyle: 'italic' }}>
                             Awaiting vendor consignment dispatch submission.
                           </span>
                         )}
@@ -630,17 +634,17 @@ export default function AwardedTenderKeymap({
                     )}
 
                     {stepKey === 'inspection' && (
-                      <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                        <span>CRAC Certificate No: <strong style={{ color: isApproved ? '#34d399' : '#fbbf24' }}>{stepData.cracNumber || 'Pending Inspection'}</strong></span>
+                      <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                        <span>CRAC Certificate No: <strong style={{ color: isApproved ? '#059669' : '#d97706' }}>{stepData.cracNumber || 'Pending Inspection'}</strong></span>
                         <span>•</span>
-                        <span>Technical Audit: <strong style={{ color: '#ffffff' }}>GFR 2017 Rule 149 / DPIIT MII</strong></span>
+                        <span>Technical Audit: <strong style={{ color: '#0f172a' }}>GFR 2017 Rule 149 / DPIIT MII</strong></span>
                       </div>
                     )}
 
                     {stepKey === 'invoice' && (
-                      <div style={{ marginTop: '0.75rem', backgroundColor: 'rgba(7, 21, 38, 0.6)', padding: '0.75rem', borderRadius: '8px', border: '1px solid #1e385b' }}>
+                      <div style={{ marginTop: '0.75rem', backgroundColor: '#ffffff', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.03)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '0.35rem' }}>
-                          <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#38bdf8', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: '700', color: '#0284c7', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
                             <FileText size={13} /> Commercial Tax Invoice Details:
                           </span>
                           {!isOfficer && (
@@ -657,14 +661,15 @@ export default function AwardedTenderKeymap({
                               style={{
                                 padding: '0.25rem 0.6rem',
                                 fontSize: '0.72rem',
-                                backgroundColor: 'rgba(56, 189, 248, 0.15)',
-                                color: '#38bdf8',
-                                border: '1px solid rgba(56, 189, 248, 0.3)',
+                                backgroundColor: '#e0f2fe',
+                                color: '#0369a1',
+                                border: '1px solid #bae6fd',
                                 borderRadius: '4px',
                                 cursor: 'pointer',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '0.25rem'
+                                gap: '0.25rem',
+                                fontWeight: '600'
                               }}
                             >
                               <Edit3 size={11} /> {stepData.invoiceDetails ? 'Update Invoice' : 'Generate Commercial Invoice'}
@@ -675,24 +680,24 @@ export default function AwardedTenderKeymap({
                         {stepData.invoiceDetails ? (
                           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem', fontSize: '0.78rem' }}>
                             <div>
-                              <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.7rem' }}>Invoice Number</span>
-                              <strong style={{ color: '#ffffff' }}>{stepData.invoiceDetails.invoiceNo}</strong>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.7rem' }}>Invoice Number</span>
+                              <strong style={{ color: '#0f172a' }}>{stepData.invoiceDetails.invoiceNo}</strong>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.7rem' }}>Total Claim (incl. GST)</span>
-                              <strong style={{ color: '#34d399' }}>{stepData.invoiceDetails.invoiceAmount}</strong>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.7rem' }}>Total Claim (incl. GST)</span>
+                              <strong style={{ color: '#059669' }}>{stepData.invoiceDetails.invoiceAmount}</strong>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.7rem' }}>GSTIN</span>
-                              <strong style={{ color: '#38bdf8' }}>{stepData.invoiceDetails.gstNumber}</strong>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.7rem' }}>GSTIN</span>
+                              <strong style={{ color: '#0284c7' }}>{stepData.invoiceDetails.gstNumber}</strong>
                             </div>
                             <div>
-                              <span style={{ color: '#94a3b8', display: 'block', fontSize: '0.7rem' }}>Tax Status</span>
-                              <strong style={{ color: '#34d399' }}>✓ Verified 3B Filed</strong>
+                              <span style={{ color: '#64748b', display: 'block', fontSize: '0.7rem' }}>Tax Status</span>
+                              <strong style={{ color: '#059669' }}>✓ Verified 3B Filed</strong>
                             </div>
                           </div>
                         ) : (
-                          <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
+                          <span style={{ fontSize: '0.78rem', color: '#64748b', fontStyle: 'italic' }}>
                             Awaiting vendor tax invoice submission.
                           </span>
                         )}
@@ -700,23 +705,23 @@ export default function AwardedTenderKeymap({
                     )}
 
                     {stepKey === 'payment' && (
-                      <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: '#cbd5e1', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-                        <span>PFMS Reference: <strong style={{ color: isApproved ? '#34d399' : '#38bdf8' }}>{stepData.disbursementRef || 'Pending Prior Approvals'}</strong></span>
+                      <div style={{ marginTop: '0.6rem', fontSize: '0.8rem', color: '#334155', display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                        <span>PFMS Reference: <strong style={{ color: isApproved ? '#059669' : '#0284c7' }}>{stepData.disbursementRef || 'Pending Prior Approvals'}</strong></span>
                         <span>•</span>
-                        <span>Guarantee: <strong style={{ color: '#ffffff' }}>10-Day Statutory Disbursal SLA</strong></span>
+                        <span>Guarantee: <strong style={{ color: '#0f172a' }}>10-Day Statutory Disbursal SLA</strong></span>
                       </div>
                     )}
 
                     {/* Official Sign-off & Audit Remarks */}
                     {stepData.notes && (
-                      <div style={{ marginTop: '0.65rem', padding: '0.5rem 0.75rem', backgroundColor: 'rgba(0,0,0,0.25)', borderRadius: '6px', borderLeft: isApproved ? '3px solid #10b981' : '3px solid #38bdf8', fontSize: '0.78rem', color: '#cbd5e1' }}>
-                        <span style={{ color: isApproved ? '#34d399' : '#38bdf8', fontWeight: '700' }}>Officer Remarks: </span>
+                      <div style={{ marginTop: '0.65rem', padding: '0.5rem 0.75rem', backgroundColor: '#f1f5f9', borderRadius: '6px', borderLeft: isApproved ? '3px solid #10b981' : '3px solid #0284c7', fontSize: '0.78rem', color: '#334155' }}>
+                        <span style={{ color: isApproved ? '#059669' : '#0284c7', fontWeight: '700' }}>Officer Remarks: </span>
                         {stepData.notes}
                       </div>
                     )}
 
                     {isApproved && stepData.approvedAt && (
-                      <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#34d399' }}>
+                      <div style={{ marginTop: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.75rem', color: '#059669' }}>
                         <UserCheck size={13} />
                         <span>Officially Verified & Approved by <strong>{stepData.approvedBy || 'Procuring Authority'}</strong> on {stepData.approvedAt}</span>
                       </div>
@@ -740,11 +745,11 @@ export default function AwardedTenderKeymap({
                         style={{
                           padding: '0.6rem 1.1rem',
                           borderRadius: '8px',
-                          border: isApproved ? '1px solid #10b981' : (canBeApproved ? '1px solid #0284c7' : '1px solid #334155'),
+                          border: isApproved ? '1px solid #10b981' : (canBeApproved ? '1px solid #0284c7' : '1px solid #cbd5e1'),
                           backgroundColor: isApproved
-                            ? 'rgba(16, 185, 129, 0.2)'
-                            : (canBeApproved ? '#0284c7' : 'rgba(255, 255, 255, 0.05)'),
-                          color: isApproved ? '#34d399' : (canBeApproved ? '#ffffff' : '#64748b'),
+                            ? '#ecfdf5'
+                            : (canBeApproved ? '#0284c7' : '#f1f5f9'),
+                          color: isApproved ? '#065f46' : (canBeApproved ? '#ffffff' : '#94a3b8'),
                           fontWeight: '800',
                           fontSize: '0.82rem',
                           cursor: (!isApproved && !canBeApproved) ? 'not-allowed' : 'pointer',
@@ -752,13 +757,13 @@ export default function AwardedTenderKeymap({
                           alignItems: 'center',
                           gap: '0.5rem',
                           transition: 'all 0.2s ease',
-                          boxShadow: (canBeApproved && !isApproved) ? '0 4px 12px rgba(2, 132, 199, 0.3)' : 'none'
+                          boxShadow: (canBeApproved && !isApproved) ? '0 4px 12px rgba(2, 132, 199, 0.25)' : 'none'
                         }}
                         title={(!isApproved && !canBeApproved) ? 'Disabled: Previous milestone must be approved first' : ''}
                       >
                         {isApproved ? (
                           <>
-                            <CheckSquare size={17} color="#34d399" />
+                            <CheckSquare size={17} color="#059669" />
                             <span>Approved (Click to Revoke)</span>
                           </>
                         ) : (
@@ -770,13 +775,13 @@ export default function AwardedTenderKeymap({
                       </button>
 
                       {!isApproved && !canBeApproved && (
-                        <span style={{ fontSize: '0.68rem', color: '#ef4444', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
+                        <span style={{ fontSize: '0.68rem', color: '#dc2626', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
                           <AlertTriangle size={10} /> Locked: Awaiting Stage {stageCfg.step - 1} approval
                         </span>
                       )}
 
                       {isApproved && (
-                        <span style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                        <span style={{ fontSize: '0.68rem', color: '#64748b' }}>
                           ✓ Officer sign-off recorded
                         </span>
                       )}
@@ -787,13 +792,13 @@ export default function AwardedTenderKeymap({
                       {isApproved ? (
                         <div style={{
                           padding: '0.45rem 0.9rem',
-                          backgroundColor: 'rgba(16, 185, 129, 0.15)',
-                          border: '1px solid #10b981',
+                          backgroundColor: '#ecfdf5',
+                          border: '1px solid #86efac',
                           borderRadius: '8px',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.4rem',
-                          color: '#34d399',
+                          color: '#065f46',
                           fontWeight: '800',
                           fontSize: '0.8rem'
                         }}>
@@ -803,13 +808,13 @@ export default function AwardedTenderKeymap({
                       ) : isActive ? (
                         <div style={{
                           padding: '0.45rem 0.9rem',
-                          backgroundColor: 'rgba(2, 132, 199, 0.15)',
-                          border: '1px solid #0284c7',
+                          backgroundColor: '#e0f2fe',
+                          border: '1px solid #7dd3fc',
                           borderRadius: '8px',
                           display: 'flex',
                           alignItems: 'center',
                           gap: '0.4rem',
-                          color: '#38bdf8',
+                          color: '#0369a1',
                           fontWeight: '700',
                           fontSize: '0.8rem'
                         }}>
@@ -819,8 +824,8 @@ export default function AwardedTenderKeymap({
                       ) : (
                         <div style={{
                           padding: '0.45rem 0.9rem',
-                          backgroundColor: 'rgba(255, 255, 255, 0.04)',
-                          border: '1px solid #1e385b',
+                          backgroundColor: '#f1f5f9',
+                          border: '1px solid #e2e8f0',
                           borderRadius: '8px',
                           display: 'flex',
                           alignItems: 'center',
@@ -849,7 +854,8 @@ export default function AwardedTenderKeymap({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backgroundColor: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -857,40 +863,40 @@ export default function AwardedTenderKeymap({
           padding: '1rem'
         }}>
           <div style={{
-            backgroundColor: '#0c1f36',
-            border: '1px solid #0284c7',
+            backgroundColor: '#ffffff',
+            border: '1px solid #bae6fd',
             borderRadius: '14px',
             width: '100%',
             maxWidth: '560px',
             padding: '1.75rem',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)'
+            boxShadow: '0 20px 50px rgba(15, 23, 42, 0.18)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #1e385b', paddingBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <CheckSquare size={20} color="#38bdf8" />
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff', margin: 0 }}>
+                <CheckSquare size={20} color="#0284c7" />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
                   Procurement Officer Sign-off & Approval
                 </h3>
               </div>
-              <button onClick={() => setModalStage(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+              <button onClick={() => setModalStage(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <span style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              <span style={{ fontSize: '0.8rem', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Milestone Being Approved:
               </span>
-              <div style={{ fontSize: '1.05rem', fontWeight: '800', color: '#38bdf8', marginTop: '0.2rem' }}>
+              <div style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0284c7', marginTop: '0.2rem' }}>
                 {STAGE_CONFIG.find(s => s.key === activeApprovalKey)?.title}
               </div>
-              <div style={{ fontSize: '0.8rem', color: '#cbd5e1', marginTop: '0.2rem' }}>
+              <div style={{ fontSize: '0.8rem', color: '#475569', marginTop: '0.2rem' }}>
                 Contract: <strong>{milestoneData.contractId}</strong> • Vendor: <strong>{milestoneData.vendorName}</strong>
               </div>
             </div>
 
             <div style={{ marginBottom: '1rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#cbd5e1', marginBottom: '0.35rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.35rem' }}>
                 Official Inspection / Verification Remarks (GFR 2017 Audit Trail):
               </label>
               <textarea
@@ -899,10 +905,10 @@ export default function AwardedTenderKeymap({
                 rows={3}
                 style={{
                   width: '100%',
-                  backgroundColor: '#071526',
-                  border: '1px solid #1e385b',
+                  backgroundColor: '#f8fafc',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '6px',
-                  color: '#ffffff',
+                  color: '#0f172a',
                   padding: '0.6rem',
                   fontSize: '0.85rem'
                 }}
@@ -910,7 +916,7 @@ export default function AwardedTenderKeymap({
             </div>
 
             <div style={{ marginBottom: '1.5rem' }}>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#cbd5e1', marginBottom: '0.35rem' }}>
+              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#334155', marginBottom: '0.35rem' }}>
                 Authorized Officer:
               </label>
               <input
@@ -919,10 +925,10 @@ export default function AwardedTenderKeymap({
                 value={currentUser?.fullName ? `${currentUser.fullName} (${currentUser.organization || 'Procurement Authority'})` : 'Dir. Rajesh Verma (Chief Procurement Officer)'}
                 style={{
                   width: '100%',
-                  backgroundColor: '#071526',
-                  border: '1px solid #1e385b',
+                  backgroundColor: '#f1f5f9',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '6px',
-                  color: '#34d399',
+                  color: '#065f46',
                   padding: '0.5rem 0.6rem',
                   fontSize: '0.85rem',
                   fontWeight: '700'
@@ -935,10 +941,10 @@ export default function AwardedTenderKeymap({
                 onClick={() => setModalStage(null)}
                 style={{
                   padding: '0.6rem 1.2rem',
-                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                  border: '1px solid #1e385b',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '6px',
-                  color: '#94a3b8',
+                  color: '#475569',
                   fontSize: '0.85rem',
                   fontWeight: '600',
                   cursor: 'pointer'
@@ -961,7 +967,7 @@ export default function AwardedTenderKeymap({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.4rem',
-                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
+                  boxShadow: '0 4px 14px rgba(16, 185, 129, 0.25)'
                 }}
               >
                 <CheckCircle2 size={16} /> Confirm Approval & Sign
@@ -979,7 +985,8 @@ export default function AwardedTenderKeymap({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backgroundColor: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -987,29 +994,29 @@ export default function AwardedTenderKeymap({
           padding: '1rem'
         }}>
           <form onSubmit={handleSaveDispatchDetails} style={{
-            backgroundColor: '#0c1f36',
-            border: '1px solid #10b981',
+            backgroundColor: '#ffffff',
+            border: '1px solid #86efac',
             borderRadius: '14px',
             width: '100%',
             maxWidth: '520px',
             padding: '1.75rem',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)'
+            boxShadow: '0 20px 50px rgba(15, 23, 42, 0.18)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #1e385b', paddingBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <Truck size={20} color="#10b981" />
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff', margin: 0 }}>
+                <Truck size={20} color="#059669" />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
                   Consignment Dispatch Details
                 </h3>
               </div>
-              <button type="button" onClick={() => setModalStage(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+              <button type="button" onClick={() => setModalStage(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', marginBottom: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#334155', marginBottom: '0.3rem', fontWeight: '600' }}>
                   Delivery Challan No. <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
@@ -1018,38 +1025,38 @@ export default function AwardedTenderKeymap({
                   placeholder="e.g. DC-9901-A"
                   value={dispatchForm.challanNo}
                   onChange={(e) => setDispatchForm({ ...dispatchForm, challanNo: e.target.value })}
-                  style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', color: '#ffffff', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
+                  style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#334155', marginBottom: '0.3rem', fontWeight: '600' }}>
                     Carrier / Logistics Partner
                   </label>
                   <input
                     type="text"
                     value={dispatchForm.carrier}
                     onChange={(e) => setDispatchForm({ ...dispatchForm, carrier: e.target.value })}
-                    style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', color: '#ffffff', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
+                    style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#334155', marginBottom: '0.3rem', fontWeight: '600' }}>
                     Dispatch Date
                   </label>
                   <input
                     type="date"
                     value={dispatchForm.dispatchDate}
                     onChange={(e) => setDispatchForm({ ...dispatchForm, dispatchDate: e.target.value })}
-                    style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', color: '#ffffff', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
+                    style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#334155', marginBottom: '0.3rem', fontWeight: '600' }}>
                   Tracking / Waybill ID
                 </label>
                 <input
@@ -1057,16 +1064,16 @@ export default function AwardedTenderKeymap({
                   placeholder="e.g. BD-882199042"
                   value={dispatchForm.trackingId}
                   onChange={(e) => setDispatchForm({ ...dispatchForm, trackingId: e.target.value })}
-                  style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', color: '#ffffff', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
+                  style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
                 />
               </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-              <button type="button" onClick={() => setModalStage(null)} style={{ padding: '0.6rem 1.2rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid #1e385b', color: '#94a3b8', borderRadius: '6px', cursor: 'pointer' }}>
+              <button type="button" onClick={() => setModalStage(null)} style={{ padding: '0.6rem 1.2rem', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', color: '#64748b', borderRadius: '6px', cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button type="submit" style={{ padding: '0.6rem 1.4rem', backgroundColor: '#10b981', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: '800', cursor: 'pointer' }}>
+              <button type="submit" style={{ padding: '0.6rem 1.4rem', backgroundColor: '#10b981', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16,185,129,0.25)' }}>
                 Save & Notify Buyer
               </button>
             </div>
@@ -1082,7 +1089,8 @@ export default function AwardedTenderKeymap({
           left: 0,
           right: 0,
           bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.75)',
+          backgroundColor: 'rgba(15, 23, 42, 0.5)',
+          backdropFilter: 'blur(4px)',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -1090,29 +1098,29 @@ export default function AwardedTenderKeymap({
           padding: '1rem'
         }}>
           <form onSubmit={handleSaveInvoiceDetails} style={{
-            backgroundColor: '#0c1f36',
-            border: '1px solid #10b981',
+            backgroundColor: '#ffffff',
+            border: '1px solid #86efac',
             borderRadius: '14px',
             width: '100%',
             maxWidth: '520px',
             padding: '1.75rem',
-            boxShadow: '0 20px 50px rgba(0, 0, 0, 0.6)'
+            boxShadow: '0 20px 50px rgba(15, 23, 42, 0.18)'
           }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #1e385b', paddingBottom: '0.75rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-                <FileText size={20} color="#10b981" />
-                <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ffffff', margin: 0 }}>
+                <FileText size={20} color="#059669" />
+                <h3 style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>
                   Submit Commercial Tax Invoice
                 </h3>
               </div>
-              <button type="button" onClick={() => setModalStage(null)} style={{ background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}>
+              <button type="button" onClick={() => setModalStage(null)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }}>
                 <X size={20} />
               </button>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem', marginBottom: '1.5rem' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#334155', marginBottom: '0.3rem', fontWeight: '600' }}>
                   Commercial Invoice No. <span style={{ color: '#ef4444' }}>*</span>
                 </label>
                 <input
@@ -1121,13 +1129,13 @@ export default function AwardedTenderKeymap({
                   placeholder="e.g. INV-2026-081"
                   value={invoiceForm.invoiceNo}
                   onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceNo: e.target.value })}
-                  style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', color: '#ffffff', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
+                  style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
                 />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#334155', marginBottom: '0.3rem', fontWeight: '600' }}>
                     Invoice Amount (₹) <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
@@ -1136,41 +1144,41 @@ export default function AwardedTenderKeymap({
                     placeholder="e.g. ₹1,38,00,000"
                     value={invoiceForm.invoiceAmount}
                     onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceAmount: e.target.value })}
-                    style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', color: '#ffffff', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
+                    style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
                   />
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', color: '#334155', marginBottom: '0.3rem', fontWeight: '600' }}>
                     Invoice Date
                   </label>
                   <input
                     type="date"
                     value={invoiceForm.invoiceDate}
                     onChange={(e) => setInvoiceForm({ ...invoiceForm, invoiceDate: e.target.value })}
-                    style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', color: '#ffffff', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
+                    style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0f172a', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem' }}
                   />
                 </div>
               </div>
 
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', color: '#334155', marginBottom: '0.3rem', fontWeight: '600' }}>
                   Vendor GSTIN
                 </label>
                 <input
                   type="text"
                   value={invoiceForm.gstNumber}
                   onChange={(e) => setInvoiceForm({ ...invoiceForm, gstNumber: e.target.value })}
-                  style={{ width: '100%', backgroundColor: '#071526', border: '1px solid #1e385b', color: '#38bdf8', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '700' }}
+                  style={{ width: '100%', backgroundColor: '#f8fafc', border: '1px solid #cbd5e1', color: '#0284c7', padding: '0.5rem', borderRadius: '6px', fontSize: '0.85rem', fontWeight: '700' }}
                 />
               </div>
             </div>
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
-              <button type="button" onClick={() => setModalStage(null)} style={{ padding: '0.6rem 1.2rem', backgroundColor: 'rgba(255, 255, 255, 0.05)', border: '1px solid #1e385b', color: '#94a3b8', borderRadius: '6px', cursor: 'pointer' }}>
+              <button type="button" onClick={() => setModalStage(null)} style={{ padding: '0.6rem 1.2rem', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', color: '#64748b', borderRadius: '6px', cursor: 'pointer' }}>
                 Cancel
               </button>
-              <button type="submit" style={{ padding: '0.6rem 1.4rem', backgroundColor: '#10b981', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: '800', cursor: 'pointer' }}>
+              <button type="submit" style={{ padding: '0.6rem 1.4rem', backgroundColor: '#10b981', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: '800', cursor: 'pointer', boxShadow: '0 4px 14px rgba(16,185,129,0.25)' }}>
                 Submit Tax Invoice
               </button>
             </div>

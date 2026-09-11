@@ -470,21 +470,23 @@ export default function CategoryCatalogView({
   };
 
   return (
-    <div style={{ backgroundColor: '#071526', minHeight: '85vh', padding: '2rem 1.5rem', color: '#ffffff' }}>
+    <div style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0f9ff 35%, #fff7ed 70%, #ffffff 100%)', minHeight: '88vh', padding: '2rem 1.5rem', color: '#0f172a', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}>
       <div className="container-custom">
         {/* Top Header */}
         <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-              <span className="section-tag" style={{ margin: 0 }}>PRODUCT & SERVICE CATALOG (GFR 149)</span>
-              <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(16, 185, 129, 0.3)', fontWeight: '700' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+              <span className="section-tag" style={{ margin: 0, background: 'linear-gradient(135deg, #e0f2fe 0%, #fed7aa 100%)', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: '800' }}>
+                PRODUCT & SERVICE CATALOG (GFR 149)
+              </span>
+              <span style={{ fontSize: '0.75rem', backgroundColor: '#ecfdf5', color: '#059669', padding: '3px 8px', borderRadius: '6px', border: '1px solid #a7f3d0', fontWeight: '700' }}>
                 Direct Purchase L1 Rate Benchmarking Active
               </span>
             </div>
-            <h1 className="serif-heading" style={{ fontSize: '2.4rem', margin: '0.2rem 0', color: '#ffffff' }}>
+            <h1 style={{ fontSize: '2.2rem', fontWeight: '800', margin: '0.2rem 0', color: '#0f172a', letterSpacing: '-0.02em' }}>
               GeM Official Product & Service Marketplace
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '850px', margin: 0 }}>
+            <p style={{ color: '#475569', fontSize: '0.95rem', maxWidth: '850px', margin: 0, lineHeight: '1.5' }}>
               Browse verified OEM products, compare technical specifications, and generate direct purchase orders or tender indents across all statutory public procurement categories.
             </p>
           </div>
@@ -494,28 +496,30 @@ export default function CategoryCatalogView({
               <button 
                 onClick={onNavigateHome}
                 style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                  color: '#e2e8f0',
-                  border: '1px solid #1e385b',
+                  width: '40px',
+                  height: '40px',
+                  padding: 0,
+                  backgroundColor: '#ffffff',
+                  color: '#0284c7',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '8px',
-                  padding: '0.65rem 1.15rem',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.45rem',
-                  fontWeight: '700',
-                  fontSize: '0.85rem',
+                  justifyContent: 'center',
                   cursor: 'pointer',
-                  transition: 'all 0.2s ease'
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
                 }}
                 title="Return to GeM Homepage"
+                aria-label="Return to GeM Homepage"
               >
-                <Home size={15} color="#38bdf8" />
-                <span>🏠 Homepage</span>
+                <Home size={18} color="#0284c7" />
               </button>
             )}
-            <div style={{ backgroundColor: '#0b1a2d', border: '1px solid #1e385b', padding: '0.65rem 1.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <ShoppingBag size={18} color="#38bdf8" />
-              <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>Direct Indents: <strong>{cartCount} Generated</strong></span>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '0.65rem 1.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <ShoppingBag size={18} color="#0284c7" />
+              <span style={{ fontSize: '0.85rem', color: '#334155' }}>Direct Indents: <strong style={{ color: '#0f172a' }}>{cartCount} Generated</strong></span>
             </div>
           </div>
         </div>
@@ -530,9 +534,9 @@ export default function CategoryCatalogView({
                 type="button"
                 onClick={() => setSelectedCategory(cat.name)}
                 style={{
-                  backgroundColor: isActive ? '#0f2238' : '#0b1a2d',
-                  color: isActive ? '#38bdf8' : '#cbd5e1',
-                  border: `1.5px solid ${isActive ? '#38bdf8' : '#1e385b'}`,
+                  background: isActive ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : '#ffffff',
+                  color: isActive ? '#ffffff' : '#334155',
+                  border: `1.5px solid ${isActive ? '#0284c7' : '#cbd5e1'}`,
                   borderRadius: '10px',
                   padding: '0.65rem 1.15rem',
                   fontSize: '0.85rem',
@@ -543,7 +547,7 @@ export default function CategoryCatalogView({
                   gap: '0.5rem',
                   whiteSpace: 'nowrap',
                   transition: 'all 0.15s ease',
-                  boxShadow: isActive ? '0 4px 14px rgba(56, 189, 248, 0.25)' : 'none'
+                  boxShadow: isActive ? '0 4px 14px rgba(2, 132, 199, 0.25)' : 'none'
                 }}
               >
                 <span>{cat.icon}</span>
@@ -557,14 +561,14 @@ export default function CategoryCatalogView({
         {(() => {
           const currentCfg = categoryConfigs.find(c => c.name === selectedCategory) || categoryConfigs[0];
           return (
-            <div style={{ backgroundColor: '#0b1a2d', border: '1px solid #1e385b', borderRadius: '12px', padding: '1.25rem 1.5rem', marginBottom: '1.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ background: 'linear-gradient(135deg, #ffffff 0%, #f0f9ff 50%, #fff7ed 100%)', border: '1px solid #fed7aa', borderRadius: '12px', padding: '1.25rem 1.5rem', marginBottom: '1.75rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', boxShadow: '0 2px 10px rgba(249, 115, 22, 0.05)' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                 <span style={{ fontSize: '2rem' }}>{currentCfg.icon}</span>
                 <div>
-                  <h3 style={{ fontSize: '1.25rem', color: '#ffffff', margin: '0 0 2px 0', fontWeight: '800' }}>
+                  <h3 style={{ fontSize: '1.25rem', color: '#0f172a', margin: '0 0 2px 0', fontWeight: '800' }}>
                     {currentCfg.name}
                   </h3>
-                  <span style={{ fontSize: '0.85rem', color: '#94a3b8' }}>
+                  <span style={{ fontSize: '0.85rem', color: '#64748b' }}>
                     {currentCfg.tagline}
                   </span>
                 </div>
@@ -574,17 +578,18 @@ export default function CategoryCatalogView({
                   type="button"
                   onClick={() => onOpenCreateBid && onOpenCreateBid()}
                   style={{
-                    backgroundColor: '#1e385b',
-                    color: '#38bdf8',
-                    border: '1px solid rgba(56, 189, 248, 0.3)',
-                    borderRadius: '6px',
-                    padding: '0.5rem 1rem',
+                    backgroundColor: '#ffffff',
+                    color: '#0284c7',
+                    border: '1px solid #bae6fd',
+                    borderRadius: '8px',
+                    padding: '0.55rem 1.15rem',
                     fontSize: '0.82rem',
                     fontWeight: '700',
                     cursor: 'pointer',
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.4rem'
+                    gap: '0.4rem',
+                    boxShadow: '0 1px 4px rgba(2, 132, 199, 0.1)'
                   }}
                 >
                   <PlusCircle size={14} />
@@ -604,43 +609,48 @@ export default function CategoryCatalogView({
               { id: 'under10k', label: 'Under ₹10,000 (Micro Purchase)' },
               { id: '10kto1L', label: '₹10,000 - ₹1,00,000' },
               { id: 'above1L', label: 'High-Value (> ₹1,00,000)' }
-            ].map(p => (
-              <button
-                key={p.id}
-                type="button"
-                onClick={() => setPriceFilter(p.id)}
-                style={{
-                  backgroundColor: priceFilter === p.id ? '#1e385b' : 'transparent',
-                  color: priceFilter === p.id ? '#38bdf8' : '#94a3b8',
-                  border: `1px solid ${priceFilter === p.id ? '#38bdf8' : '#1e385b'}`,
-                  padding: '0.35rem 0.85rem',
-                  borderRadius: '999px',
-                  fontSize: '0.78rem',
-                  fontWeight: priceFilter === p.id ? '700' : '500',
-                  cursor: 'pointer'
-                }}
-              >
-                {p.label}
-              </button>
-            ))}
+            ].map(p => {
+              const isSel = priceFilter === p.id;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  onClick={() => setPriceFilter(p.id)}
+                  style={{
+                    background: isSel ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : '#ffffff',
+                    color: isSel ? '#ffffff' : '#475569',
+                    border: `1px solid ${isSel ? '#0284c7' : '#cbd5e1'}`,
+                    padding: '0.35rem 0.85rem',
+                    borderRadius: '999px',
+                    fontSize: '0.78rem',
+                    fontWeight: isSel ? '700' : '600',
+                    cursor: 'pointer',
+                    boxShadow: isSel ? '0 2px 6px rgba(2, 132, 199, 0.2)' : 'none'
+                  }}
+                >
+                  {p.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Search Input */}
           <div style={{ position: 'relative' }}>
-            <Search size={15} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <Search size={15} style={{ position: 'absolute', left: '0.8rem', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             <input
               type="text"
               placeholder="Search product model, specs, brand..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
-                backgroundColor: '#081729',
-                border: '1px solid #1e385b',
-                color: '#fff',
+                backgroundColor: '#ffffff',
+                border: '1px solid #cbd5e1',
+                color: '#0f172a',
                 padding: '0.5rem 1rem 0.5rem 2.2rem',
                 borderRadius: '6px',
                 width: '280px',
-                fontSize: '0.85rem'
+                fontSize: '0.85rem',
+                outline: 'none'
               }}
             />
           </div>
@@ -648,10 +658,10 @@ export default function CategoryCatalogView({
 
         {/* Product Cards Grid */}
         {filteredProducts.length === 0 ? (
-          <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center', backgroundColor: '#0b1a2d', borderRadius: '12px', border: '1px solid #1e385b' }}>
-            <ShoppingBag size={40} style={{ margin: '0 auto 0.75rem', opacity: 0.5, color: '#38bdf8' }} />
-            <h4 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>No products match your selected criteria</h4>
-            <p style={{ color: '#94a3b8', fontSize: '0.88rem' }}>Try clearing the search query or changing the price band filter.</p>
+          <div style={{ padding: '3.5rem 1.5rem', textAlign: 'center', backgroundColor: '#ffffff', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+            <ShoppingBag size={40} style={{ margin: '0 auto 0.75rem', opacity: 0.5, color: '#0284c7' }} />
+            <h4 style={{ color: '#0f172a', marginBottom: '0.5rem', fontSize: '1.1rem', fontWeight: '700' }}>No products match your selected criteria</h4>
+            <p style={{ color: '#64748b', fontSize: '0.88rem' }}>Try clearing the search query or changing the price band filter.</p>
           </div>
         ) : (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem', marginBottom: '3rem' }}>
@@ -661,65 +671,66 @@ export default function CategoryCatalogView({
                 <div
                   key={product.id}
                   style={{
-                    backgroundColor: '#0b1a2d',
-                    border: '1px solid #1e385b',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #e2e8f0',
                     borderRadius: '12px',
                     padding: '1.5rem',
                     display: 'flex',
                     flexDirection: 'column',
                     justifyContent: 'space-between',
+                    boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
                     transition: 'transform 0.2s ease, border-color 0.2s ease'
                   }}
                 >
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <span className="mono-text" style={{ fontSize: '0.78rem', color: '#38bdf8', fontWeight: '700' }}>
+                      <span className="mono-text" style={{ fontSize: '0.78rem', color: '#0284c7', fontWeight: '800' }}>
                         {product.id}
                       </span>
                       <div style={{ display: 'flex', gap: '0.35rem' }}>
                         {product.isMii && (
-                          <span style={{ fontSize: '0.65rem', backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#f59e0b', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
+                          <span style={{ fontSize: '0.65rem', backgroundColor: '#fff7ed', color: '#ea580c', border: '1px solid #fed7aa', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
                             MII {product.miiLocalContent}
                           </span>
                         )}
                         {product.isWomaniya && (
-                          <span style={{ fontSize: '0.65rem', backgroundColor: 'rgba(236, 72, 153, 0.15)', color: '#ec4899', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
+                          <span style={{ fontSize: '0.65rem', backgroundColor: '#fdf2f8', color: '#db2777', border: '1px solid #fbcfe8', padding: '2px 6px', borderRadius: '4px', fontWeight: '800' }}>
                             🌸 Womaniya
                           </span>
                         )}
                       </div>
                     </div>
 
-                    <h4 style={{ fontSize: '1.1rem', color: '#ffffff', margin: '0 0 0.35rem 0', fontWeight: '700', lineHeight: 1.3 }}>
+                    <h4 style={{ fontSize: '1.1rem', color: '#0f172a', margin: '0 0 0.35rem 0', fontWeight: '800', lineHeight: 1.3 }}>
                       {product.title}
                     </h4>
 
-                    <span style={{ fontSize: '0.8rem', color: '#38bdf8', display: 'block', marginBottom: '0.75rem', fontWeight: '600' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#0284c7', display: 'block', marginBottom: '0.75rem', fontWeight: '700' }}>
                       OEM Brand: {product.brand}
                     </span>
 
-                    <p style={{ fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.5, marginBottom: '1.25rem', backgroundColor: '#071526', padding: '0.65rem', borderRadius: '6px', border: '1px solid #1e385b' }}>
+                    <p style={{ fontSize: '0.82rem', color: '#475569', lineHeight: 1.5, marginBottom: '1.25rem', backgroundColor: '#f8fafc', padding: '0.65rem', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                       {product.specs}
                     </p>
                   </div>
 
                   <div>
                     {/* Price and Stock Row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', borderTop: '1px solid #1e385b', paddingTop: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '1rem', borderTop: '1px solid #f1f5f9', paddingTop: '0.85rem' }}>
                       <div>
-                        <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>GeM L1 Benchmark Rate</span>
-                        <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#10b981' }}>
+                        <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>GeM L1 Benchmark Rate</span>
+                        <div style={{ fontSize: '1.35rem', fontWeight: '900', color: '#059669' }}>
                           ₹{product.l1Price.toLocaleString()}
                         </div>
                         {product.mrp && (
-                          <span style={{ fontSize: '0.72rem', color: '#64748b', textDecoration: 'line-through' }}>
+                          <span style={{ fontSize: '0.72rem', color: '#94a3b8', textDecoration: 'line-through' }}>
                             MRP: ₹{product.mrp.toLocaleString()}
                           </span>
                         )}
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <span style={{ fontSize: '0.75rem', color: '#cbd5e1', display: 'block' }}>{product.stockStatus}</span>
-                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Delivery: {product.deliveryDays}</span>
+                        <span style={{ fontSize: '0.75rem', color: '#334155', display: 'block', fontWeight: '700' }}>{product.stockStatus}</span>
+                        <span style={{ fontSize: '0.7rem', color: '#64748b' }}>Delivery: {product.deliveryDays}</span>
                       </div>
                     </div>
 
@@ -729,9 +740,9 @@ export default function CategoryCatalogView({
                         type="button"
                         onClick={() => onNavigateToTenders && onNavigateToTenders()}
                         style={{
-                          backgroundColor: '#1e385b',
-                          color: '#38bdf8',
-                          border: 'none',
+                          backgroundColor: '#f1f5f9',
+                          color: '#0284c7',
+                          border: '1px solid #cbd5e1',
                           borderRadius: '6px',
                           padding: '0.55rem',
                           fontSize: '0.78rem',
@@ -745,9 +756,9 @@ export default function CategoryCatalogView({
                         type="button"
                         onClick={() => handleBuyNow(product)}
                         style={{
-                          backgroundColor: isPurchased ? '#10b98125' : '#10b981',
-                          color: isPurchased ? '#10b981' : '#071526',
-                          border: isPurchased ? '1px solid #10b981' : 'none',
+                          background: isPurchased ? '#dcfce7' : 'linear-gradient(135deg, #059669 0%, #047857 100%)',
+                          color: isPurchased ? '#166534' : '#ffffff',
+                          border: isPurchased ? '1px solid #86efac' : 'none',
                           borderRadius: '6px',
                           padding: '0.55rem',
                           fontSize: '0.78rem',
@@ -756,7 +767,8 @@ export default function CategoryCatalogView({
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: '0.3rem'
+                          gap: '0.3rem',
+                          boxShadow: isPurchased ? 'none' : '0 2px 6px rgba(5, 150, 105, 0.25)'
                         }}
                       >
                         {isPurchased ? <CheckCircle2 size={14} /> : <ShoppingBag size={14} />}

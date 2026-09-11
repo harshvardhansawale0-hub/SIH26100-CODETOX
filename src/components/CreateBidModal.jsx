@@ -56,7 +56,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
   const [customCategory, setCustomCategory] = useState('');
   const [estimatedValue, setEstimatedValue] = useState('₹1.85 Cr');
   const [emdAmount, setEmdAmount] = useState('₹3.70 Lakhs (MSE Exempted)');
-  const [closingDate, setClosingDate] = useState('25 Sep 2026');
+  const [closingDate, setClosingDate] = useState('2026-09-25');
   
   // Compliance Criteria Builder
   const [miiMinRequirement, setMiiMinRequirement] = useState('50% (Class-I)');
@@ -196,7 +196,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', padding: '1rem 0' }}>
             {/* 1. Basic Tender Information */}
             <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem' }}>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0f2238', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0f172a', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <FileText size={16} color="#0284c7" /> 1. Tender Basic Details
               </h4>
               
@@ -309,7 +309,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
                     Bid Closing Date *
                   </label>
                   <input
-                    type="text"
+                    type="date"
                     required
                     value={closingDate}
                     onChange={(e) => setClosingDate(e.target.value)}
@@ -327,7 +327,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1rem', marginBottom: '1.25rem' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#0f2238', marginBottom: '0.3rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.3rem' }}>
                     Min Make in India (MII) % *
                   </label>
                   <select
@@ -342,7 +342,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#0f2238', marginBottom: '0.3rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.3rem' }}>
                     Min 3-Year Audited Turnover *
                   </label>
                   <input
@@ -356,7 +356,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
                 </div>
 
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#0f2238', marginBottom: '0.3rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.3rem' }}>
                     Min Past Experience (Years) *
                   </label>
                   <input
@@ -373,7 +373,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
 
               {/* Mandatory Documents Checklist */}
               <div>
-                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#0f2238', marginBottom: '0.4rem' }}>
+                <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: '700', color: '#0f172a', marginBottom: '0.4rem' }}>
                   Mandatory Statutory Documents Required from Bidders:
                 </label>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', marginBottom: '0.75rem' }}>
@@ -440,7 +440,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
 
             {/* 3. Technical BOQ Items */}
             <div style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '1.25rem' }}>
-              <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0f2238', marginBottom: '0.75rem' }}>
+              <h4 style={{ fontSize: '0.95rem', fontWeight: '800', color: '#0f172a', marginBottom: '0.75rem' }}>
                 3. Technical BOQ Specifications
               </h4>
 
@@ -499,7 +499,7 @@ export default function CreateBidModal({ isOpen, onClose, onTenderCreated, curre
                   style={{
                     padding: '0.45rem 0.85rem',
                     borderRadius: '6px',
-                    backgroundColor: '#0f2238',
+                    backgroundColor: '#0284c7',
                     color: '#ffffff',
                     border: 'none',
                     fontSize: '0.82rem',

@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, User, Building2, Landmark, PlusCircle, UploadCloud, CheckCircle2, ShieldCheck, ChevronDown, Lock, LogOut, LogIn, Home, Sparkles } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useLanguage } from '../context/LanguageContext';
+import gemLogo from '../assets/logo.png';
 
 export default function Navbar({
   activeTab,
@@ -51,34 +52,12 @@ export default function Navbar({
     <header className="gem-navbar" ref={navRef}>
       {/* Brand Group */}
       <div className="gem-brand-group" onClick={() => setActiveTab('Forward')} style={{ cursor: 'pointer' }}>
-        <div className="gem-badge-box">GeM</div>
-        <div className="gem-brand-text">
-          <span className="gem-brand-title">{t('brandTitle')}</span>
-          <span className="gem-brand-subtitle">{t('brandSubtitle')}</span>
-        </div>
-      </div>
-
-      {/* Search Bar */}
-      <div className="nav-search-wrapper">
-        <Search className="nav-search-icon" size={15} />
-        <input
-          type="text"
-          className="nav-search-input"
-          placeholder={t('searchPlaceholder')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              setActiveTab('Tenders');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          }}
-        />
+        <img src={gemLogo} alt="GovMart Logo" style={{ height: '48px', objectFit: 'contain' }} />
       </div>
 
       {/* Navigation Tabs with Dropdowns */}
       <nav className="nav-menu-links">
-        {/* Dedicated Primary Homepage Tab for ALL Users */}
+        {/* Dedicated Primary Homepage Tab for ALL Users (Square-shaped, Icon Only) */}
         <button
           className={`nav-tab-btn ${activeTab === 'Forward' ? 'active' : ''}`}
           onClick={() => {
@@ -87,16 +66,25 @@ export default function Navbar({
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           style={{
+            width: '38px',
+            height: '38px',
+            padding: 0,
             display: 'flex',
             alignItems: 'center',
-            gap: '0.35rem',
-            color: activeTab === 'Forward' ? '#38bdf8' : 'inherit',
-            fontWeight: activeTab === 'Forward' ? '800' : '600'
+            justifyContent: 'center',
+            borderRadius: '8px',
+            backgroundColor: activeTab === 'Forward' ? '#eff6ff' : '#ffffff',
+            border: activeTab === 'Forward' ? '1px solid #0284c7' : '1px solid #cbd5e1',
+            color: activeTab === 'Forward' ? '#0284c7' : '#475569',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            transition: 'all 0.2s ease',
+            flexShrink: 0
           }}
           title="Return to GeM Homepage"
+          aria-label="Return to GeM Homepage"
         >
-          <Home size={15} />
-          <span>{lang === 'hi' ? 'मुख्य पृष्ठ' : (lang === 'mr' ? 'मुख्य पृष्ठ' : 'Homepage')}</span>
+          <Home size={18} color={activeTab === 'Forward' ? '#0284c7' : '#475569'} />
         </button>
         {/* 1. Forward Auction Dropdown */}
         <div className="nav-dropdown-container">
@@ -317,9 +305,9 @@ export default function Navbar({
 
             {/* User Dropdown */}
             {openDropdown === 'user' && (
-              <div className="gem-dropdown-menu right-aligned" style={{ minWidth: '220px', top: '50px' }}>
-                <div style={{ padding: '0.6rem 0.85rem', borderBottom: '1px solid #1e385b', fontSize: '0.78rem', color: '#94a3b8' }}>
-                  <strong style={{ display: 'block', color: '#ffffff', fontSize: '0.82rem', marginBottom: '2px' }}>{currentUser.fullName}</strong>
+              <div className="gem-dropdown-menu right-aligned" style={{ minWidth: '220px', top: '50px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                <div style={{ padding: '0.6rem 0.85rem', borderBottom: '1px solid #e2e8f0', fontSize: '0.78rem', color: '#64748b' }}>
+                  <strong style={{ display: 'block', color: '#0f172a', fontSize: '0.84rem', fontWeight: '700', marginBottom: '2px' }}>{currentUser.fullName}</strong>
                   <span>{currentUser.organization || currentUser.email}</span>
                 </div>
                 <button
@@ -337,7 +325,7 @@ export default function Navbar({
                     setOpenDropdown(null);
                     if (onLogout) onLogout();
                   }}
-                  style={{ color: '#ef4444', fontWeight: '700', borderTop: '1px solid #1e385b' }}
+                  style={{ color: '#dc2626', fontWeight: '700', borderTop: '1px solid #e2e8f0' }}
                 >
                   🚪 Log Out
                 </button>
@@ -348,17 +336,17 @@ export default function Navbar({
             <button
               onClick={onLogout}
               style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                color: '#f87171',
-                padding: '0.35rem 0.65rem',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#dc2626',
+                padding: '0.4rem 0.75rem',
                 borderRadius: '6px',
                 fontSize: '0.78rem',
                 fontWeight: '700',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.3rem',
+                gap: '0.35rem',
                 transition: 'all 0.2s ease'
               }}
               title="Log out of session"

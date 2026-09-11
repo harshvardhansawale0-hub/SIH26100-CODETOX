@@ -16,32 +16,32 @@ export default function AuthGate({
 
   return (
     <div style={{
-      backgroundColor: '#071526',
+      background: 'linear-gradient(135deg, #f8fafc 0%, #f0fdf4 35%, #eff6ff 70%, #fff7ed 100%)',
       minHeight: '84vh',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '3rem 1.5rem',
-      color: '#ffffff'
+      color: '#0f172a'
     }}>
       <div style={{
         maxWidth: '680px',
         width: '100%',
-        backgroundColor: '#0b1d33',
-        borderRadius: '16px',
-        border: isBuyer ? '1px solid rgba(2, 132, 199, 0.4)' : '1px solid rgba(16, 185, 129, 0.4)',
+        backgroundColor: '#ffffff',
+        borderRadius: '20px',
+        border: '1px solid #e2e8f0',
         boxShadow: isBuyer
-          ? '0 20px 50px rgba(2, 132, 199, 0.15), 0 0 0 1px rgba(2, 132, 199, 0.2)'
-          : '0 20px 50px rgba(16, 185, 129, 0.15), 0 0 0 1px rgba(16, 185, 129, 0.2)',
+          ? '0 20px 45px rgba(2, 132, 199, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04)'
+          : '0 20px 45px rgba(5, 150, 105, 0.1), 0 2px 6px rgba(0, 0, 0, 0.04)',
         overflow: 'hidden',
         position: 'relative'
       }}>
-        {/* Top Decorative Banner */}
+        {/* Top Decorative Banner with Hot & Cool mixed gradient */}
         <div style={{
           height: '6px',
           background: isBuyer
-            ? 'linear-gradient(90deg, #0284c7 0%, #38bdf8 100%)'
-            : 'linear-gradient(90deg, #10b981 0%, #34d399 100%)'
+            ? 'linear-gradient(90deg, #0284c7 0%, #38bdf8 50%, #f59e0b 100%)'
+            : 'linear-gradient(90deg, #059669 0%, #10b981 50%, #ea580c 100%)'
         }} />
 
         <div style={{ padding: '2.5rem 2.5rem 2rem 2.5rem' }}>
@@ -52,20 +52,20 @@ export default function AuthGate({
               <span style={{
                 fontSize: '0.75rem',
                 fontWeight: '800',
-                letterSpacing: '1px',
+                letterSpacing: '0.5px',
                 textTransform: 'uppercase',
-                color: isBuyer ? '#38bdf8' : '#34d399',
-                backgroundColor: isBuyer ? 'rgba(2, 132, 199, 0.15)' : 'rgba(16, 185, 129, 0.15)',
-                padding: '0.3rem 0.75rem',
+                color: isBuyer ? '#0369a1' : '#047857',
+                backgroundColor: isBuyer ? '#eff6ff' : '#ecfdf5',
+                padding: '0.35rem 0.85rem',
                 borderRadius: '20px',
-                border: isBuyer ? '1px solid rgba(56, 189, 248, 0.3)' : '1px solid rgba(52, 211, 153, 0.3)'
+                border: isBuyer ? '1px solid #bae6fd' : '1px solid #a7f3d0'
               }}>
                 {isBuyer ? '🏛️ Govt Procuring Authority' : '🏢 Vendor / Seller Enterprise'}
               </span>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94a3b8', fontSize: '0.8rem' }}>
-              <Lock size={14} style={{ color: isBuyer ? '#38bdf8' : '#34d399' }} />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#64748b', fontSize: '0.8rem', fontWeight: '600' }}>
+              <Lock size={14} style={{ color: isBuyer ? '#0284c7' : '#059669' }} />
               <span>GFR 2017 Secured</span>
             </div>
           </div>
@@ -75,22 +75,22 @@ export default function AuthGate({
             <div style={{
               width: '56px',
               height: '56px',
-              borderRadius: '12px',
-              backgroundColor: isBuyer ? 'rgba(2, 132, 199, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+              borderRadius: '14px',
+              backgroundColor: isBuyer ? '#eff6ff' : '#ecfdf5',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               marginBottom: '1.25rem',
-              border: isBuyer ? '1px solid rgba(2, 132, 199, 0.3)' : '1px solid rgba(16, 185, 129, 0.3)'
+              border: isBuyer ? '1px solid #bae6fd' : '1px solid #a7f3d0'
             }}>
               {isBuyer ? (
-                <Landmark size={28} style={{ color: '#38bdf8' }} />
+                <Landmark size={28} style={{ color: '#0284c7' }} />
               ) : (
-                <Building2 size={28} style={{ color: '#34d399' }} />
+                <Building2 size={28} style={{ color: '#059669' }} />
               )}
             </div>
 
-            <h2 style={{ fontSize: '1.65rem', fontWeight: '800', color: '#ffffff', marginBottom: '0.6rem', lineHeight: 1.3 }}>
+            <h2 style={{ fontSize: '1.65rem', fontWeight: '800', color: '#0f172a', marginBottom: '0.6rem', lineHeight: 1.3 }}>
               {hasWrongRole ? (
                 <span>Switch to {isBuyer ? 'Buyer Account' : 'Bidder / Seller Account'}</span>
               ) : (
@@ -98,7 +98,7 @@ export default function AuthGate({
               )}
             </h2>
 
-            <p style={{ color: '#94a3b8', fontSize: '0.92rem', lineHeight: 1.6, margin: 0 }}>
+            <p style={{ color: '#475569', fontSize: '0.92rem', lineHeight: 1.6, margin: 0 }}>
               {hasWrongRole ? (
                 <span>
                   You are currently logged in as <strong>{currentUser.fullName}</strong> ({currentUser.role === 'buyer' ? 'Government Buyer' : 'Vendor Bidder'}). Accessing this portal requires logging in with a <strong>{isBuyer ? 'Buyer (Procuring Officer)' : 'Bidder / Seller (Vendor Company)'}</strong> account.
@@ -113,52 +113,52 @@ export default function AuthGate({
 
           {/* Key Portal Features / Permissions Grid */}
           <div style={{
-            backgroundColor: '#071526',
-            borderRadius: '10px',
-            border: '1px solid #1e385b',
-            padding: '1rem 1.25rem',
+            backgroundColor: '#f8fafc',
+            borderRadius: '12px',
+            border: '1px solid #e2e8f0',
+            padding: '1.1rem 1.25rem',
             marginBottom: '2rem'
           }}>
-            <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#cbd5e1', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.65rem' }}>
+            <div style={{ fontSize: '0.78rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.65rem' }}>
               🔒 Protected Portal Capabilities:
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', fontSize: '0.84rem', color: '#94a3b8' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.65rem', fontSize: '0.84rem', color: '#334155' }}>
               {isBuyer ? (
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle2 size={15} style={{ color: '#38bdf8', flexShrink: 0 }} />
-                    <span>Create Tenders & Rules</span>
+                    <CheckCircle2 size={15} style={{ color: '#0284c7', flexShrink: 0 }} />
+                    <span style={{ fontWeight: '500' }}>Create Tenders & Rules</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle2 size={15} style={{ color: '#38bdf8', flexShrink: 0 }} />
-                    <span>AI Compliance Dossiers</span>
+                    <CheckCircle2 size={15} style={{ color: '#0284c7', flexShrink: 0 }} />
+                    <span style={{ fontWeight: '500' }}>AI Compliance Dossiers</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle2 size={15} style={{ color: '#38bdf8', flexShrink: 0 }} />
-                    <span>Award Winning L1 Vendor</span>
+                    <CheckCircle2 size={15} style={{ color: '#0284c7', flexShrink: 0 }} />
+                    <span style={{ fontWeight: '500' }}>Award Winning L1 Vendor</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle2 size={15} style={{ color: '#38bdf8', flexShrink: 0 }} />
-                    <span>Anti-Cartel Ring Audit</span>
+                    <CheckCircle2 size={15} style={{ color: '#0284c7', flexShrink: 0 }} />
+                    <span style={{ fontWeight: '500' }}>Anti-Cartel Ring Audit</span>
                   </div>
                 </>
               ) : (
                 <>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle2 size={15} style={{ color: '#34d399', flexShrink: 0 }} />
-                    <span>Browse Active GeM Tenders</span>
+                    <CheckCircle2 size={15} style={{ color: '#059669', flexShrink: 0 }} />
+                    <span style={{ fontWeight: '500' }}>Browse Active GeM Tenders</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle2 size={15} style={{ color: '#34d399', flexShrink: 0 }} />
-                    <span>8-Stage AI Document OCR</span>
+                    <CheckCircle2 size={15} style={{ color: '#059669', flexShrink: 0 }} />
+                    <span style={{ fontWeight: '500' }}>8-Stage AI Document OCR</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle2 size={15} style={{ color: '#34d399', flexShrink: 0 }} />
-                    <span>GST & PAN Auto-Verification</span>
+                    <CheckCircle2 size={15} style={{ color: '#059669', flexShrink: 0 }} />
+                    <span style={{ fontWeight: '500' }}>GST & PAN Auto-Verification</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                    <CheckCircle2 size={15} style={{ color: '#34d399', flexShrink: 0 }} />
-                    <span>Track Submission Status</span>
+                    <CheckCircle2 size={15} style={{ color: '#059669', flexShrink: 0 }} />
+                    <span style={{ fontWeight: '500' }}>Track Submission Status</span>
                   </div>
                 </>
               )}
@@ -173,18 +173,18 @@ export default function AuthGate({
                 onClick={() => onOpenAuth('signin', requiredRole)}
                 style={{
                   padding: '0.85rem 1rem',
-                  backgroundColor: isBuyer ? '#0284c7' : '#10b981',
+                  background: isBuyer ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : 'linear-gradient(135deg, #059669 0%, #047857 100%)',
                   color: '#ffffff',
                   fontWeight: '800',
                   fontSize: '0.92rem',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   border: 'none',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.5rem',
-                  boxShadow: isBuyer ? '0 4px 14px rgba(2, 132, 199, 0.4)' : '0 4px 14px rgba(16, 185, 129, 0.4)',
+                  boxShadow: isBuyer ? '0 4px 14px rgba(2, 132, 199, 0.3)' : '0 4px 14px rgba(5, 150, 105, 0.3)',
                   transition: 'all 0.2s ease'
                 }}
               >
@@ -197,18 +197,19 @@ export default function AuthGate({
                 onClick={() => onOpenAuth('signup', requiredRole)}
                 style={{
                   padding: '0.85rem 1rem',
-                  backgroundColor: 'transparent',
-                  color: '#ffffff',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
                   fontWeight: '700',
                   fontSize: '0.92rem',
-                  borderRadius: '8px',
-                  border: '1px solid #334155',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.5rem',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
                 }}
               >
                 <span>Register New Entity</span>
@@ -223,10 +224,10 @@ export default function AuthGate({
               style={{
                 width: '100%',
                 padding: '0.75rem 1rem',
-                backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                color: isBuyer ? '#38bdf8' : '#34d399',
-                border: isBuyer ? '1px dashed rgba(56, 189, 248, 0.4)' : '1px dashed rgba(52, 211, 153, 0.4)',
-                borderRadius: '8px',
+                backgroundColor: isBuyer ? '#eff6ff' : '#ecfdf5',
+                color: isBuyer ? '#0284c7' : '#059669',
+                border: isBuyer ? '1px dashed #0284c7' : '1px dashed #059669',
+                borderRadius: '10px',
                 fontWeight: '700',
                 fontSize: '0.85rem',
                 cursor: 'pointer',
@@ -244,27 +245,28 @@ export default function AuthGate({
           </div>
 
           {/* Footer Back Button */}
-          <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid #1e385b', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ marginTop: '1.75rem', paddingTop: '1.25rem', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <button
               type="button"
               onClick={onNavigateHome}
               style={{
                 background: 'none',
                 border: 'none',
-                color: '#94a3b8',
+                color: '#64748b',
                 fontSize: '0.85rem',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                padding: 0
+                padding: 0,
+                fontWeight: '600'
               }}
             >
               <ArrowLeft size={15} />
               <span>Return to Public Home</span>
             </button>
 
-            <span style={{ color: '#64748b', fontSize: '0.78rem' }}>
+            <span style={{ color: '#94a3b8', fontSize: '0.78rem', fontWeight: '500' }}>
               SIH 2026 • GeM Procurement System
             </span>
           </div>
