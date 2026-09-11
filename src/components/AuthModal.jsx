@@ -51,6 +51,7 @@ export default function AuthModal({
           organization: "Apex Technologies & Supplies Ltd.",
           gstin: "27AABCB1234F1Z5",
           role: "bidder",
+          category: "IT Hardware",
           udyam: "UDYAM-MH-03-0012345",
           isDemo: true
         };

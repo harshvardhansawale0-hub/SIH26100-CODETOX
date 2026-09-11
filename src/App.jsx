@@ -241,6 +241,7 @@ function MainApp() {
     clearAuth();
     setCurrentUser(null);
     localStorage.removeItem('gem_auth_user');
+    localStorage.removeItem('gem_user');
     setActiveTab('Forward');
   };
 
@@ -264,6 +265,7 @@ function MainApp() {
           organization: "Apex Technologies & Supplies Ltd.",
           gstin: "27AABCB1234F1Z5",
           role: "bidder",
+          category: "IT Hardware",
           udyam: "UDYAM-MH-03-0012345",
           isDemo: true
         };

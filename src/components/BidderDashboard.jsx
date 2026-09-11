@@ -22,9 +22,10 @@ export default function BidderDashboard({
   const { t } = useLanguage();
 
   // Primary Selection & Filtering States
+  const sellerCategory = currentUser?.category || 'IT Hardware';
   const [selectedCategoryTab, setSelectedCategoryTab] = useState('ALL'); // 'ALL', 'ACTIVE', 'AT_RISK', 'NON_COMPLIANT', 'PENDING', 'MY_SUBMISSIONS', 'AWARDED'
   const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('ALL');
+  const [categoryFilter, setCategoryFilter] = useState(currentUser?.category || 'IT Hardware');
   const [inspectingTender, setInspectingTender] = useState(null);
 
   // Scope submitted bids:
@@ -96,17 +97,34 @@ export default function BidderDashboard({
     return list;
   }, [myBids, tenders, tenderMilestones, currentUser]);
 
-  // Categorized Tenders Counts
+  // Helper to determine if a tender has been awarded
+  const isTenderAwarded = (t) => {
+    return t.status === 'Awarded' || !!t.selectedBidderId || !!t.awardedVendor || (tenderMilestones && !!tenderMilestones[t.id]);
+  };
+
+  // Active tenders pool for bidding (strictly excludes all awarded tenders so other sellers don't see them)
+  const activeTenders = useMemo(() => {
+    return tenders.filter(t => !isTenderAwarded(t));
+  }, [tenders, tenderMilestones]);
+
+  // Dynamic available categories for filter dropdown
+  const availableCategories = useMemo(() => {
+    const cats = new Set(tenders.map(t => t.category).filter(Boolean));
+    if (sellerCategory) cats.add(sellerCategory);
+    return Array.from(cats).sort();
+  }, [tenders, sellerCategory]);
+
+  // Categorized Tenders Counts (Scope strictly to active tenders pool)
   const counts = useMemo(() => {
-    const activeList = tenders.filter(t => t.riskCategory === 'Active' || (!t.riskCategory && t.status === 'Active'));
-    const atRiskList = tenders.filter(t => t.riskCategory === 'At Risk' || t.riskLevel?.toLowerCase().includes('risk') || t.status === 'Flagged');
-    const nonCompliantList = tenders.filter(t => t.riskCategory === 'Non-Compliant' || t.status === 'Non-Compliant' || t.status === 'Rejected');
-    const pendingList = tenders.filter(t => t.riskCategory === 'Pending Verification' || t.status === 'Pending Verification');
+    const activeList = activeTenders.filter(t => t.riskCategory === 'Active' || (!t.riskCategory && t.status === 'Active'));
+    const atRiskList = activeTenders.filter(t => t.riskCategory === 'At Risk' || t.riskLevel?.toLowerCase().includes('risk') || t.status === 'Flagged');
+    const nonCompliantList = activeTenders.filter(t => t.riskCategory === 'Non-Compliant' || t.status === 'Non-Compliant' || t.status === 'Rejected');
+    const pendingList = activeTenders.filter(t => t.riskCategory === 'Pending Verification' || t.status === 'Pending Verification');
     const mySubmissions = myBids.length;
     const awarded = myAwardedTenders.length;
 
     return {
-      all: tenders.length,
+      all: activeTenders.length,
       active: activeList.length,
       atRisk: atRiskList.length,
       nonCompliant: nonCompliantList.length,
@@ -114,11 +132,11 @@ export default function BidderDashboard({
       mySubmissions,
       awarded
     };
-  }, [tenders, myBids, myAwardedTenders]);
+  }, [activeTenders, myBids, myAwardedTenders]);
 
-  // Filtered Tenders based on Tab, Search and Category
+  // Filtered Tenders based on Tab, Search and Category (Strictly active pool)
   const filteredTenders = useMemo(() => {
-    return tenders.filter((t) => {
+    return activeTenders.filter((t) => {
       // 1. Tab filter
       let matchTab = true;
       if (selectedCategoryTab === 'ACTIVE') {
@@ -143,7 +161,7 @@ export default function BidderDashboard({
 
       return matchTab && matchSearch && matchCat;
     });
-  }, [tenders, selectedCategoryTab, searchQuery, categoryFilter]);
+  }, [activeTenders, selectedCategoryTab, searchQuery, categoryFilter]);
 
   // Filtered My Bids
   const filteredMyBids = useMemo(() => {
@@ -635,7 +653,43 @@ export default function BidderDashboard({
             />
           </div>
 
-          <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={() => setCategoryFilter(sellerCategory)}
+              style={{
+                padding: '0.45rem 0.8rem',
+                borderRadius: '6px',
+                border: categoryFilter === sellerCategory ? '1px solid #10b981' : '1px solid #1e385b',
+                backgroundColor: categoryFilter === sellerCategory ? 'rgba(16, 185, 129, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                color: categoryFilter === sellerCategory ? '#34d399' : '#94a3b8',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+              title={`Filter to your registered business category: ${sellerCategory}`}
+            >
+              <span>🎯 My Category ({sellerCategory})</span>
+            </button>
+
+            <button
+              onClick={() => setCategoryFilter('ALL')}
+              style={{
+                padding: '0.45rem 0.8rem',
+                borderRadius: '6px',
+                border: categoryFilter === 'ALL' ? '1px solid #38bdf8' : '1px solid #1e385b',
+                backgroundColor: categoryFilter === 'ALL' ? 'rgba(2, 132, 199, 0.2)' : 'rgba(255, 255, 255, 0.04)',
+                color: categoryFilter === 'ALL' ? '#38bdf8' : '#94a3b8',
+                fontSize: '0.8rem',
+                fontWeight: '700',
+                cursor: 'pointer'
+              }}
+            >
+              🌐 All Categories
+            </button>
+
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
@@ -648,16 +702,52 @@ export default function BidderDashboard({
                 fontSize: '0.83rem'
               }}
             >
-              <option value="ALL">All Product & Service Categories</option>
-              <option value="IT Hardware">IT Hardware & Workstations</option>
-              <option value="Software">Software & Cloud Solutions</option>
-              <option value="Furniture">Furniture & Modular Workstations</option>
-              <option value="Medical Equipment">Medical Equipment & Health</option>
-              <option value="Heavy Electricals">Heavy Electricals & Power</option>
-              <option value="Stationery">Stationery & Office Supplies</option>
+              <option value="ALL">All Market Categories</option>
+              {availableCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat} {cat === sellerCategory ? '★ (Your Category)' : ''}
+                </option>
+              ))}
             </select>
           </div>
         </div>
+
+        {/* Seller Category Personalization Notification Banner */}
+        {categoryFilter === sellerCategory && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+            border: '1px solid rgba(16, 185, 129, 0.25)',
+            borderRadius: '6px',
+            padding: '0.5rem 0.85rem',
+            marginBottom: '1rem',
+            fontSize: '0.82rem',
+            color: '#34d399'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span>🎯</span>
+              <span>
+                <strong>Category Targeting Active:</strong> Showing active tenders matching your registered business category (<strong>{sellerCategory}</strong>).
+              </span>
+            </div>
+            <button
+              onClick={() => setCategoryFilter('ALL')}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: '#6ee7b7',
+                textDecoration: 'underline',
+                fontSize: '0.8rem',
+                cursor: 'pointer',
+                fontWeight: '600'
+              }}
+            >
+              View all marketplace categories
+            </button>
+          </div>
+        )}
 
         {/* Quick Search Keyword Chips */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1.5rem' }}>
@@ -752,6 +842,11 @@ export default function BidderDashboard({
                           <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.5rem', borderRadius: '4px', backgroundColor: '#1e385b', color: '#cbd5e1', fontWeight: '600' }}>
                             {tender.category}
                           </span>
+                          {tender.category === sellerCategory && (
+                            <span style={{ fontSize: '0.72rem', padding: '0.15rem 0.55rem', borderRadius: '4px', backgroundColor: 'rgba(52, 211, 153, 0.18)', color: '#34d399', fontWeight: '800', border: '1px solid rgba(52, 211, 153, 0.4)' }}>
+                              🎯 Matches Your Category
+                            </span>
+                          )}
 
                           {/* 4 Category Badges */}
                           {isActive && (
