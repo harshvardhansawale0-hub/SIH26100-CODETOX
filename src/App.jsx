@@ -673,6 +673,7 @@ function MainApp() {
             onTenderCreated={handleTenderCreated}
             onBidSelected={handleBidSelected}
             onDeleteTender={handleDeleteTender}
+            onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           />
         ) : (
           <AuthGate
@@ -697,6 +698,7 @@ function MainApp() {
             onOpenVerifierWithTender={(tender) => handleOpenVerifierForTender(tender)}
             onSelectBid={(bid) => setSelectedBid(bid)}
             onNavigateToPassport={() => setActiveTab('Passport')}
+            onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
           />
         ) : (
           <AuthGate
@@ -719,6 +721,7 @@ function MainApp() {
           initialCategory={activeTenderCategory}
           initialSearch={searchQuery}
           onOpenInitiativeModal={handleOpenInitiativeModal}
+          onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         />
       )}
 
@@ -728,12 +731,17 @@ function MainApp() {
           currentUser={currentUser} 
           initialFilter={activeContractFilter}
           initialSearch={activeContractSearch}
+          onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         />
       )}
 
       {/* Compliance Passport */}
       {activeTab === 'Passport' && (
-        <CompliancePassportView currentUser={currentUser} currentRole={currentRole} />
+        <CompliancePassportView 
+          currentUser={currentUser} 
+          currentRole={currentRole} 
+          onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        />
       )}
 
       {/* 2.6 Dedicated Live E-Auctions Portal (Reverse & Forward) */}
@@ -741,6 +749,7 @@ function MainApp() {
         <AuctionsView 
           currentUser={currentUser} 
           onSelectBid={(bid) => setSelectedBid(bid)} 
+          onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         />
       )}
 
@@ -752,6 +761,7 @@ function MainApp() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           currentUser={currentUser}
+          onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         />
       )}
 
@@ -765,6 +775,7 @@ function MainApp() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           onOpenCreateBid={handleOpenCreateBid}
+          onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         />
       )}
 
@@ -779,14 +790,19 @@ function MainApp() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           onOpenVerifier={(tender) => handleOpenVerifierForTender(tender)}
+          onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         />
       )}
 
       {/* 2.10 About SIH & GeM Working Principles */}
-      {activeTab === 'About' && <AboutSIHView />}
+      {activeTab === 'About' && (
+        <AboutSIHView onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+      )}
 
       {/* 2.11 Grievance & Helpdesk Contact */}
-      {activeTab === 'Contact' && <ContactView />}
+      {activeTab === 'Contact' && (
+        <ContactView onNavigateHome={() => { setActiveTab('Forward'); window.scrollTo({ top: 0, behavior: 'smooth' }); }} />
+      )}
 
       {/* 3. Footer */}
       <Footer

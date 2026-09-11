@@ -17,7 +17,8 @@ import {
   PlusCircle,
   Truck,
   Building2,
-  ExternalLink
+  ExternalLink,
+  Home
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
@@ -33,7 +34,8 @@ export default function CategoryCatalogView({
   initialCategory = 'Oxygen Gas & Accessories', 
   currentUser,
   onNavigateToTenders,
-  onOpenCreateBid
+  onOpenCreateBid,
+  onNavigateHome
 }) {
   const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'Oxygen Gas & Accessories');
@@ -498,7 +500,30 @@ export default function CategoryCatalogView({
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            {onNavigateHome && (
+              <button 
+                onClick={onNavigateHome}
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  color: '#e2e8f0',
+                  border: '1px solid #1e385b',
+                  borderRadius: '8px',
+                  padding: '0.65rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  fontWeight: '700',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Return to GeM Homepage"
+              >
+                <Home size={15} color="#38bdf8" />
+                <span>🏠 Homepage</span>
+              </button>
+            )}
             <div style={{ backgroundColor: '#0b1a2d', border: '1px solid #1e385b', padding: '0.65rem 1.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <ShoppingBag size={18} color="#38bdf8" />
               <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>Direct Indents: <strong>{cartCount} Generated</strong></span>

@@ -13,11 +13,12 @@ import {
   Search, 
   Users,
   Award,
-  Layers
+  Layers,
+  Home
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function AboutSIHView() {
+export default function AboutSIHView({ onNavigateHome }) {
   const { t } = useLanguage();
 
   const pillars = [
@@ -112,6 +113,32 @@ export default function AboutSIHView() {
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '80vh', padding: '4rem 1.5rem', color: '#0f172a' }}>
       <div className="container-custom">
+        {onNavigateHome && (
+          <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '2rem' }}>
+            <button
+              onClick={onNavigateHome}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.55rem 1.15rem',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#f8fafc',
+                color: '#0284c7',
+                fontWeight: '700',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                transition: 'all 0.2s ease'
+              }}
+              title="Return to GeM Homepage"
+            >
+              <Home size={16} />
+              <span>🏠 Return to Homepage</span>
+            </button>
+          </div>
+        )}
         {/* 1. Header Section */}
         <div style={{ textAlign: 'center', maxWidth: '880px', margin: '0 auto 3.5rem auto' }}>
           <span className="section-tag">{t('aboutGemTag')}</span>

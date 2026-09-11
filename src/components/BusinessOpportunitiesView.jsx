@@ -13,11 +13,12 @@ import {
   Filter, 
   Globe, 
   BellRing,
-  PieChart
+  PieChart,
+  Home
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function BusinessOpportunitiesView({ onNavigateToTenders, currentUser }) {
+export default function BusinessOpportunitiesView({ onNavigateToTenders, currentUser, onNavigateHome }) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('app'); // 'app', 'advance', 'eoi', 'gte'
   const [searchQuery, setSearchQuery] = useState('');
@@ -127,7 +128,30 @@ export default function BusinessOpportunitiesView({ onNavigateToTenders, current
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            {onNavigateHome && (
+              <button 
+                onClick={onNavigateHome}
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  color: '#e2e8f0',
+                  border: '1px solid #1e385b',
+                  borderRadius: '8px',
+                  padding: '0.65rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  fontWeight: '700',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Return to GeM Homepage"
+              >
+                <Home size={15} color="#38bdf8" />
+                <span>🏠 Homepage</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => alert('Downloading Unified Annual Procurement Plan (APP) FY 2026-27 summary...')}
