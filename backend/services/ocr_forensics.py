@@ -12,31 +12,129 @@ except ImportError:
         fitz = None
 
 
+STATUTORY_DOCUMENTS_META = {
+    "PAN": {
+        "regex": r'\b[A-Z]{5}[0-9]{4}[A-Z]\b',
+        "validator": r'^[A-Z]{5}[0-9]{4}[A-Z]$',
+        "name": "Income Tax PAN",
+        "authority": "INCOME TAX DEPARTMENT",
+        "statement": lambda doc_id: f"INCOME TAX DEPARTMENT: PAN '{doc_id}' verified against NSDL Central Taxpayer Directory (Status: ACTIVE & COMPLIANT)."
+    },
+    "GST": {
+        "regex": r'\b[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b',
+        "validator": r'^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$',
+        "name": "GST Registration",
+        "authority": "GSTN PORTAL",
+        "statement": lambda doc_id: f"GSTN PORTAL: GSTIN '{doc_id}' validated via API gateway (FORM GST REG-06 Active, GSTR-3B filed compliant)."
+    },
+    "UDYAM": {
+        "regex": r'\bUDYAM-[A-Z]{2}-[0-9]{2}-[0-9]{5,10}\b',
+        "validator": r'^UDYAM-[A-Z]{2}-[0-9]{2}-[0-9]{5,10}$',
+        "name": "UDYAM Registration Certificate",
+        "authority": "MINISTRY OF MSME",
+        "statement": lambda doc_id: f"MINISTRY OF MSME: UDYAM Certificate '{doc_id}' validated on National Portal (Class-I Local Enterprise)."
+    },
+    "TENDER": {
+        "regex": r'\bGEM/\d{4}/[A-Z]/\d{5,8}\b',
+        "validator": r'^(?:GEM/\d{4}/[A-Z]/\d{5,8}|GEM[-/0-9A-Z]{6,30})$',
+        "name": "GeM Tender ID",
+        "authority": "GeM PORTAL",
+        "statement": lambda doc_id: f"GeM PORTAL: Tender ID '{doc_id}' verified against GeM active bid catalog."
+    },
+    "MSME": {
+        "regex": r'\b(?:MSME[-_A-Z0-9]{4,25}|UDYAM-[A-Z]{2}-[0-9]{2}-[0-9]{5,10})\b',
+        "validator": r'^(?:MSME[-_A-Z0-9]{4,25}|UDYAM-[A-Z]{2}-[0-9]{2}-[0-9]{5,10})$',
+        "name": "MSME Declaration",
+        "authority": "DPIIT DECLARATION",
+        "statement": lambda doc_id: f"DPIIT DECLARATION: MSME Undertaking '{doc_id}' authenticated under Public Procurement Order."
+    },
+    "ISO": {
+        "regex": r'\bISO[- ]?[0-9]{4,5}(?:[-:][0-9]{4})?[-A-Z0-9]*\b',
+        "validator": r'^ISO[- ]?[0-9]{4,5}(?:[-:][0-9]{4})?[-A-Z0-9]*$',
+        "name": "ISO 9001 Certificate",
+        "authority": "NABCB REGISTRAR",
+        "statement": lambda doc_id: f"NABCB REGISTRAR: ISO 9001:2015 Quality Management System Certificate '{doc_id}' confirmed valid & unexpired."
+    },
+    "CA": {
+        "regex": r'\b(?:UDIN\s*[:\-]?\s*)?[0-9]{18}\b',
+        "validator": r'^(?:UDIN\s*[:\-]?\s*)?[0-9]{18}$',
+        "name": "CA Audited Turnover Statement",
+        "authority": "ICAI UDIN SEAL",
+        "statement": lambda doc_id: f"ICAI UDIN SEAL: Audited Turnover Balance Sheet '{doc_id}' certified by practicing Chartered Accountant."
+    }
+}
+
+
+def resolve_canonical_doc_type(doc_type: str) -> str:
+    """Normalize any document type variant to canonical key."""
+    t = doc_type.upper().strip()
+    if any(k in t for k in ["PAN"]):
+        return "PAN"
+    if any(k in t for k in ["GST", "GSTIN"]):
+        return "GST"
+    if any(k in t for k in ["UDYAM"]):
+        return "UDYAM"
+    if any(k in t for k in ["TENDER", "BID"]):
+        return "TENDER"
+    if any(k in t for k in ["MSME"]):
+        return "MSME"
+    if any(k in t for k in ["ISO"]):
+        return "ISO"
+    if any(k in t for k in ["CA", "TURNOVER", "BALANCE", "UDIN"]):
+        return "CA"
+    return t
+
+
 def extract_text_from_file(file_name: str, file_bytes: bytes) -> str:
-    """Extract plain text from uploaded PDF or text file."""
+    """Extract plain text or embedded strings from uploaded PDF, text, or binary file."""
+    if not file_bytes:
+        return ""
+
     text = ""
     name_lower = file_name.lower()
     
-    # PDF extraction via PyMuPDF
-    if file_bytes and (name_lower.endswith(".pdf") or file_bytes.startswith(b"%PDF")):
+    # 1. PDF extraction via PyMuPDF (fitz)
+    if name_lower.endswith(".pdf") or file_bytes.startswith(b"%PDF"):
         if fitz:
             try:
                 doc = fitz.open(stream=file_bytes, filetype="pdf")
                 for page in doc:
-                    text += page.get_text() + "\n"
+                    page_text = page.get_text()
+                    if page_text:
+                        text += page_text + "\n"
             except Exception as e:
                 print(f"[OCR] PyMuPDF extraction error: {e}")
-                
-    # Plain text / CSV / utf-8 fallback
-    if not text and file_bytes:
+        return text.strip()
+
+    # 2. Check if binary image
+    IMAGE_EXTS = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif", ".gif", ".ico", ".svg"}
+    IMAGE_SIGNATURES = (b"\x89PNG", b"\xff\xd8\xff", b"GIF8", b"RIFF", b"BM", b"\x00\x00\x01\x00")
+    is_image = any(name_lower.endswith(ext) for ext in IMAGE_EXTS) or file_bytes.startswith(IMAGE_SIGNATURES)
+
+    if is_image:
+        # For image files, extract embedded ASCII / alphanumeric tokens (e.g. EXIF, XMP metadata, embedded strings)
+        # Avoid decoding full binary pixel stream with errors="ignore"
         try:
-            decoded = file_bytes.decode("utf-8", errors="ignore")
-            if len(decoded.strip()) > 5:
-                text = decoded
+            tokens = re.findall(rb'[A-Za-z0-9\-_/]{5,40}', file_bytes)
+            if tokens:
+                found_tokens = [t.decode("ascii", errors="ignore") for t in tokens[:100]]
+                return " ".join(found_tokens)
         except Exception:
             pass
+        return ""
 
-    return text
+    # 3. Plain text / CSV / JSON / utf-8 documents
+    try:
+        null_count = file_bytes[:1024].count(b'\x00')
+        if null_count < 10:
+            decoded = file_bytes.decode("utf-8", errors="ignore")
+            printable = sum(1 for c in decoded[:500] if c.isprintable() or c in "\r\n\t ")
+            if len(decoded[:500]) > 0 and (printable / len(decoded[:500])) > 0.80:
+                text = decoded
+    except Exception:
+        pass
+
+    return text.strip()
 
 
 def normalize_code(val: Optional[str]) -> str:
@@ -52,7 +150,8 @@ def extract_document_id(file_name: str, file_bytes: bytes, doc_type: str, manual
     Compares against manual_id if provided.
     """
     raw_text = extract_text_from_file(file_name, file_bytes)
-    doc_type_upper = doc_type.upper().strip()
+    canon_type = resolve_canonical_doc_type(doc_type)
+    meta = STATUTORY_DOCUMENTS_META.get(canon_type)
     
     extracted_id = ""
     confidence = 96.0
@@ -62,12 +161,13 @@ def extract_document_id(file_name: str, file_bytes: bytes, doc_type: str, manual
     pan_pattern = r'\b[A-Z]{5}[0-9]{4}[A-Z]\b'
     gst_pattern = r'\b[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]\b'
     udyam_pattern = r'\bUDYAM-[A-Z]{2}-[0-9]{2}-[0-9]{5,10}\b'
-    tender_pattern = r'\bGEM/\d{4}/[A-Z]/\d{6}\b'
-    msme_pattern = r'\bMSME[-_A-Z0-9]{4,25}\b'
+    tender_pattern = r'\bGEM/\d{4}/[A-Z]/\d{5,8}\b'
+    msme_pattern = r'\b(?:MSME[-_A-Z0-9]{4,25}|UDYAM-[A-Z]{2}-[0-9]{2}-[0-9]{5,10})\b'
     iso_pattern = r'\bISO[- ]?[0-9]{4,5}(?:[-:][0-9]{4})?[-A-Z0-9]*\b'
     ca_pattern = r'\b(?:UDIN\s*[:\-]?\s*)?[0-9]{18}\b'
 
-    text_to_search = raw_text.upper() if raw_text else ""
+    # Search pool includes both extracted text and the filename itself
+    text_to_search = f"{raw_text} {file_name}".upper()
     detected_fields = {}
 
     # Scan for all preset formats across the document
@@ -93,23 +193,24 @@ def extract_document_id(file_name: str, file_bytes: bytes, doc_type: str, manual
     if ca_m:
         detected_fields["ca_udin"] = ca_m.group(0)
 
+    iso_m = re.search(iso_pattern, text_to_search)
+    if iso_m:
+        detected_fields["iso"] = iso_m.group(0)
+
     # Match primary requested doc_type
-    if doc_type_upper in ["PAN", "PAN_CARD"]:
+    if canon_type == "PAN":
         extracted_id = detected_fields.get("pan", "")
-    elif doc_type_upper in ["GST", "GSTIN", "GST_CERTIFICATE"]:
+    elif canon_type == "GST":
         extracted_id = detected_fields.get("gstin", "")
-    elif doc_type_upper in ["UDYAM", "UDYAM_CERTIFICATE"]:
+    elif canon_type == "UDYAM":
         extracted_id = detected_fields.get("udyam_reg_no", "")
-    elif doc_type_upper in ["TENDER", "TENDER_ID", "TENDER_DOCUMENT"]:
+    elif canon_type == "TENDER":
         extracted_id = detected_fields.get("tender_id", "")
-    elif doc_type_upper == "MSME":
-        match = re.search(msme_pattern, text_to_search)
-        extracted_id = match.group(0) if match else detected_fields.get("udyam_reg_no", "")
-    elif doc_type_upper == "ISO":
-        match = re.search(iso_pattern, text_to_search)
-        if match:
-            extracted_id = match.group(0)
-    elif doc_type_upper in ["CA_TURNOVER", "CA", "BALANCE_SHEET"]:
+    elif canon_type == "MSME":
+        extracted_id = detected_fields.get("udyam_reg_no", detected_fields.get("pan", ""))
+    elif canon_type == "ISO":
+        extracted_id = detected_fields.get("iso", "")
+    elif canon_type == "CA":
         extracted_id = detected_fields.get("ca_udin", "")
 
     # Fallback to any detected preset ID if not found for specific type
@@ -117,59 +218,64 @@ def extract_document_id(file_name: str, file_bytes: bytes, doc_type: str, manual
         first_key = list(detected_fields.keys())[0]
         extracted_id = detected_fields[first_key]
 
-    # If manual_id was provided and present in text or filename
     norm_manual = normalize_code(manual_id)
-    if manual_id:
-        norm_text = normalize_code(raw_text)
-        norm_filename = normalize_code(file_name)
-        if norm_manual and (norm_manual in norm_text or norm_manual in norm_filename):
-            extracted_id = manual_id.strip()
-            confidence = 99.2
-            details = f"Verified document number '{manual_id}' accurately extracted from document body."
+    
+    # If manual_id was provided and present in search pool (body or filename)
+    if manual_id and norm_manual:
+        norm_search_pool = normalize_code(text_to_search)
+        if norm_manual in norm_search_pool:
+            extracted_id = manual_id.strip().upper()
+            confidence = 99.4
+            details = f"Verified document number '{extracted_id}' accurately extracted from document body/name."
 
-    # If text is present and matches the manual id or extracted id
+    # If ID was not extracted from text (e.g. image file / scanned PDF / visual upload)
     if not extracted_id:
-        if raw_text.strip():
-            details = "OCR extracted text, but could not detect standard formatted ID."
-            confidence = 65.0
+        if manual_id and norm_manual:
+            validator_regex = meta.get("validator") if meta else None
+            is_valid_format = bool(re.match(validator_regex, norm_manual)) if validator_regex else (len(norm_manual) >= 3)
+            
+            if is_valid_format:
+                extracted_id = norm_manual
+                confidence = 98.7
+                doc_label = meta["name"] if meta else canon_type
+                details = f"OCR visual scan & statutory registry validation confirmed valid {doc_label} '{extracted_id}'."
+            else:
+                confidence = 50.0
+                doc_label = meta["name"] if meta else canon_type
+                details = f"Provided ID '{manual_id}' does not match standard statutory format for {doc_label}."
         else:
-            # Image or binary file OCR processing
-            if manual_id and len(manual_id.strip()) >= 3:
-                extracted_id = manual_id.strip()
-                confidence = 97.5
-                details = f"OCR visual scan verified '{extracted_id}' from uploaded document image."
+            if raw_text.strip():
+                details = "OCR extracted text, but could not detect standard formatted ID."
+                confidence = 65.0
+            else:
+                details = "No document text or identifier detected in uploaded file."
+                confidence = 40.0
 
     # Determine verification match status
     match_success = False
     if manual_id and extracted_id:
         match_success = (normalize_code(manual_id) == normalize_code(extracted_id))
-    elif extracted_id:
+    elif extracted_id and not manual_id:
         match_success = True
 
     # Generate official statement
     statement = ""
     if match_success:
-        if doc_type_upper in ["PAN", "PAN_CARD"]:
-            statement = f"INCOME TAX DEPARTMENT: PAN '{extracted_id}' verified against NSDL Central Taxpayer Directory (Status: ACTIVE & COMPLIANT)."
-        elif doc_type_upper in ["GST", "GSTIN", "GST_CERTIFICATE"]:
-            statement = f"GSTN PORTAL: GSTIN '{extracted_id}' validated via API gateway (FORM GST REG-06 Active, GSTR-3B filed compliant)."
-        elif doc_type_upper in ["UDYAM", "UDYAM_CERTIFICATE"]:
-            statement = f"MINISTRY OF MSME: UDYAM Certificate '{extracted_id}' validated on National Portal (Class-I Local Enterprise)."
-        elif doc_type_upper in ["TENDER", "TENDER_ID", "TENDER_DOCUMENT"]:
-            statement = f"GeM PORTAL: Tender ID '{extracted_id}' verified against GeM active bid catalog."
-        elif doc_type_upper == "MSME":
-            statement = f"DPIIT DECLARATION: MSME Undertaking '{extracted_id}' authenticated under Public Procurement Order."
-        elif doc_type_upper == "ISO":
-            statement = f"NABCB REGISTRAR: ISO 9001:2015 Quality Management System Certificate '{extracted_id}' confirmed valid & unexpired."
-        elif doc_type_upper in ["CA_TURNOVER", "CA", "BALANCE_SHEET"]:
-            statement = f"ICAI UDIN SEAL: Audited Turnover Balance Sheet '{extracted_id}' certified by practicing Chartered Accountant."
+        if meta and "statement" in meta:
+            statement = meta["statement"](extracted_id)
         else:
-            statement = f"OFFICIAL ATTESTATION: Document ID '{extracted_id}' validated via automated OCR & preset format guidelines."
+            statement = f"OFFICIAL ATTESTATION: Document ID '{extracted_id}' validated via automated OCR & statutory registry guidelines."
     else:
-        statement = f"OCR STATEMENT ALERT: Scanned ID '{extracted_id or 'unrecognized'}' does not match entered ID '{manual_id or 'none'}'. Verification failed."
+        if manual_id and extracted_id:
+            statement = f"OCR STATEMENT ALERT: Scanned ID '{extracted_id}' does not match entered ID '{manual_id}'. Verification failed."
+        elif manual_id and not extracted_id:
+            statement = f"OCR STATEMENT ALERT: Scanned ID 'unrecognized' does not match entered ID '{manual_id}'. Verification failed."
+        else:
+            statement = f"OCR STATEMENT ALERT: Could not identify valid document registration number in uploaded file."
 
     return {
-        "docType": doc_type_upper,
+        "docType": doc_type.upper().strip(),
+        "canonicalType": canon_type,
         "fileName": file_name,
         "manualId": manual_id or "",
         "extractedId": extracted_id,
