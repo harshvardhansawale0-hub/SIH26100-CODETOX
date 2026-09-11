@@ -6,10 +6,14 @@ import {
   Sparkles, ExternalLink, ShieldAlert, BarChart3, HelpCircle
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import AwardedTenderKeymap from './AwardedTenderKeymap';
+import { createDefaultMilestones } from '../data/bidsData';
 
 export default function BidderDashboard({
   tenders = [],
   bids = [],
+  tenderMilestones = {},
+  onUpdateMilestone,
   onOpenVerifierWithTender,
   onSelectBid,
   onNavigateToPassport,
@@ -18,7 +22,7 @@ export default function BidderDashboard({
   const { t } = useLanguage();
 
   // Primary Selection & Filtering States
-  const [selectedCategoryTab, setSelectedCategoryTab] = useState('ALL'); // 'ALL', 'ACTIVE', 'AT_RISK', 'NON_COMPLIANT', 'PENDING', 'MY_SUBMISSIONS'
+  const [selectedCategoryTab, setSelectedCategoryTab] = useState('ALL'); // 'ALL', 'ACTIVE', 'AT_RISK', 'NON_COMPLIANT', 'PENDING', 'MY_SUBMISSIONS', 'AWARDED'
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [inspectingTender, setInspectingTender] = useState(null);
@@ -38,6 +42,60 @@ export default function BidderDashboard({
     );
   }, [bids, currentUser]);
 
+  // Scope won / awarded tenders:
+  const myAwardedTenders = useMemo(() => {
+    const wonBidTenderIds = new Set(
+      myBids.filter(b => b.status === 'Selected' || b.status === 'Awarded').map(b => b.tenderId)
+    );
+
+    if (currentUser?.isDemo) {
+      wonBidTenderIds.add('GEM/2026/B/891244');
+    }
+
+    const list = [];
+    const seenIds = new Set();
+
+    for (const t of tenders) {
+      const isWon = wonBidTenderIds.has(t.id) || (t.status === 'Awarded' && (
+        (currentUser?.isDemo && t.id === 'GEM/2026/B/891244') ||
+        (currentUser?.organization && (t.awardedVendor || '').includes(currentUser.organization)) ||
+        (currentUser?.fullName && (t.awardedVendor || '').includes(currentUser.fullName))
+      ));
+
+      if (isWon && !seenIds.has(t.id)) {
+        list.push(t);
+        seenIds.add(t.id);
+      }
+    }
+
+    // Also include any tender defined in tenderMilestones belonging to this vendor
+    for (const [tId, mData] of Object.entries(tenderMilestones || {})) {
+      if (!seenIds.has(tId)) {
+        const isUserVendor = currentUser?.isDemo
+          ? (mData.vendorName === 'Apex Supplies Ltd.' || tId === 'GEM/2026/B/891244')
+          : (
+            (currentUser?.organization && mData.vendorName === currentUser.organization) ||
+            (currentUser?.fullName && mData.vendorName === currentUser.fullName)
+          );
+        if (isUserVendor) {
+          const matched = tenders.find(t => t.id === tId);
+          list.push(matched || {
+            id: tId,
+            title: `Procurement Contract (${tId})`,
+            ministry: mData.buyerOrg || 'Ministry of Defence, DRDO',
+            department: 'Central Procurement Wing',
+            category: 'IT Hardware',
+            estimatedValue: mData.awardedValue || '₹1.38 Cr',
+            status: 'Awarded'
+          });
+          seenIds.add(tId);
+        }
+      }
+    }
+
+    return list;
+  }, [myBids, tenders, tenderMilestones, currentUser]);
+
   // Categorized Tenders Counts
   const counts = useMemo(() => {
     const activeList = tenders.filter(t => t.riskCategory === 'Active' || (!t.riskCategory && t.status === 'Active'));
@@ -45,6 +103,7 @@ export default function BidderDashboard({
     const nonCompliantList = tenders.filter(t => t.riskCategory === 'Non-Compliant' || t.status === 'Non-Compliant' || t.status === 'Rejected');
     const pendingList = tenders.filter(t => t.riskCategory === 'Pending Verification' || t.status === 'Pending Verification');
     const mySubmissions = myBids.length;
+    const awarded = myAwardedTenders.length;
 
     return {
       all: tenders.length,
@@ -52,9 +111,10 @@ export default function BidderDashboard({
       atRisk: atRiskList.length,
       nonCompliant: nonCompliantList.length,
       pending: pendingList.length,
-      mySubmissions
+      mySubmissions,
+      awarded
     };
-  }, [tenders, myBids]);
+  }, [tenders, myBids, myAwardedTenders]);
 
   // Filtered Tenders based on Tab, Search and Category
   const filteredTenders = useMemo(() => {
@@ -97,6 +157,19 @@ export default function BidderDashboard({
       return matchSearch && matchCat;
     });
   }, [myBids, searchQuery, categoryFilter]);
+
+  // Filtered Awarded Tenders
+  const filteredAwardedTenders = useMemo(() => {
+    return myAwardedTenders.filter((t) => {
+      const matchSearch =
+        (t.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (t.id || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (t.ministry || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (t.department || '').toLowerCase().includes(searchQuery.toLowerCase());
+      const matchCat = categoryFilter === 'ALL' || t.category === categoryFilter;
+      return matchSearch && matchCat;
+    });
+  }, [myAwardedTenders, searchQuery, categoryFilter]);
 
   const getTenderSubmission = (tenderId) => {
     return myBids.find(b => b.tenderId === tenderId);
@@ -361,6 +434,38 @@ export default function BidderDashboard({
               8-Stage AI OCR in-progress
             </span>
           </div>
+
+          {/* Card 5: 5. WON / AWARDED TENDERS */}
+          <div
+            onClick={() => setSelectedCategoryTab('AWARDED')}
+            style={{
+              backgroundColor: '#0c1f36',
+              border: selectedCategoryTab === 'AWARDED' ? '2px solid #f59e0b' : '1px solid #1e385b',
+              borderRadius: '12px',
+              padding: '1.25rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: selectedCategoryTab === 'AWARDED' ? '0 4px 20px rgba(245, 158, 11, 0.3)' : 'none',
+              position: 'relative',
+              overflow: 'hidden'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#f59e0b', display: 'inline-block' }}></span>
+                <span style={{ fontSize: '0.82rem', fontWeight: '800', color: '#fbbf24', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  5. Won / Awarded
+                </span>
+              </div>
+              <Award size={18} color="#fbbf24" />
+            </div>
+            <div style={{ fontSize: '2rem', fontWeight: '900', color: '#ffffff', lineHeight: 1.1 }}>
+              {counts.awarded}
+            </div>
+            <span style={{ fontSize: '0.75rem', color: '#fbbf24', display: 'block', marginTop: '0.3rem' }}>
+              Sequential Keymap in progress
+            </span>
+          </div>
         </div>
 
         {/* Tab Selection Filter Bar (Tender Selection Page vs My Submissions) */}
@@ -479,10 +584,33 @@ export default function BidderDashboard({
             >
               <UploadCloud size={15} /> My Submitted Bids ({counts.mySubmissions})
             </button>
+
+            <button
+              onClick={() => setSelectedCategoryTab('AWARDED')}
+              style={{
+                padding: '0.55rem 1rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: selectedCategoryTab === 'AWARDED' ? '#f59e0b' : 'rgba(255, 255, 255, 0.05)',
+                color: selectedCategoryTab === 'AWARDED' ? '#000000' : '#fbbf24',
+                fontWeight: '800',
+                fontSize: '0.84rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem'
+              }}
+            >
+              <Award size={15} /> 🏆 Won / Awarded Tenders ({counts.awarded})
+            </button>
           </div>
 
           <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
-            Showing: <strong>{selectedCategoryTab === 'MY_SUBMISSIONS' ? filteredMyBids.length : filteredTenders.length} entries</strong>
+            Showing: <strong>
+              {selectedCategoryTab === 'MY_SUBMISSIONS'
+                ? filteredMyBids.length
+                : (selectedCategoryTab === 'AWARDED' ? filteredAwardedTenders.length : filteredTenders.length)} entries
+            </strong>
           </span>
         </div>
 
@@ -539,7 +667,7 @@ export default function BidderDashboard({
               key={chip}
               onClick={() => {
                 setSearchQuery(chip === searchQuery ? '' : chip);
-                if (selectedCategoryTab === 'MY_SUBMISSIONS') setSelectedCategoryTab('ALL');
+                if (selectedCategoryTab === 'MY_SUBMISSIONS' || selectedCategoryTab === 'AWARDED') setSelectedCategoryTab('ALL');
               }}
               style={{
                 fontSize: '0.75rem',
@@ -576,7 +704,7 @@ export default function BidderDashboard({
         </div>
 
         {/* MAIN HOMEPAGE VIEW: TENDER DISCOVERY & SELECTION PAGE */}
-        {selectedCategoryTab !== 'MY_SUBMISSIONS' && (
+        {selectedCategoryTab !== 'MY_SUBMISSIONS' && selectedCategoryTab !== 'AWARDED' && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {filteredTenders.length === 0 ? (
               <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '12px', border: '1px solid #1e385b' }}>
@@ -1018,6 +1146,64 @@ export default function BidderDashboard({
                       </button>
                     </div>
                   </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* VIEW 3: WON & AWARDED TENDERS & SEQUENTIAL EXECUTION KEYMAP */}
+        {selectedCategoryTab === 'AWARDED' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {filteredAwardedTenders.length === 0 ? (
+              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '12px', border: '1px dashed #f59e0b' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                  <Award size={28} color="#f59e0b" />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: '800', marginBottom: '0.5rem' }}>
+                  Zero Awarded Tenders
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '540px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                  You do not have any awarded contracts yet. Once the Government Procurement Officer reviews your submitted bid and awards the contract to your enterprise, your full 5-stage sequential milestone keymap (Tender Approved &rarr; Stock Supplied &rarr; Inspection &rarr; Invoice &rarr; Payment) will be tracked here in real-time.
+                </p>
+                <button
+                  onClick={() => { setSelectedCategoryTab('ALL'); setSearchQuery(''); }}
+                  style={{
+                    padding: '0.7rem 1.4rem',
+                    backgroundColor: '#10b981',
+                    color: '#ffffff',
+                    fontWeight: '800',
+                    fontSize: '0.9rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
+                  }}
+                >
+                  <Search size={17} />
+                  <span>Browse Active Government Tenders</span>
+                </button>
+              </div>
+            ) : (
+              filteredAwardedTenders.map((tender) => {
+                const milestone = tenderMilestones[tender.id] || createDefaultMilestones(tender.id, {
+                  vendorName: currentUser?.organization || currentUser?.fullName || "Apex Supplies Ltd.",
+                  buyerOrg: tender.ministry || "Ministry of Defence, DRDO",
+                  awardedValue: tender.estimatedValue || "₹1.38 Cr"
+                });
+
+                return (
+                  <AwardedTenderKeymap
+                    key={tender.id}
+                    milestoneData={milestone}
+                    tender={tender}
+                    isOfficer={false}
+                    currentUser={currentUser}
+                    onUpdateMilestone={onUpdateMilestone}
+                  />
                 );
               })
             )}
