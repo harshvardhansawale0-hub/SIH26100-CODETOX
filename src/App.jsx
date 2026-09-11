@@ -27,7 +27,7 @@ import BusinessOpportunitiesView from './components/BusinessOpportunitiesView';
 import CategoryCatalogView from './components/CategoryCatalogView';
 import AskGemmyModal from './components/AskGemmyModal';
 import CompliancePassportView from './components/CompliancePassportView';
-import { initialBids, initialTenders } from './data/bidsData';
+import { initialBids, initialTenders, initialMilestones, createDefaultMilestones } from './data/bidsData';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { gemApi } from './services/api';
 import { clearAuth, setAuthToken } from './services/api';
@@ -95,6 +95,56 @@ function MainApp() {
     return initialBids || [];
   });
   const [isLoadingBids, setIsLoadingBids] = useState(false);
+
+  // Awarded Tender Sequential Keymaps (GFR 2017 & 225)
+  const [tenderMilestones, setTenderMilestones] = useState(() => {
+    try {
+      const stored = localStorage.getItem('gem_awarded_milestones');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && typeof parsed === 'object') return { ...initialMilestones, ...parsed };
+      }
+    } catch {}
+    return initialMilestones || {};
+  });
+
+  const handleUpdateTenderMilestone = (tenderId, stepKey, isApproved, updatedFields = {}) => {
+    setTenderMilestones((prev) => {
+      const currentTenderMilestone = prev[tenderId] || createDefaultMilestones(tenderId);
+      const existingStep = currentTenderMilestone.steps?.[stepKey] || {};
+
+      const newStepState = {
+        ...existingStep,
+        approved: isApproved,
+        status: isApproved ? 'completed' : 'pending',
+        ...updatedFields
+      };
+
+      const updated = {
+        ...prev,
+        [tenderId]: {
+          ...currentTenderMilestone,
+          steps: {
+            ...currentTenderMilestone.steps,
+            [stepKey]: newStepState
+          }
+        }
+      };
+
+      try {
+        localStorage.setItem('gem_awarded_milestones', JSON.stringify(updated));
+      } catch {}
+
+      return updated;
+    });
+
+    // Also persist via gemApi helper
+    gemApi.updateAwardedMilestone(tenderId, stepKey, {
+      approved: isApproved,
+      status: isApproved ? 'completed' : 'pending',
+      ...updatedFields
+    }).catch(() => {});
+  };
 
   // Modals & Active Selections
   const [selectedBid, setSelectedBid] = useState(null);
@@ -422,6 +472,30 @@ function MainApp() {
             : t
         )
       );
+
+      // 3. Initialize milestone keymap for the awarded tender
+      setTenderMilestones((prev) => {
+        if (prev[targetBid.tenderId]) return prev;
+        const targetTender = tenders.find(t => t.id === targetBid.tenderId);
+        const newMilestones = createDefaultMilestones(targetBid.tenderId, {
+          contractId: `PO-GEM-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`,
+          vendorName: targetBid.vendor,
+          buyerOrg: targetTender?.ministry || currentUser?.organization || "Government Procuring Authority",
+          awardedValue: targetBid.bidAmount || targetTender?.estimatedValue || "₹1.45 Cr",
+          poDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+          tender_approved: {
+            approved: true,
+            status: 'completed',
+            approvedAt: new Date().toLocaleString(),
+            approvedBy: currentUser ? `${currentUser.fullName} (${currentUser.organization})` : 'Procurement Officer'
+          }
+        });
+        const updated = { ...prev, [targetBid.tenderId]: newMilestones };
+        try {
+          localStorage.setItem('gem_awarded_milestones', JSON.stringify(updated));
+        } catch {}
+        return updated;
+      });
     }
   };
 
@@ -590,6 +664,8 @@ function MainApp() {
           <BuyerDashboard
             tenders={tenders}
             bids={bids}
+            tenderMilestones={tenderMilestones}
+            onUpdateMilestone={handleUpdateTenderMilestone}
             currentUser={currentUser}
             onSelectBid={(bid) => setSelectedBid(bid)}
             onTenderCreated={handleTenderCreated}
@@ -613,6 +689,8 @@ function MainApp() {
           <BidderDashboard
             tenders={tenders}
             bids={bids}
+            tenderMilestones={tenderMilestones}
+            onUpdateMilestone={handleUpdateTenderMilestone}
             currentUser={currentUser}
             onOpenVerifierWithTender={(tender) => handleOpenVerifierForTender(tender)}
             onSelectBid={(bid) => setSelectedBid(bid)}

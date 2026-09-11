@@ -7,10 +7,14 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
 import CreateBidModal from './CreateBidModal';
+import AwardedTenderKeymap from './AwardedTenderKeymap';
+import { createDefaultMilestones } from '../data/bidsData';
 
 export default function BuyerDashboard({
   bids = [],
   tenders = [],
+  tenderMilestones = {},
+  onUpdateMilestone,
   onSelectBid,
   onTenderCreated,
   onBidSelected,
@@ -18,8 +22,9 @@ export default function BuyerDashboard({
   currentUser
 }) {
   const { t } = useLanguage();
-  const [activeSubTab, setActiveSubTab] = useState('tenders'); // 'tenders' or 'applications'
+  const [activeSubTab, setActiveSubTab] = useState('tenders'); // 'tenders', 'applications', 'awarded'
   const [selectedTenderId, setSelectedTenderId] = useState('ALL');
+  const [selectedKeymapTenderId, setSelectedKeymapTenderId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
@@ -102,19 +107,65 @@ export default function BuyerDashboard({
     return list;
   }, [buyerTenders, bids]);
 
+  // Awarded Tenders for Keymap Tracking
+  const awardedTendersList = useMemo(() => {
+    const list = [];
+    const seen = new Set();
+
+    for (const t of buyerTenders) {
+      const hasWonBid = bids.some(b => (b.status === 'Selected' || b.status === 'Awarded') && b.tenderId === t.id);
+      if ((t.status === 'Awarded' || hasWonBid) && !seen.has(t.id)) {
+        list.push(t);
+        seen.add(t.id);
+      }
+    }
+
+    // Also include any tender configured in tenderMilestones
+    for (const [tId, mData] of Object.entries(tenderMilestones || {})) {
+      if (!seen.has(tId)) {
+        const matchingTender = tenders.find(t => t.id === tId);
+        if (matchingTender) {
+          list.push(matchingTender);
+          seen.add(tId);
+        } else if (currentUser?.isDemo || tenderScopeMode === 'all') {
+          list.push({
+            id: tId,
+            title: `Awarded Contract (${tId})`,
+            ministry: mData.buyerOrg || 'Ministry of Defence, DRDO',
+            department: 'Procurement Wing',
+            category: 'IT Hardware',
+            estimatedValue: mData.awardedValue || '₹1.38 Cr',
+            status: 'Awarded'
+          });
+          seen.add(tId);
+        }
+      }
+    }
+
+    return list;
+  }, [buyerTenders, bids, tenderMilestones, tenders, currentUser, tenderScopeMode]);
+
+  const displayedAwardedTenders = useMemo(() => {
+    if (selectedKeymapTenderId) {
+      const match = awardedTendersList.filter(t => t.id === selectedKeymapTenderId);
+      if (match.length > 0) return match;
+    }
+    return awardedTendersList;
+  }, [awardedTendersList, selectedKeymapTenderId]);
+
   // Buyer Summary KPIs
   const kpis = useMemo(() => {
     const totalTenders = buyerTenders.length;
     const totalApps = buyerBids.length;
     const compliantCount = buyerBids.filter(b => b.status === 'Compliant' || b.status === 'Selected').length;
-    const awardedCount = buyerTenders.filter(t => t.status === 'Awarded' || buyerBids.some(b => b.status === 'Selected' && b.tenderId === t.id)).length;
+    const awardedCount = awardedTendersList.length;
     return {
       totalTenders,
       totalApps,
       compliantCount,
       awardedCount
     };
-  }, [buyerTenders, buyerBids]);
+  }, [buyerTenders, buyerBids, awardedTendersList]);
 
   // Filtered Tenders
   const filteredTenders = useMemo(() => {
@@ -253,7 +304,18 @@ export default function BuyerDashboard({
             <span style={{ fontSize: '0.75rem', color: '#34d399' }}>Eligible for L1 Award</span>
           </div>
 
-          <div style={{ backgroundColor: '#0c1f36', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem' }}>
+          <div
+            onClick={() => setActiveSubTab('awarded')}
+            style={{
+              backgroundColor: '#0c1f36',
+              border: activeSubTab === 'awarded' ? '2px solid #f59e0b' : '1px solid #1e385b',
+              borderRadius: '10px',
+              padding: '1.25rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: activeSubTab === 'awarded' ? '0 4px 16px rgba(245, 158, 11, 0.25)' : 'none'
+            }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#94a3b8', fontSize: '0.82rem', fontWeight: '600', marginBottom: '0.5rem' }}>
               <span>Bids Awarded / Won</span>
               <Award size={18} color="#f59e0b" />
@@ -261,7 +323,7 @@ export default function BuyerDashboard({
             <div style={{ fontSize: '1.8rem', fontWeight: '900', color: '#f59e0b' }}>
               {kpis.awardedCount}
             </div>
-            <span style={{ fontSize: '0.75rem', color: '#fbbf24' }}>Final selections executed</span>
+            <span style={{ fontSize: '0.75rem', color: '#fbbf24' }}>Click to view execution keymaps</span>
           </div>
         </div>
 
@@ -269,7 +331,7 @@ export default function BuyerDashboard({
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', borderBottom: '1px solid #1e385b', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
             <button
-              onClick={() => { setActiveSubTab('tenders'); setSelectedTenderId('ALL'); }}
+              onClick={() => { setActiveSubTab('tenders'); setSelectedTenderId('ALL'); setSelectedKeymapTenderId(null); }}
               style={{
                 padding: '0.6rem 1.25rem',
                 borderRadius: '6px',
@@ -287,7 +349,7 @@ export default function BuyerDashboard({
               <FileText size={16} /> 1. Published Bids / Tenders ({buyerTenders.length})
             </button>
             <button
-              onClick={() => setActiveSubTab('applications')}
+              onClick={() => { setActiveSubTab('applications'); setSelectedKeymapTenderId(null); }}
               style={{
                 padding: '0.6rem 1.25rem',
                 borderRadius: '6px',
@@ -303,6 +365,25 @@ export default function BuyerDashboard({
               }}
             >
               <Users size={16} /> 2. Received Bidder Applications & AI Reports ({buyerBids.length})
+            </button>
+            <button
+              onClick={() => { setActiveSubTab('awarded'); setSelectedKeymapTenderId(null); }}
+              style={{
+                padding: '0.6rem 1.25rem',
+                borderRadius: '6px',
+                border: 'none',
+                backgroundColor: activeSubTab === 'awarded' ? '#f59e0b' : 'transparent',
+                color: activeSubTab === 'awarded' ? '#000000' : '#fbbf24',
+                fontWeight: '800',
+                fontSize: '0.88rem',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                boxShadow: activeSubTab === 'awarded' ? '0 2px 10px rgba(245, 158, 11, 0.4)' : 'none'
+              }}
+            >
+              <Award size={16} /> 🏆 3. Awarded Tenders & Keymap Approvals ({awardedTendersList.length})
             </button>
           </div>
 
@@ -586,6 +667,31 @@ export default function BuyerDashboard({
                           <Users size={14} /> Review Applications ({tenderBids.length})
                         </button>
 
+                        {isAwarded && (
+                          <button
+                            onClick={() => {
+                              setSelectedKeymapTenderId(tender.id);
+                              setActiveSubTab('awarded');
+                            }}
+                            style={{
+                              padding: '0.45rem 0.9rem',
+                              backgroundColor: '#f59e0b',
+                              color: '#000000',
+                              fontWeight: '800',
+                              fontSize: '0.82rem',
+                              borderRadius: '6px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)'
+                            }}
+                          >
+                            <Award size={14} /> 🏆 View & Approve Keymap
+                          </button>
+                        )}
+
                         <button
                           onClick={() => handleDeleteTender(tender)}
                           style={{
@@ -812,9 +918,121 @@ export default function BuyerDashboard({
                             <Award size={14} /> Final Selection (Award Tender)
                           </button>
                         )}
+
+                        {isSelected && (
+                          <button
+                            onClick={() => {
+                              setSelectedKeymapTenderId(bid.tenderId);
+                              setActiveSubTab('awarded');
+                            }}
+                            style={{
+                              padding: '0.45rem 1rem',
+                              backgroundColor: '#f59e0b',
+                              color: '#000000',
+                              border: 'none',
+                              borderRadius: '6px',
+                              fontSize: '0.82rem',
+                              fontWeight: '800',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '0.35rem',
+                              boxShadow: '0 2px 8px rgba(245, 158, 11, 0.4)'
+                            }}
+                          >
+                            <Award size={14} /> 🏆 View & Approve Keymap
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
+                );
+              })
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: AWARDED TENDERS & SEQUENTIAL MILESTONE APPROVAL KEYMAP */}
+        {activeSubTab === 'awarded' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            <div style={{ backgroundColor: '#0c1f36', border: '1px solid #1e385b', borderRadius: '10px', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
+              <div>
+                <span style={{ fontSize: '0.75rem', fontWeight: '800', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                  <Award size={14} /> PROCUREMENT OFFICER EXECUTION KEYMAP (GFR 2017 & 225)
+                </span>
+                <p style={{ margin: '0.25rem 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+                  Review and check off each statutory milestone sequentially: <strong>1. Tender Approved &rarr; 2. Stock Supplied / Consignment Received &rarr; 3. CRAC Inspection &rarr; 4. Invoice Verification &rarr; 5. PFMS Payment Settlement</strong>. Checkboxes enforce statutory sequence.
+                </p>
+              </div>
+
+              {selectedKeymapTenderId && (
+                <button
+                  onClick={() => setSelectedKeymapTenderId(null)}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    fontSize: '0.78rem',
+                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                    border: '1px solid #1e385b',
+                    color: '#38bdf8',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: '700'
+                  }}
+                >
+                  Show All Awarded Tenders
+                </button>
+              )}
+            </div>
+
+            {displayedAwardedTenders.length === 0 ? (
+              <div style={{ padding: '3.5rem 2rem', textAlign: 'center', backgroundColor: '#0c1f36', borderRadius: '12px', border: '1px dashed #f59e0b' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', backgroundColor: 'rgba(245, 158, 11, 0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                  <Award size={28} color="#f59e0b" />
+                </div>
+                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', fontWeight: '800', marginBottom: '0.5rem' }}>
+                  Zero Awarded Contracts Found
+                </h3>
+                <p style={{ color: '#94a3b8', fontSize: '0.9rem', maxWidth: '520px', margin: '0 auto 1.5rem', lineHeight: '1.5' }}>
+                  No tenders have been awarded yet. Review received bidder applications in the "Received Applications" tab and select qualified L1 compliant vendors to initialize their sequential milestone keymaps.
+                </p>
+                <button
+                  onClick={() => setActiveSubTab('applications')}
+                  style={{
+                    padding: '0.7rem 1.4rem',
+                    backgroundColor: '#0284c7',
+                    color: '#ffffff',
+                    fontWeight: '800',
+                    fontSize: '0.9rem',
+                    borderRadius: '8px',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)'
+                  }}
+                >
+                  <Users size={17} />
+                  <span>Review Received Bidder Applications</span>
+                </button>
+              </div>
+            ) : (
+              displayedAwardedTenders.map((tender) => {
+                const milestone = tenderMilestones[tender.id] || createDefaultMilestones(tender.id, {
+                  vendorName: tender.awardedVendor || tender.vendor || 'Apex Supplies Ltd.',
+                  buyerOrg: tender.ministry || currentUser?.organization || 'Ministry of Defence, DRDO',
+                  awardedValue: tender.estimatedValue || '₹1.38 Cr'
+                });
+
+                return (
+                  <AwardedTenderKeymap
+                    key={tender.id}
+                    milestoneData={milestone}
+                    tender={tender}
+                    isOfficer={true}
+                    currentUser={currentUser}
+                    onUpdateMilestone={onUpdateMilestone}
+                  />
                 );
               })
             )}
