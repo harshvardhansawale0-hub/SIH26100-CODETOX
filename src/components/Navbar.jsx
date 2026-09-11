@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Search, User, Building2, Landmark, PlusCircle, UploadCloud, CheckCircle2, ShieldCheck, ChevronDown, Lock, LogOut, LogIn, Home, Sparkles } from 'lucide-react';
 import LanguageSelector from './LanguageSelector';
 import { useLanguage } from '../context/LanguageContext';
+import gemLogo from '../assets/logo.png';
 
 export default function Navbar({
   activeTab,
@@ -51,11 +52,7 @@ export default function Navbar({
     <header className="gem-navbar" ref={navRef}>
       {/* Brand Group */}
       <div className="gem-brand-group" onClick={() => setActiveTab('Forward')} style={{ cursor: 'pointer' }}>
-        <div className="gem-badge-box">GeM</div>
-        <div className="gem-brand-text">
-          <span className="gem-brand-title">{t('brandTitle')}</span>
-          <span className="gem-brand-subtitle">{t('brandSubtitle')}</span>
-        </div>
+        <img src={gemLogo} alt="GovMart Logo" style={{ height: '48px', objectFit: 'contain' }} />
       </div>
 
       {/* Navigation Tabs with Dropdowns */}
