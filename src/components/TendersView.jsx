@@ -16,7 +16,8 @@ import {
   Rocket, 
   ShieldCheck, 
   Sparkles,
-  Tag
+  Tag,
+  Home
 } from 'lucide-react';
 
 const TendersView = ({ 
@@ -26,7 +27,8 @@ const TendersView = ({
   initialInitiative = 'all',
   initialCategory = 'ALL',
   initialSearch = '',
-  onOpenInitiativeModal
+  onOpenInitiativeModal,
+  onNavigateHome
 }) => {
   const { t } = useLanguage();
   const [tenders, setTenders] = useState(propTenders && propTenders.length > 0 ? propTenders : initialTenders);
@@ -217,15 +219,40 @@ const TendersView = ({
           </p>
         </div>
         
-        {(currentUser?.role === 'buyer' || currentUser?.role === 'officer') && (
-          <button 
-            onClick={() => setShowPublishForm(!showPublishForm)}
-            style={{ backgroundColor: '#38bdf8', color: '#0b1a2d', border: 'none', borderRadius: '6px', padding: '0.65rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(56, 189, 248, 0.3)' }}
-          >
-            <Plus size={16} />
-            {t('publishTender') || 'Publish New Tender'}
-          </button>
-        )}
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+          {onNavigateHome && (
+            <button 
+              onClick={onNavigateHome}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                color: '#e2e8f0',
+                border: '1px solid #1e385b',
+                borderRadius: '6px',
+                padding: '0.65rem 1.15rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                fontWeight: '700',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              title="Return to GeM Homepage"
+            >
+              <Home size={15} color="#38bdf8" />
+              <span>🏠 Homepage</span>
+            </button>
+          )}
+          {(currentUser?.role === 'buyer' || currentUser?.role === 'officer') && (
+            <button 
+              onClick={() => setShowPublishForm(!showPublishForm)}
+              style={{ backgroundColor: '#38bdf8', color: '#0b1a2d', border: 'none', borderRadius: '6px', padding: '0.65rem 1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem', fontWeight: 'bold', cursor: 'pointer', boxShadow: '0 4px 12px rgba(56, 189, 248, 0.3)' }}
+            >
+              <Plus size={16} />
+              {t('publishTender') || 'Publish New Tender'}
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Publish Tender Form (for Buyers) */}

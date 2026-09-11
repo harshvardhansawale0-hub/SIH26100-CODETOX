@@ -15,7 +15,8 @@ import {
   Info,
   BadgeCheck,
   ChevronRight,
-  UploadCloud
+  UploadCloud,
+  Home
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { initialTenders } from '../data/bidsData';
@@ -24,7 +25,8 @@ export default function SchemePortalView({
   initialScheme = 'mii', 
   onNavigateToTenders,
   onOpenVerifier,
-  currentUser
+  currentUser,
+  onNavigateHome
 }) {
   const { t, lang } = useLanguage();
   const [activeScheme, setActiveScheme] = useState(initialScheme || 'mii');
@@ -175,19 +177,44 @@ export default function SchemePortalView({
     <div style={{ backgroundColor: '#071526', minHeight: '85vh', padding: '2rem 1.5rem', color: '#ffffff' }}>
       <div className="container-custom">
         {/* Top Header */}
-        <div style={{ marginBottom: '2rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-            <span className="section-tag" style={{ margin: 0 }}>OFFICIAL GOVERNMENT OF INDIA SCHEMES</span>
-            <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.3)', fontWeight: '700' }}>
-              Statutory Procurement Mandates
-            </span>
+        <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+              <span className="section-tag" style={{ margin: 0 }}>OFFICIAL GOVERNMENT OF INDIA SCHEMES</span>
+              <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(56, 189, 248, 0.15)', color: '#38bdf8', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(56, 189, 248, 0.3)', fontWeight: '700' }}>
+                Statutory Procurement Mandates
+              </span>
+            </div>
+            <h1 className="serif-heading" style={{ fontSize: '2.4rem', margin: '0.2rem 0', color: '#ffffff' }}>
+              Government Initiatives & Enrolment Portal
+            </h1>
+            <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '850px', margin: 0 }}>
+              Dedicated portal for statutory procurement schemes. Access official policy guidelines, enroll your enterprise with scheme-specific credentials, and participate in reserved public procurement tenders.
+            </p>
           </div>
-          <h1 className="serif-heading" style={{ fontSize: '2.4rem', margin: '0.2rem 0', color: '#ffffff' }}>
-            Government Initiatives & Enrolment Portal
-          </h1>
-          <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '850px', margin: 0 }}>
-            Dedicated portal for statutory procurement schemes. Access official policy guidelines, enroll your enterprise with scheme-specific credentials, and participate in reserved public procurement tenders.
-          </p>
+          {onNavigateHome && (
+            <button 
+              onClick={onNavigateHome}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                color: '#e2e8f0',
+                border: '1px solid #1e385b',
+                borderRadius: '8px',
+                padding: '0.65rem 1.15rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                fontWeight: '700',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              title="Return to GeM Homepage"
+            >
+              <Home size={15} color="#38bdf8" />
+              <span>🏠 Homepage</span>
+            </button>
+          )}
         </div>
 
         {/* 4 Interactive Scheme Selector Tabs */}

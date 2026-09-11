@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   Building2, PlusCircle, FileText, CheckCircle2, AlertTriangle, XCircle,
   Award, Eye, RefreshCw, Filter, Search, ShieldCheck, ChevronRight,
-  TrendingUp, Users, FileCheck, Layers, ArrowRight, ExternalLink, Trash2
+  TrendingUp, Users, FileCheck, Layers, ArrowRight, ExternalLink, Trash2, Home
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
@@ -19,7 +19,8 @@ export default function BuyerDashboard({
   onTenderCreated,
   onBidSelected,
   onDeleteTender,
-  currentUser
+  currentUser,
+  onNavigateHome
 }) {
   const { t } = useLanguage();
   const [activeSubTab, setActiveSubTab] = useState('tenders'); // 'tenders', 'applications', 'awarded'
@@ -254,6 +255,29 @@ export default function BuyerDashboard({
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            {onNavigateHome && (
+              <button
+                onClick={onNavigateHome}
+                style={{
+                  padding: '0.7rem 1.25rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  color: '#e2e8f0',
+                  fontWeight: '700',
+                  fontSize: '0.88rem',
+                  borderRadius: '8px',
+                  border: '1px solid #1e385b',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Return to GeM Homepage"
+              >
+                <Home size={16} color="#38bdf8" />
+                <span>🏠 Homepage</span>
+              </button>
+            )}
             <button
               onClick={() => setIsCreateModalOpen(true)}
               style={{
@@ -338,6 +362,28 @@ export default function BuyerDashboard({
         {/* Navigation Sub-Tabs */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', borderBottom: '1px solid #1e385b', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {onNavigateHome && (
+              <button
+                onClick={onNavigateHome}
+                style={{
+                  padding: '0.6rem 1.15rem',
+                  borderRadius: '6px',
+                  border: '1px solid #1e385b',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  color: '#38bdf8',
+                  fontWeight: '700',
+                  fontSize: '0.88rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Return to GeM Homepage"
+              >
+                <Home size={15} /> 🏠 Homepage
+              </button>
+            )}
             <button
               onClick={() => { setActiveSubTab('tenders'); setSelectedTenderId('ALL'); setSelectedKeymapTenderId(null); }}
               style={{

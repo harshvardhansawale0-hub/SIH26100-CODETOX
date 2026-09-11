@@ -14,12 +14,13 @@ import {
   RefreshCw,
   Building2,
   DollarSign,
-  Send
+  Send,
+  Home
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import AuctionAnalysisView from './AuctionAnalysisView';
 
-export default function AuctionsView({ currentUser, onSelectBid }) {
+export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome }) {
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('reverse'); // 'reverse', 'forward', 'upcoming', 'cartel'
   const [selectedAuctionId, setSelectedAuctionId] = useState('RA-2026-9081');
@@ -211,15 +212,40 @@ export default function AuctionsView({ currentUser, onSelectBid }) {
             </p>
           </div>
 
-          {/* Quick Stats Pill */}
-          <div style={{ display: 'flex', gap: '0.75rem', backgroundColor: '#0b1a2d', border: '1px solid #1e385b', padding: '0.75rem 1.25rem', borderRadius: '10px' }}>
-            <div style={{ textAlign: 'center', paddingRight: '1rem', borderRight: '1px solid #1e385b' }}>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Active Rooms</span>
-              <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#38bdf8' }}>4 Rooms</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
-              <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Total Floor Vol.</span>
-              <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#10b981' }}>₹19.2 Cr</div>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            {onNavigateHome && (
+              <button 
+                onClick={onNavigateHome}
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  color: '#e2e8f0',
+                  border: '1px solid #1e385b',
+                  borderRadius: '8px',
+                  padding: '0.65rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  fontWeight: '700',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Return to GeM Homepage"
+              >
+                <Home size={15} color="#38bdf8" />
+                <span>🏠 Homepage</span>
+              </button>
+            )}
+            {/* Quick Stats Pill */}
+            <div style={{ display: 'flex', gap: '0.75rem', backgroundColor: '#0b1a2d', border: '1px solid #1e385b', padding: '0.75rem 1.25rem', borderRadius: '10px' }}>
+              <div style={{ textAlign: 'center', paddingRight: '1rem', borderRight: '1px solid #1e385b' }}>
+                <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Live Bids</span>
+                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#10b981' }}>36 Bids</div>
+              </div>
+              <div style={{ textAlign: 'center' }}>
+                <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Total Floor Vol.</span>
+                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#10b981' }}>₹19.2 Cr</div>
+              </div>
             </div>
           </div>
         </div>

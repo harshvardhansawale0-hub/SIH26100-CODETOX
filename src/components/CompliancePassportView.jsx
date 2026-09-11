@@ -2,12 +2,12 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import {
   ShieldCheck, FileText, QrCode, Download, Search, CheckCircle2,
   XCircle, Clock, AlertTriangle, Award, Eye, RefreshCw, Shield,
-  Upload, Fingerprint, BadgeCheck, ChevronDown, ChevronUp, Copy, ExternalLink
+  Upload, Fingerprint, BadgeCheck, ChevronDown, ChevronUp, Copy, ExternalLink, Home
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
 
-export default function CompliancePassportView({ currentUser, currentRole }) {
+export default function CompliancePassportView({ currentUser, currentRole, onNavigateHome }) {
   const { t } = useLanguage();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -213,16 +213,41 @@ export default function CompliancePassportView({ currentUser, currentRole }) {
 
     return (
       <div style={{ backgroundColor: '#0b1a2d', minHeight: '80vh', padding: '2.5rem 1.5rem', color: '#ffffff' }}>
-        <div style={{ marginBottom: '2rem' }}>
-          <span className="section-tag" style={{ display: 'inline-block', backgroundColor: '#1e385b', color: '#38bdf8', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.05em', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
-            {t('passportTag') || 'COMPLIANCE PASSPORT (GFR RULE 144/153)'}
-          </span>
-          <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: '0 0 0.4rem 0' }}>
-            {t('passportTitle') || 'Digital Compliance Passport'}
-          </h1>
-          <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>
-            {t('passportSubtitle') || 'Reusable, cryptographically signed digital credential for instant GeM bid qualification.'}
-          </p>
+        <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <span className="section-tag" style={{ display: 'inline-block', backgroundColor: '#1e385b', color: '#38bdf8', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.05em', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
+              {t('passportTag') || 'COMPLIANCE PASSPORT (GFR RULE 144/153)'}
+            </span>
+            <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: '0 0 0.4rem 0' }}>
+              {t('passportTitle') || 'Digital Compliance Passport'}
+            </h1>
+            <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>
+              {t('passportSubtitle') || 'Reusable, cryptographically signed digital credential for instant GeM bid qualification.'}
+            </p>
+          </div>
+          {onNavigateHome && (
+            <button 
+              onClick={onNavigateHome}
+              style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                color: '#e2e8f0',
+                border: '1px solid #1e385b',
+                borderRadius: '6px',
+                padding: '0.65rem 1.15rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                fontWeight: '700',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}
+              title="Return to GeM Homepage"
+            >
+              <Home size={15} color="#38bdf8" />
+              <span>🏠 Homepage</span>
+            </button>
+          )}
         </div>
 
         <div className="terminal-stat-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
@@ -540,16 +565,41 @@ export default function CompliancePassportView({ currentUser, currentRole }) {
   // =========================================================================
   return (
     <div style={{ backgroundColor: '#0b1a2d', minHeight: '80vh', padding: '2.5rem 1.5rem', color: '#ffffff' }}>
-      <div style={{ marginBottom: '2rem' }}>
-        <span className="section-tag" style={{ display: 'inline-block', backgroundColor: '#0284c7', color: '#ffffff', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.05em', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
-          PROCURING AUTHORITY • GFR 2017 VALIDATOR
-        </span>
-        <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: '0 0 0.4rem 0' }}>
-          Verify Seller Compliance Passport
-        </h1>
-        <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>
-          Instantly verify RSA-2048 signed seller credentials without re-running document OCR pipelines.
-        </p>
+      <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <span className="section-tag" style={{ display: 'inline-block', backgroundColor: '#0284c7', color: '#ffffff', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.05em', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
+            PROCURING AUTHORITY • GFR 2017 VALIDATOR
+          </span>
+          <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: '0 0 0.4rem 0' }}>
+            Verify Seller Compliance Passport
+          </h1>
+          <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>
+            Instantly verify RSA-2048 signed seller credentials without re-running document OCR pipelines.
+          </p>
+        </div>
+        {onNavigateHome && (
+          <button 
+            onClick={onNavigateHome}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.06)',
+              color: '#e2e8f0',
+              border: '1px solid #1e385b',
+              borderRadius: '6px',
+              padding: '0.65rem 1.15rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              fontWeight: '700',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            title="Return to GeM Homepage"
+          >
+            <Home size={15} color="#38bdf8" />
+            <span>🏠 Homepage</span>
+          </button>
+        )}
       </div>
 
       <div style={{ backgroundColor: '#0f2238', border: '1px solid #1e385b', borderRadius: '12px', padding: '1.75rem', marginBottom: '2.5rem' }}>
