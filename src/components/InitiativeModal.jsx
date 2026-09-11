@@ -366,30 +366,33 @@ export default function InitiativeModal({
   const item = contentMap[initiativeKey] || contentMap.mii;
 
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="modal-overlay" onClick={onClose} style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(15, 23, 42, 0.45)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
       <div 
         className="modal-content-box" 
         onClick={(e) => e.stopPropagation()} 
         style={{ 
           maxWidth: '780px', 
-          backgroundColor: '#0b1a2d', 
-          border: '1px solid #1e385b', 
-          color: '#ffffff',
-          boxShadow: '0 25px 60px rgba(0, 0, 0, 0.65)'
+          backgroundColor: '#ffffff', 
+          border: '1px solid #e2e8f0', 
+          color: '#0f172a',
+          borderRadius: '20px',
+          boxShadow: '0 25px 60px rgba(15, 23, 42, 0.2)',
+          overflow: 'hidden'
         }}
       >
         {/* Header */}
-        <div className="modal-header" style={{ borderBottom: '1px solid #1e385b', padding: '1.25rem 1.75rem', backgroundColor: '#071526' }}>
+        <div className="modal-header" style={{ borderBottom: '1px solid #e2e8f0', padding: '1.25rem 1.75rem', background: 'linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem' }}>
             <div style={{ 
-              width: '46px', 
-              height: '46px', 
-              borderRadius: '10px', 
-              backgroundColor: '#0b1a2d', 
+              width: '48px', 
+              height: '48px', 
+              borderRadius: '12px', 
+              backgroundColor: '#ffffff', 
               border: `1px solid ${item.badgeColor}40`,
               display: 'flex', 
               alignItems: 'center', 
-              justifyContent: 'center' 
+              justifyContent: 'center',
+              boxShadow: '0 2px 6px rgba(0,0,0,0.04)'
             }}>
               {item.icon}
             </div>
@@ -404,30 +407,31 @@ export default function InitiativeModal({
                 padding: '2px 8px',
                 borderRadius: '4px',
                 display: 'inline-block',
-                marginBottom: '4px'
+                marginBottom: '4px',
+                border: `1px solid ${item.badgeColor}33`
               }}>
                 {item.badge}
               </span>
-              <h3 className="modal-title" style={{ color: '#ffffff', fontSize: '1.2rem', margin: 0, lineHeight: 1.25 }}>
+              <h3 className="modal-title" style={{ color: '#0f172a', fontSize: '1.25rem', fontWeight: '800', margin: 0, lineHeight: 1.25 }}>
                 {item.title}
               </h3>
             </div>
           </div>
-          <button className="modal-close-btn" onClick={onClose} aria-label="Close modal">
+          <button className="modal-close-btn" onClick={onClose} aria-label="Close modal" style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', padding: '4px' }}>
             <X size={20} />
           </button>
         </div>
 
         {/* Body */}
-        <div className="modal-body" style={{ padding: '1.75rem', color: '#cbd5e1' }}>
+        <div className="modal-body" style={{ padding: '1.75rem', color: '#334155' }}>
           {/* Statutory Authority Tag */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1rem', fontSize: '0.82rem', color: '#94a3b8' }}>
-            <span style={{ fontWeight: '700', color: '#38bdf8' }}>Governing Authority:</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '1rem', fontSize: '0.82rem', color: '#64748b' }}>
+            <span style={{ fontWeight: '800', color: '#0284c7' }}>Governing Authority:</span>
             <span>{item.authority}</span>
           </div>
 
-          {/* Summary Text */}
-          <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: '#e2e8f0', marginBottom: '1.5rem', backgroundColor: '#0f2238', padding: '1rem 1.25rem', borderRadius: '8px', border: '1px solid #1e385b' }}>
+          {/* Summary Text with soft warm gradient */}
+          <p style={{ fontSize: '0.95rem', lineHeight: 1.6, color: '#334155', marginBottom: '1.5rem', background: 'linear-gradient(135deg, #f8fafc 0%, #fff7ed 100%)', padding: '1rem 1.25rem', borderRadius: '10px', border: '1px solid #fed7aa' }}>
             {item.summary}
           </p>
 
@@ -437,19 +441,19 @@ export default function InitiativeModal({
               <div 
                 key={idx} 
                 style={{ 
-                  backgroundColor: '#081729', 
-                  border: '1px solid #1e385b', 
-                  borderRadius: '8px', 
-                  padding: '1rem', 
+                  backgroundColor: '#f8fafc', 
+                  border: '1px solid #e2e8f0', 
+                  borderRadius: '10px', 
+                  padding: '1.1rem', 
                   display: 'flex', 
                   flexDirection: 'column', 
                   justifyContent: 'space-between' 
                 }}
               >
-                <span style={{ fontSize: '0.75rem', color: '#94a3b8', textTransform: 'uppercase', fontWeight: '700' }}>
+                <span style={{ fontSize: '0.75rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '800' }}>
                   {m.label}
                 </span>
-                <span style={{ fontSize: '1.15rem', fontWeight: '900', color: '#38bdf8', margin: '0.35rem 0' }}>
+                <span style={{ fontSize: '1.2rem', fontWeight: '900', color: '#0284c7', margin: '0.35rem 0' }}>
                   {m.value}
                 </span>
                 <span style={{ fontSize: '0.74rem', color: '#64748b', lineHeight: 1.3 }}>
@@ -461,21 +465,21 @@ export default function InitiativeModal({
 
           {/* Key Compliance Points */}
           <div style={{ marginBottom: '1.75rem' }}>
-            <h4 style={{ fontSize: '0.88rem', fontWeight: '800', color: '#ffffff', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.75rem' }}>
+            <h4 style={{ fontSize: '0.88rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '0.75rem' }}>
               Key Provisions & GeM System Enforcement
             </h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
               {item.points.map((pt, idx) => (
-                <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', fontSize: '0.88rem', color: '#cbd5e1' }}>
+                <div key={idx} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', fontSize: '0.88rem', color: '#334155' }}>
                   <CheckCircle2 size={16} color={item.badgeColor} style={{ flexShrink: 0, marginTop: '3px' }} />
-                  <span>{pt}</span>
+                  <span style={{ fontWeight: '500' }}>{pt}</span>
                 </div>
               ))}
             </div>
           </div>
 
           {/* Interactive Action Buttons */}
-          <div style={{ display: 'flex', gap: '1rem', paddingTop: '1.25rem', borderTop: '1px solid #1e385b', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', gap: '1rem', paddingTop: '1.25rem', borderTop: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
             {item.primaryAction && (
               <button
                 type="button"
@@ -485,10 +489,10 @@ export default function InitiativeModal({
                   minWidth: '220px',
                   padding: '0.85rem 1.25rem',
                   backgroundColor: item.badgeColor,
-                  color: '#071526',
+                  color: '#ffffff',
                   fontWeight: '800',
                   fontSize: '0.9rem',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   border: 'none',
                   cursor: 'pointer',
                   display: 'flex',
@@ -514,21 +518,22 @@ export default function InitiativeModal({
                   flex: '1',
                   minWidth: '220px',
                   padding: '0.85rem 1.25rem',
-                  backgroundColor: 'transparent',
-                  color: '#38bdf8',
-                  border: '1px solid #1e385b',
+                  backgroundColor: '#ffffff',
+                  color: '#0284c7',
+                  border: '1px solid #cbd5e1',
                   fontWeight: '700',
                   fontSize: '0.9rem',
-                  borderRadius: '8px',
+                  borderRadius: '10px',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   gap: '0.5rem',
-                  transition: 'background-color 0.15s ease'
+                  transition: 'background-color 0.15s ease',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.04)'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0f2238'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ffffff'}
               >
                 <span>{item.secondaryAction.text}</span>
                 <ExternalLink size={15} />

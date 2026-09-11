@@ -149,29 +149,29 @@ export default function AuthModal({
 
           {/* User Role selector: ONLY TWO ROLES */}
           <div style={{ marginBottom: '1.25rem' }}>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '800', color: '#0f2238', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
+            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: '800', color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '0.4rem' }}>
               Select Required Portal Access:
             </label>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.6rem' }}>
               <button
                 type="button"
                 onClick={() => setRole('buyer')}
                 style={{
-                  padding: '0.65rem 0.5rem',
-                  borderRadius: '8px',
+                  padding: '0.75rem 0.6rem',
+                  borderRadius: '10px',
                   fontSize: '0.82rem',
                   fontWeight: '700',
                   textAlign: 'center',
-                  border: role === 'buyer' ? '2px solid #0284c7' : '1px solid #cbd5e1',
-                  backgroundColor: role === 'buyer' ? '#0f2238' : '#f8fafc',
-                  color: role === 'buyer' ? '#38bdf8' : '#64748b',
+                  border: role === 'buyer' ? '2px solid #0284c7' : '1px solid #e2e8f0',
+                  background: role === 'buyer' ? 'linear-gradient(135deg, #eff6ff 0%, #f0f9ff 100%)' : '#ffffff',
+                  color: role === 'buyer' ? '#0369a1' : '#64748b',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: role === 'buyer' ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none'
+                  boxShadow: role === 'buyer' ? '0 2px 8px rgba(2, 132, 199, 0.15)' : 'none'
                 }}
               >
                 {getBuyerLabel()}
-                <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: '400', marginTop: '0.2rem', color: role === 'buyer' ? '#94a3b8' : '#94a3b8' }}>
+                <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: '500', marginTop: '0.25rem', color: role === 'buyer' ? '#0284c7' : '#94a3b8' }}>
                   Publish & Award Bids
                 </span>
               </button>
@@ -179,21 +179,21 @@ export default function AuthModal({
                 type="button"
                 onClick={() => setRole('bidder')}
                 style={{
-                  padding: '0.65rem 0.5rem',
-                  borderRadius: '8px',
+                  padding: '0.75rem 0.6rem',
+                  borderRadius: '10px',
                   fontSize: '0.82rem',
                   fontWeight: '700',
                   textAlign: 'center',
-                  border: role === 'bidder' ? '2px solid #10b981' : '1px solid #cbd5e1',
-                  backgroundColor: role === 'bidder' ? '#0f2238' : '#f8fafc',
-                  color: role === 'bidder' ? '#34d399' : '#64748b',
+                  border: role === 'bidder' ? '2px solid #059669' : '1px solid #e2e8f0',
+                  background: role === 'bidder' ? 'linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 100%)' : '#ffffff',
+                  color: role === 'bidder' ? '#047857' : '#64748b',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease',
-                  boxShadow: role === 'bidder' ? '0 2px 8px rgba(16, 185, 129, 0.25)' : 'none'
+                  boxShadow: role === 'bidder' ? '0 2px 8px rgba(16, 185, 129, 0.15)' : 'none'
                 }}
               >
                 {getBidderLabel()}
-                <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: '400', marginTop: '0.2rem', color: role === 'bidder' ? '#94a3b8' : '#94a3b8' }}>
+                <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: '500', marginTop: '0.25rem', color: role === 'bidder' ? '#059669' : '#94a3b8' }}>
                   Apply & Upload Docs
                 </span>
               </button>

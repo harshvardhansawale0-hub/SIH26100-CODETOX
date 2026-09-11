@@ -105,13 +105,15 @@ export default function DashboardPreview({ onSelectBid, onViewFullDashboard }) {
                     <button
                       onClick={onViewFullDashboard}
                       style={{
-                        background: 'transparent',
-                        border: '1px solid #1e385b',
-                        color: '#7dd3fc',
-                        fontSize: '0.75rem',
-                        padding: '0.2rem 0.6rem',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
+                        background: '#eff6ff',
+                        border: '1px solid #bae6fd',
+                        color: '#0284c7',
+                        fontSize: '0.78rem',
+                        fontWeight: '700',
+                        padding: '0.3rem 0.75rem',
+                        borderRadius: '6px',
+                        cursor: 'pointer',
+                        boxShadow: '0 1px 2px rgba(2, 132, 199, 0.08)'
                       }}
                     >
                       {t('viewAllBids')}

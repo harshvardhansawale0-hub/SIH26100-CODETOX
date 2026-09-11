@@ -317,9 +317,9 @@ export default function Navbar({
 
             {/* User Dropdown */}
             {openDropdown === 'user' && (
-              <div className="gem-dropdown-menu right-aligned" style={{ minWidth: '220px', top: '50px' }}>
-                <div style={{ padding: '0.6rem 0.85rem', borderBottom: '1px solid #1e385b', fontSize: '0.78rem', color: '#94a3b8' }}>
-                  <strong style={{ display: 'block', color: '#ffffff', fontSize: '0.82rem', marginBottom: '2px' }}>{currentUser.fullName}</strong>
+              <div className="gem-dropdown-menu right-aligned" style={{ minWidth: '220px', top: '50px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+                <div style={{ padding: '0.6rem 0.85rem', borderBottom: '1px solid #e2e8f0', fontSize: '0.78rem', color: '#64748b' }}>
+                  <strong style={{ display: 'block', color: '#0f172a', fontSize: '0.84rem', fontWeight: '700', marginBottom: '2px' }}>{currentUser.fullName}</strong>
                   <span>{currentUser.organization || currentUser.email}</span>
                 </div>
                 <button
@@ -337,7 +337,7 @@ export default function Navbar({
                     setOpenDropdown(null);
                     if (onLogout) onLogout();
                   }}
-                  style={{ color: '#ef4444', fontWeight: '700', borderTop: '1px solid #1e385b' }}
+                  style={{ color: '#dc2626', fontWeight: '700', borderTop: '1px solid #e2e8f0' }}
                 >
                   🚪 Log Out
                 </button>
@@ -348,17 +348,17 @@ export default function Navbar({
             <button
               onClick={onLogout}
               style={{
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid rgba(239, 68, 68, 0.3)',
-                color: '#f87171',
-                padding: '0.35rem 0.65rem',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#dc2626',
+                padding: '0.4rem 0.75rem',
                 borderRadius: '6px',
                 fontSize: '0.78rem',
                 fontWeight: '700',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.3rem',
+                gap: '0.35rem',
                 transition: 'all 0.2s ease'
               }}
               title="Log out of session"

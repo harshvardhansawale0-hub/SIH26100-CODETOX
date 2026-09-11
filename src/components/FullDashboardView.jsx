@@ -42,16 +42,16 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
   });
 
   return (
-    <div style={{ backgroundColor: '#0b1a2d', minHeight: '80vh', padding: '2.5rem 1.5rem', color: '#ffffff' }}>
+    <div style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0fdf4 35%, #eff6ff 70%, #fff7ed 100%)', minHeight: '85vh', padding: '2.5rem 1.5rem', color: '#0f172a' }}>
       <div className="container-custom">
         {/* Top Header */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem', marginBottom: '2rem' }}>
           <div>
-            <span className="section-tag" style={{ marginBottom: '0.25rem' }}>{t('officerTag')}</span>
-            <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#ffffff', margin: 0 }}>
+            <span className="section-tag" style={{ marginBottom: '0.25rem', backgroundColor: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd' }}>{t('officerTag')}</span>
+            <h1 className="serif-heading" style={{ fontSize: '2.2rem', color: '#0f172a', margin: 0, fontWeight: '800' }}>
               {t('officerTitle')}
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '0.95rem', marginTop: '0.25rem' }}>
+            <p style={{ color: '#475569', fontSize: '0.95rem', marginTop: '0.25rem' }}>
               {t('officerSubtitle')}
             </p>
           </div>
@@ -61,7 +61,7 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
               onClick={onOpenBidVerifier}
               style={{
                 padding: '0.65rem 1.25rem',
-                backgroundColor: '#f59e0b',
+                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
                 color: '#ffffff',
                 fontWeight: '700',
                 fontSize: '0.88rem',
@@ -71,7 +71,7 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.4rem',
-                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.3)'
+                boxShadow: '0 4px 12px rgba(245, 158, 11, 0.25)'
               }}
             >
               <PlusCircle size={16} /> {t('newBidVerification')}
@@ -80,16 +80,17 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
               onClick={() => window.print()}
               style={{
                 padding: '0.65rem 1.15rem',
-                backgroundColor: '#0f2238',
-                color: '#ffffff',
-                fontWeight: '600',
+                backgroundColor: '#ffffff',
+                color: '#334155',
+                fontWeight: '700',
                 fontSize: '0.88rem',
                 borderRadius: '8px',
-                border: '1px solid #1e385b',
+                border: '1px solid #cbd5e1',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                gap: '0.4rem'
+                gap: '0.4rem',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
               }}
             >
               <FileSpreadsheet size={16} /> {t('exportAuditLog')}
@@ -135,16 +136,17 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
         {/* Search & Filter Toolbar */}
         <div
           style={{
-            backgroundColor: '#0f2238',
-            border: '1px solid #1e385b',
-            borderRadius: '10px',
+            backgroundColor: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
             padding: '1rem 1.25rem',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             flexWrap: 'wrap',
             gap: '1rem',
-            marginBottom: '1.5rem'
+            marginBottom: '1.5rem',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
           }}
         >
           {/* Status Pills */}
@@ -159,23 +161,24 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
                 key={st.code}
                 onClick={() => setStatusFilter(st.code)}
                 style={{
-                  padding: '0.4rem 0.85rem',
-                  borderRadius: '6px',
+                  padding: '0.45rem 0.95rem',
+                  borderRadius: '8px',
                   fontSize: '0.8rem',
                   fontWeight: '700',
                   cursor: 'pointer',
-                  border: statusFilter === st.code ? '1px solid transparent' : '1px solid #1e385b',
+                  border: statusFilter === st.code ? '1px solid transparent' : '1px solid #cbd5e1',
                   backgroundColor:
                     statusFilter === st.code
                       ? st.code === 'COMPLIANT'
-                        ? '#10b981'
+                        ? '#059669'
                         : st.code === 'FLAGGED'
-                        ? '#f59e0b'
+                        ? '#d97706'
                         : st.code === 'REJECTED'
-                        ? '#ef4444'
-                        : '#38bdf8'
-                      : 'transparent',
-                  color: statusFilter === st.code ? '#ffffff' : '#94a3b8'
+                        ? '#dc2626'
+                        : '#0284c7'
+                      : '#f8fafc',
+                  color: statusFilter === st.code ? '#ffffff' : '#475569',
+                  boxShadow: statusFilter === st.code ? '0 2px 6px rgba(0,0,0,0.12)' : 'none'
                 }}
               >
                 {st.label}
@@ -185,7 +188,7 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
 
           {/* Search box */}
           <div style={{ position: 'relative', width: '280px' }}>
-            <Search size={14} style={{ position: 'absolute', left: '10px', top: '50%', transform: 'translateY(-50%)', color: '#64748b' }} />
+            <Search size={15} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8' }} />
             <input
               type="text"
               placeholder={t('searchPlaceholder')}
@@ -193,11 +196,11 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
                 width: '100%',
-                padding: '0.45rem 0.75rem 0.45rem 2rem',
-                borderRadius: '6px',
-                border: '1px solid #1e385b',
-                backgroundColor: '#081729',
-                color: '#ffffff',
+                padding: '0.5rem 0.75rem 0.5rem 2.2rem',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#f8fafc',
+                color: '#0f172a',
                 fontSize: '0.82rem',
                 outline: 'none'
               }}
@@ -206,17 +209,17 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
         </div>
 
         {/* Bids Table */}
-        <div style={{ backgroundColor: '#081729', border: '1px solid #1e385b', borderRadius: '12px', overflow: 'hidden' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', overflow: 'hidden', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: '1.2fr 2fr 1.2fr 1fr 1fr 1fr 0.8fr',
-              padding: '0.85rem 1.25rem',
-              backgroundColor: '#061120',
-              borderBottom: '1px solid #162c47',
+              padding: '0.95rem 1.25rem',
+              background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+              borderBottom: '1px solid #e2e8f0',
               fontSize: '0.78rem',
-              fontWeight: '700',
-              color: '#94a3b8',
+              fontWeight: '800',
+              color: '#475569',
               letterSpacing: '0.04em',
               textTransform: 'uppercase'
             }}
@@ -239,35 +242,35 @@ export default function FullDashboardView({ bids, onSelectBid, onOpenBidVerifier
                   display: 'grid',
                   gridTemplateColumns: '1.2fr 2fr 1.2fr 1fr 1fr 1fr 0.8fr',
                   alignItems: 'center',
-                  padding: '0.95rem 1.25rem',
-                  borderBottom: '1px solid rgba(30, 56, 91, 0.4)',
+                  padding: '1rem 1.25rem',
+                  borderBottom: '1px solid #f1f5f9',
                   fontSize: '0.85rem',
                   cursor: 'pointer',
                   transition: 'background-color 0.15s ease'
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'rgba(30, 56, 91, 0.4)')}
-                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
               >
-                <span className="mono-text" style={{ color: '#7dd3fc', fontWeight: '600' }}>{bid.id}</span>
+                <span className="mono-text" style={{ color: '#0284c7', fontWeight: '700' }}>{bid.id}</span>
                 <div>
-                  <span style={{ color: '#ffffff', fontWeight: '700', display: 'block' }}>{bid.vendor}</span>
+                  <span style={{ color: '#0f172a', fontWeight: '700', display: 'block' }}>{bid.vendor}</span>
                   <span style={{ fontSize: '0.72rem', color: '#64748b' }}>{bid.tenderId}</span>
                 </div>
-                <span style={{ color: '#cbd5e1' }}>{bid.category}</span>
-                <span style={{ color: '#ffffff', fontWeight: '600' }}>{bid.bidAmount}</span>
+                <span style={{ color: '#475569', fontWeight: '500' }}>{bid.category}</span>
+                <span style={{ color: '#0f172a', fontWeight: '700' }}>{bid.bidAmount}</span>
                 <div>
                   <span className={`d-status-badge ${bid.status.toLowerCase()}`}>
                     {bid.status === 'Compliant' ? t('compliant') : bid.status === 'Flagged' ? t('flagged') : t('rejected')}
                   </span>
                 </div>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>{bid.miiContent}</span>
-                <span className="mono-text" style={{ color: '#ffffff', fontWeight: '800', fontSize: '1rem', textAlign: 'right' }}>
+                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>{bid.miiContent}</span>
+                <span className="mono-text" style={{ color: '#059669', fontWeight: '800', fontSize: '1rem', textAlign: 'right' }}>
                   {bid.score}
                 </span>
               </div>
             ))
           ) : (
-            <div style={{ padding: '3rem', textAlign: 'center', color: '#64748b' }}>
+            <div style={{ padding: '3.5rem', textAlign: 'center', color: '#64748b', fontSize: '0.9rem' }}>
               No bids found matching current search criteria.
             </div>
           )}

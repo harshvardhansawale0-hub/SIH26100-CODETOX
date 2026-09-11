@@ -876,17 +876,17 @@ function MainApp() {
       {/* 4.6 GeM Assistant Help Modal */}
       {isHelpOpen && (
         <div className="modal-overlay" onClick={() => setIsHelpOpen(false)}>
-          <div className="modal-content-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px' }}>
-            <div className="modal-header">
-              <h3 className="modal-title" style={{ fontSize: '1.2rem' }}>🤖 GeM Procurement Guide</h3>
-              <button className="modal-close-btn" onClick={() => setIsHelpOpen(false)}>✕</button>
+          <div className="modal-content-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '540px', backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 25px 50px -12px rgba(15, 23, 42, 0.25)' }}>
+            <div className="modal-header" style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0f9ff 100%)', borderBottom: '1px solid #e2e8f0', padding: '1.25rem 1.5rem' }}>
+              <h3 className="modal-title" style={{ fontSize: '1.25rem', fontWeight: '800', color: '#0f172a' }}>🤖 GeM Procurement Guide</h3>
+              <button className="modal-close-btn" onClick={() => setIsHelpOpen(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
             </div>
-            <div className="modal-body" style={{ fontSize: '0.9rem', color: '#334155' }}>
+            <div className="modal-body" style={{ fontSize: '0.9rem', color: '#334155', padding: '1.5rem' }}>
               <p style={{ marginBottom: '1rem', lineHeight: 1.6 }}>
                 Welcome to <strong>GeM</strong> — Autonomous Tender Compliance & Document Verification Platform.
               </p>
-              <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '8px', border: '1px solid #e2e8f0', marginBottom: '1rem' }}>
-                <strong style={{ display: 'block', color: '#0b1a2d', marginBottom: '0.4rem' }}>Two User Roles:</strong>
+              <div style={{ backgroundColor: '#f8fafc', padding: '1rem', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '1.25rem' }}>
+                <strong style={{ display: 'block', color: '#0f172a', fontWeight: '800', marginBottom: '0.4rem' }}>Two User Roles:</strong>
                 <ul style={{ paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', fontSize: '0.85rem' }}>
                   <li>
                     🏛️ <strong>Buyer (Government Authority):</strong> Create tenders, define compliance requirements, review AI verification dossiers, and make final bidder awards.
@@ -903,13 +903,14 @@ function MainApp() {
                 }}
                 style={{
                   width: '100%',
-                  padding: '0.65rem',
-                  backgroundColor: '#0b1a2d',
+                  padding: '0.75rem',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
                   color: '#ffffff',
-                  fontWeight: '700',
-                  borderRadius: '6px',
+                  fontWeight: '800',
+                  borderRadius: '8px',
                   border: 'none',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.25)'
                 }}
               >
                 Launch Verification Pipeline Sandbox

@@ -192,22 +192,24 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
   });
 
   return (
-    <div style={{ backgroundColor: '#071526', minHeight: '85vh', padding: '2rem 1.5rem', color: '#ffffff' }}>
+    <div style={{ background: 'linear-gradient(135deg, #f8fafc 0%, #f0f9ff 35%, #fff7ed 70%, #ffffff 100%)', minHeight: '88vh', padding: '2rem 1.5rem', color: '#0f172a', fontFamily: "'Plus Jakarta Sans', 'Inter', system-ui, sans-serif" }}>
       <div className="container-custom">
         {/* Top Header */}
         <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-              <span className="section-tag" style={{ margin: 0 }}>CENTRAL E-AUCTION PLATFORM (GEP / GFR 149)</span>
-              <span style={{ fontSize: '0.75rem', backgroundColor: 'rgba(16, 185, 129, 0.15)', color: '#10b981', padding: '2px 8px', borderRadius: '4px', border: '1px solid rgba(16, 185, 129, 0.3)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem', flexWrap: 'wrap' }}>
+              <span className="section-tag" style={{ margin: 0, background: 'linear-gradient(135deg, #e0f2fe 0%, #fed7aa 100%)', color: '#0369a1', border: '1px solid #bae6fd', fontWeight: '800' }}>
+                CENTRAL E-AUCTION PLATFORM (GEP / GFR 149)
+              </span>
+              <span style={{ fontSize: '0.75rem', backgroundColor: '#ecfdf5', color: '#059669', padding: '3px 8px', borderRadius: '6px', border: '1px solid #a7f3d0', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '5px' }}>
                 <span style={{ width: '6px', height: '6px', backgroundColor: '#10b981', borderRadius: '50%', display: 'inline-block' }}></span>
                 REAL-TIME LIVE AUCTIONS ACTIVE
               </span>
             </div>
-            <h1 className="serif-heading" style={{ fontSize: '2.4rem', margin: '0.2rem 0', color: '#ffffff' }}>
+            <h1 style={{ fontSize: '2.2rem', fontWeight: '800', margin: '0.2rem 0', color: '#0f172a', letterSpacing: '-0.02em' }}>
               Electronic Auction & Bidding Floor
             </h1>
-            <p style={{ color: '#94a3b8', fontSize: '1rem', maxWidth: '850px', margin: 0 }}>
+            <p style={{ color: '#475569', fontSize: '0.95rem', maxWidth: '850px', margin: 0, lineHeight: '1.5' }}>
               Live Forward & Reverse E-Auctions for Central Government Ministries, CPSEs & Defence Bodies. Real-time dynamic decrements, auto-extension timer, and AI cartel vigilance.
             </p>
           </div>
@@ -217,9 +219,9 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
               <button 
                 onClick={onNavigateHome}
                 style={{
-                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
-                  color: '#e2e8f0',
-                  border: '1px solid #1e385b',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
                   borderRadius: '8px',
                   padding: '0.65rem 1.15rem',
                   display: 'flex',
@@ -228,30 +230,31 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
                   fontWeight: '700',
                   fontSize: '0.85rem',
                   cursor: 'pointer',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
                   transition: 'all 0.2s ease'
                 }}
                 title="Return to GeM Homepage"
               >
-                <Home size={15} color="#38bdf8" />
+                <Home size={16} color="#0284c7" />
                 <span>🏠 Homepage</span>
               </button>
             )}
             {/* Quick Stats Pill */}
-            <div style={{ display: 'flex', gap: '0.75rem', backgroundColor: '#0b1a2d', border: '1px solid #1e385b', padding: '0.75rem 1.25rem', borderRadius: '10px' }}>
-              <div style={{ textAlign: 'center', paddingRight: '1rem', borderRight: '1px solid #1e385b' }}>
-                <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Live Bids</span>
-                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#10b981' }}>36 Bids</div>
+            <div style={{ display: 'flex', gap: '0.75rem', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '0.75rem 1.25rem', borderRadius: '10px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)' }}>
+              <div style={{ textAlign: 'center', paddingRight: '1rem', borderRight: '1px solid #e2e8f0' }}>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Live Bids</span>
+                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#059669' }}>36 Bids</div>
               </div>
               <div style={{ textAlign: 'center' }}>
-                <span style={{ fontSize: '0.7rem', color: '#94a3b8', textTransform: 'uppercase' }}>Total Floor Vol.</span>
-                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#10b981' }}>₹19.2 Cr</div>
+                <span style={{ fontSize: '0.7rem', color: '#64748b', textTransform: 'uppercase', fontWeight: '700' }}>Total Floor Vol.</span>
+                <div style={{ fontSize: '1.25rem', fontWeight: '800', color: '#ea580c' }}>₹19.2 Cr</div>
               </div>
             </div>
           </div>
         </div>
 
         {/* Navigation Tabs */}
-        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', flexWrap: 'wrap', borderBottom: '1px solid #1e385b', paddingBottom: '0.75rem' }}>
+        <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '2rem', flexWrap: 'wrap', borderBottom: '1px solid #e2e8f0', paddingBottom: '0.75rem' }}>
           {[
             { id: 'reverse', label: '📉 Reverse Auctions (Procurement)', count: liveAuctions.filter(a => a.type === 'reverse').length },
             { id: 'forward', label: '📈 Forward Auctions (Asset Disposal)', count: liveAuctions.filter(a => a.type === 'forward').length },
@@ -264,23 +267,24 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
                 style={{
-                  backgroundColor: isActive ? '#0f2238' : 'transparent',
-                  color: isActive ? '#38bdf8' : '#94a3b8',
-                  border: `1px solid ${isActive ? '#38bdf8' : '#1e385b'}`,
+                  background: isActive ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : '#ffffff',
+                  color: isActive ? '#ffffff' : '#475569',
+                  border: `1px solid ${isActive ? '#0284c7' : '#cbd5e1'}`,
                   borderRadius: '8px',
                   padding: '0.65rem 1.25rem',
-                  fontSize: '0.9rem',
+                  fontSize: '0.88rem',
                   fontWeight: isActive ? '800' : '600',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '0.5rem',
+                  boxShadow: isActive ? '0 2px 8px rgba(2, 132, 199, 0.25)' : 'none',
                   transition: 'all 0.15s ease'
                 }}
               >
                 <span>{tab.label}</span>
                 {tab.count !== undefined && (
-                  <span style={{ fontSize: '0.75rem', backgroundColor: isActive ? '#38bdf8' : '#1e385b', color: isActive ? '#071526' : '#94a3b8', fontWeight: '900', padding: '1px 7px', borderRadius: '10px' }}>
+                  <span style={{ fontSize: '0.75rem', backgroundColor: isActive ? '#ffffff' : '#f1f5f9', color: isActive ? '#0284c7' : '#475569', fontWeight: '900', padding: '1px 7px', borderRadius: '10px' }}>
                     {tab.count}
                   </span>
                 )}
@@ -294,7 +298,7 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '2rem', marginBottom: '3rem' }}>
             {/* Left: Active Auction Rooms List */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-              <h3 style={{ fontSize: '1.15rem', color: '#cbd5e1', margin: 0, fontWeight: '700' }}>
+              <h3 style={{ fontSize: '1.15rem', color: '#0f172a', margin: 0, fontWeight: '800' }}>
                 Active E-Auction Rooms ({filteredAuctions.length})
               </h3>
 
@@ -308,24 +312,25 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
                     role="button"
                     tabIndex={0}
                     style={{
-                      backgroundColor: isSelected ? '#0f2238' : '#0b1a2d',
-                      border: `2px solid ${isSelected ? (isReverse ? '#38bdf8' : '#f59e0b') : '#1e385b'}`,
+                      backgroundColor: '#ffffff',
+                      border: `2px solid ${isSelected ? (isReverse ? '#0284c7' : '#ea580c') : '#e2e8f0'}`,
                       borderRadius: '12px',
                       padding: '1.25rem',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
-                      boxShadow: isSelected ? '0 8px 24px rgba(0,0,0,0.3)' : 'none'
+                      boxShadow: isSelected ? '0 8px 24px rgba(2, 132, 199, 0.12)' : '0 2px 8px rgba(0,0,0,0.04)'
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                        <span className="mono-text" style={{ color: isReverse ? '#38bdf8' : '#f59e0b', fontWeight: '800', fontSize: '0.85rem' }}>
+                        <span className="mono-text" style={{ color: isReverse ? '#0284c7' : '#ea580c', fontWeight: '800', fontSize: '0.85rem' }}>
                           {auc.id}
                         </span>
                         <span style={{ 
                           fontSize: '0.68rem', 
-                          backgroundColor: isReverse ? 'rgba(56, 189, 248, 0.15)' : 'rgba(245, 158, 11, 0.15)', 
-                          color: isReverse ? '#38bdf8' : '#f59e0b', 
+                          backgroundColor: isReverse ? '#f0f9ff' : '#fff7ed', 
+                          color: isReverse ? '#0284c7' : '#ea580c', 
+                          border: `1px solid ${isReverse ? '#bae6fd' : '#fed7aa'}`,
                           padding: '2px 6px', 
                           borderRadius: '4px', 
                           fontWeight: '800' 
@@ -335,40 +340,40 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
                       </div>
 
                       {/* Live Timer Pill */}
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: 'rgba(239, 68, 68, 0.15)', border: '1px solid rgba(239, 68, 68, 0.3)', padding: '3px 8px', borderRadius: '20px' }}>
-                        <Clock size={13} color="#f87171" />
-                        <span className="mono-text" style={{ fontSize: '0.78rem', color: '#f87171', fontWeight: '800' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#fef2f2', border: '1px solid #fecaca', padding: '3px 8px', borderRadius: '20px' }}>
+                        <Clock size={13} color="#dc2626" />
+                        <span className="mono-text" style={{ fontSize: '0.78rem', color: '#dc2626', fontWeight: '800' }}>
                           {formatTimer(auc.secondsLeft)}
                         </span>
                       </div>
                     </div>
 
-                    <h4 style={{ fontSize: '1.02rem', color: '#ffffff', margin: '0 0 0.35rem 0', fontWeight: '700' }}>
+                    <h4 style={{ fontSize: '1.05rem', color: '#0f172a', margin: '0 0 0.35rem 0', fontWeight: '700' }}>
                       {auc.title}
                     </h4>
-                    <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '1rem' }}>
+                    <span style={{ fontSize: '0.8rem', color: '#64748b', display: 'block', marginBottom: '1rem' }}>
                       {auc.ministry} • {auc.dept}
                     </span>
 
                     {/* Price Snapshot */}
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', backgroundColor: '#071526', padding: '0.75rem', borderRadius: '8px', border: '1px solid #1e385b' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', backgroundColor: '#f8fafc', padding: '0.75rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                       <div>
-                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Base / Ceiling</span>
-                        <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#cbd5e1' }}>
+                        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700' }}>Base / Ceiling</span>
+                        <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#0f172a' }}>
                           ₹{(auc.basePrice / 100000).toFixed(2)}L
                         </div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.7rem', color: isReverse ? '#38bdf8' : '#f59e0b' }}>
+                        <span style={{ fontSize: '0.7rem', color: isReverse ? '#0284c7' : '#ea580c', fontWeight: '700' }}>
                           {isReverse ? 'Current L1 Price' : 'Current H1 Price'}
                         </span>
-                        <div style={{ fontSize: '1rem', fontWeight: '800', color: isReverse ? '#38bdf8' : '#f59e0b' }}>
+                        <div style={{ fontSize: '1rem', fontWeight: '800', color: isReverse ? '#0284c7' : '#ea580c' }}>
                           ₹{((isReverse ? auc.currentL1 : auc.currentH1) / 100000).toFixed(2)}L
                         </div>
                       </div>
                       <div>
-                        <span style={{ fontSize: '0.7rem', color: '#94a3b8' }}>Total Bids</span>
-                        <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#10b981' }}>
+                        <span style={{ fontSize: '0.7rem', color: '#64748b', fontWeight: '700' }}>Total Bids</span>
+                        <div style={{ fontSize: '0.88rem', fontWeight: '700', color: '#059669' }}>
                           {auc.totalBids} placed
                         </div>
                       </div>
@@ -379,43 +384,43 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
             </div>
 
             {/* Right: Live Interactive Bidding Floor for Selected Room */}
-            <div style={{ backgroundColor: '#0b1a2d', border: '1px solid #1e385b', borderRadius: '14px', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              <div style={{ borderBottom: '1px solid #1e385b', paddingBottom: '1rem' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '14px', padding: '1.75rem', display: 'flex', flexDirection: 'column', gap: '1.5rem', boxShadow: '0 4px 16px rgba(0,0,0,0.05)' }}>
+              <div style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '1rem' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.35rem' }}>
-                  <span className="mono-text" style={{ color: '#38bdf8', fontWeight: '800', fontSize: '0.9rem' }}>
+                  <span className="mono-text" style={{ color: '#0284c7', fontWeight: '800', fontSize: '0.9rem' }}>
                     {currentAuction.id} • BIDDING FLOOR
                   </span>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#ef444420', border: '1px solid #ef4444', padding: '3px 10px', borderRadius: '20px' }}>
-                    <span style={{ width: '6px', height: '6px', backgroundColor: '#ef4444', borderRadius: '50%', display: 'inline-block' }}></span>
-                    <span className="mono-text" style={{ fontSize: '0.82rem', color: '#ef4444', fontWeight: '800' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', backgroundColor: '#fef2f2', border: '1px solid #fca5a5', padding: '3px 10px', borderRadius: '20px' }}>
+                    <span style={{ width: '6px', height: '6px', backgroundColor: '#dc2626', borderRadius: '50%', display: 'inline-block' }}></span>
+                    <span className="mono-text" style={{ fontSize: '0.82rem', color: '#dc2626', fontWeight: '800' }}>
                       {formatTimer(currentAuction.secondsLeft)}
                     </span>
                   </div>
                 </div>
-                <h3 style={{ fontSize: '1.25rem', color: '#ffffff', margin: 0, fontWeight: '700' }}>
+                <h3 style={{ fontSize: '1.25rem', color: '#0f172a', margin: 0, fontWeight: '800' }}>
                   {currentAuction.title}
                 </h3>
               </div>
 
               {/* Current Best Quote Box */}
-              <div style={{ backgroundColor: '#061120', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem', textAlign: 'center' }}>
-                <span style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              <div style={{ background: 'linear-gradient(135deg, #f0f9ff 0%, #fff7ed 100%)', border: '1px solid #bae6fd', borderRadius: '10px', padding: '1.25rem', textAlign: 'center' }}>
+                <span style={{ fontSize: '0.8rem', color: '#475569', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: '700' }}>
                   {currentAuction.type === 'reverse' ? 'Lowest Qualified Bidder (Current L1)' : 'Highest Winning Bidder (Current H1)'}
                 </span>
-                <div style={{ fontSize: '2.2rem', fontWeight: '900', color: currentAuction.type === 'reverse' ? '#38bdf8' : '#f59e0b', margin: '0.25rem 0' }}>
+                <div style={{ fontSize: '2.2rem', fontWeight: '900', color: currentAuction.type === 'reverse' ? '#0284c7' : '#ea580c', margin: '0.25rem 0' }}>
                   ₹{(currentAuction.type === 'reverse' ? currentAuction.currentL1 : currentAuction.currentH1).toLocaleString()}
                 </div>
-                <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>
-                  Leading Vendor: <strong>{currentAuction.type === 'reverse' ? currentAuction.currentL1Vendor : currentAuction.currentH1Vendor}</strong>
+                <span style={{ fontSize: '0.85rem', color: '#334155' }}>
+                  Leading Vendor: <strong style={{ color: '#0f172a' }}>{currentAuction.type === 'reverse' ? currentAuction.currentL1Vendor : currentAuction.currentH1Vendor}</strong>
                 </span>
-                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem' }}>
+                <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.35rem', fontWeight: '600' }}>
                   Minimum Step: ₹{(currentAuction.type === 'reverse' ? currentAuction.minDecrement : currentAuction.minIncrement).toLocaleString()}
                 </div>
               </div>
 
               {/* Interactive Bid Input Form */}
-              <form onSubmit={handlePlaceBid} style={{ backgroundColor: '#0f2238', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem' }}>
-                <label style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: '700', display: 'block', marginBottom: '0.5rem' }}>
+              <form onSubmit={handlePlaceBid} style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '1.25rem' }}>
+                <label style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: '700', display: 'block', marginBottom: '0.5rem' }}>
                   {currentAuction.type === 'reverse' ? 'Submit Lower Counter-Quote (₹)' : 'Submit Higher Counter-Bid (₹)'}
                 </label>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -425,13 +430,13 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
                     value={bidInputs[currentAuction.id] || ''}
                     onChange={e => setBidInputs({ ...bidInputs, [currentAuction.id]: e.target.value })}
                     required
-                    style={{ flex: 1, backgroundColor: '#071526', border: '1px solid #1e385b', borderRadius: '6px', padding: '0.65rem 0.85rem', color: '#fff', fontSize: '0.9rem', fontWeight: '700' }}
+                    style={{ flex: 1, backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '0.65rem 0.85rem', color: '#0f172a', fontSize: '0.9rem', fontWeight: '700' }}
                   />
                   <button
                     type="submit"
                     style={{
-                      backgroundColor: currentAuction.type === 'reverse' ? '#38bdf8' : '#f59e0b',
-                      color: '#071526',
+                      background: currentAuction.type === 'reverse' ? 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)' : 'linear-gradient(135deg, #ea580c 0%, #c2410c 100%)',
+                      color: '#ffffff',
                       border: 'none',
                       borderRadius: '6px',
                       padding: '0.65rem 1.25rem',
@@ -439,7 +444,8 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '0.4rem'
+                      gap: '0.4rem',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
                     }}
                   >
                     <Send size={15} />
@@ -450,7 +456,7 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
 
               {/* Real-time Bid Log */}
               <div>
-                <h4 style={{ fontSize: '0.92rem', color: '#94a3b8', margin: '0 0 0.75rem 0', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                <h4 style={{ fontSize: '0.92rem', color: '#475569', margin: '0 0 0.75rem 0', textTransform: 'uppercase', letterSpacing: '0.04em', fontWeight: '700' }}>
                   Recent Bid Log (Rankings)
                 </h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
@@ -458,8 +464,8 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
                     <div
                       key={idx}
                       style={{
-                        backgroundColor: b.isMe ? 'rgba(56, 189, 248, 0.1)' : '#071526',
-                        border: `1px solid ${b.isMe ? '#38bdf8' : '#1e385b'}`,
+                        backgroundColor: b.isMe ? '#f0f9ff' : '#ffffff',
+                        border: `1px solid ${b.isMe ? '#bae6fd' : '#e2e8f0'}`,
                         borderRadius: '6px',
                         padding: '0.65rem 0.85rem',
                         display: 'flex',
@@ -471,19 +477,19 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
                         <span style={{ 
                           fontSize: '0.75rem', 
                           fontWeight: '800', 
-                          backgroundColor: idx === 0 ? '#10b98125' : '#1e385b', 
-                          color: idx === 0 ? '#10b981' : '#94a3b8', 
+                          backgroundColor: idx === 0 ? '#dcfce7' : '#f1f5f9', 
+                          color: idx === 0 ? '#166534' : '#475569', 
                           padding: '2px 7px', 
                           borderRadius: '4px' 
                         }}>
                           {b.rank}
                         </span>
-                        <span style={{ fontSize: '0.85rem', color: '#ffffff', fontWeight: b.isMe ? '800' : '500' }}>
+                        <span style={{ fontSize: '0.85rem', color: '#0f172a', fontWeight: b.isMe ? '800' : '600' }}>
                           {b.vendor} {b.isMe && '(You)'}
                         </span>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontSize: '0.9rem', fontWeight: '800', color: idx === 0 ? '#38bdf8' : '#cbd5e1' }}>
+                        <div style={{ fontSize: '0.9rem', fontWeight: '800', color: idx === 0 ? '#0284c7' : '#334155' }}>
                           ₹{b.amount.toLocaleString()}
                         </div>
                         <span style={{ fontSize: '0.7rem', color: '#64748b' }}>{b.time}</span>
