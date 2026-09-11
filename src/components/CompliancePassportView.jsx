@@ -222,14 +222,27 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
       // Immediately verify the extracted format!
       await handleVerifySingleDoc(docType, extractedId, file);
     } else {
-      setDocScanStatus(prev => ({
-        ...prev,
-        [docType]: {
-          status: 'ready',
-          fileName: file.name,
-          statement: `File attached: ${file.name}. Click 'Verify' to scan and validate.`
-        }
-      }));
+      const currentInput = (docInputs[docType] || '').trim();
+      if (currentInput) {
+        setDocScanStatus(prev => ({
+          ...prev,
+          [docType]: {
+            status: 'scanning',
+            fileName: file.name,
+            statement: `File attached: ${file.name}. Verifying '${currentInput}'...`
+          }
+        }));
+        await handleVerifySingleDoc(docType, currentInput, file);
+      } else {
+        setDocScanStatus(prev => ({
+          ...prev,
+          [docType]: {
+            status: 'ready',
+            fileName: file.name,
+            statement: `File attached: ${file.name}. Click 'Verify' to scan and validate.`
+          }
+        }));
+      }
     }
   };
 

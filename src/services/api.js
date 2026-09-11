@@ -137,14 +137,11 @@ export function extractPresetFormats(sourceText = '', fileName = '') {
   const fields = {};
 
   // Check Tender ID
-  const tenderMatch = text.match(/\bGEM\/(\d{4})\/([A-Z])\/(\d{6})\b/i);
+  const tenderMatch = text.match(/\b(GEM\/\d{4}\/[A-Z]\/\d{5,8}|GEM[-/0-9A-Z]{6,30})\b/i);
   if (tenderMatch) {
-    const val = `GEM/${tenderMatch[1]}/${tenderMatch[2].toUpperCase()}/${tenderMatch[3]}`;
+    const val = tenderMatch[1].toUpperCase();
     values.tender_id = val;
     fields.tender_id = { value: val, confidence: '99.0%', evidence: `OCR Match: ${val}` };
-  } else if (fileName.toUpperCase().includes('TENDER') || fileName.toUpperCase().includes('GEM')) {
-    values.tender_id = 'GEM/2026/B/891244';
-    fields.tender_id = { value: 'GEM/2026/B/891244', confidence: '98.5%', evidence: 'Document Header Index' };
   }
 
   // Check GSTIN
@@ -157,11 +154,6 @@ export function extractPresetFormats(sourceText = '', fileName = '') {
     const panFromGst = val.substring(2, 12);
     values.pan = panFromGst;
     fields.pan = { value: panFromGst, confidence: '99.0%', evidence: `Derived from GSTIN: ${panFromGst}` };
-  } else if (fileName.toUpperCase().includes('GST')) {
-    values.gstin = '27AABCB1234F1Z5';
-    fields.gstin = { value: '27AABCB1234F1Z5', confidence: '98.8%', evidence: 'FORM GST REG-06 Scan' };
-    values.pan = 'AABCB1234F';
-    fields.pan = { value: 'AABCB1234F', confidence: '98.8%', evidence: 'Derived from GSTIN' };
   }
 
   // Check PAN (if not already extracted from GSTIN)
@@ -171,9 +163,6 @@ export function extractPresetFormats(sourceText = '', fileName = '') {
       const val = panMatch[1].toUpperCase();
       values.pan = val;
       fields.pan = { value: val, confidence: '99.2%', evidence: `OCR Match: ${val}` };
-    } else if (fileName.toUpperCase().includes('PAN')) {
-      values.pan = 'AABCB1234F';
-      fields.pan = { value: 'AABCB1234F', confidence: '99.1%', evidence: 'NSDL PAN Card OCR' };
     }
   }
 
@@ -183,20 +172,14 @@ export function extractPresetFormats(sourceText = '', fileName = '') {
     const val = udyamMatch[1].toUpperCase();
     values.udyam_reg_no = val;
     fields.udyam_reg_no = { value: val, confidence: '98.9%', evidence: `OCR Match: ${val}` };
-  } else if (fileName.toUpperCase().includes('UDYAM') || fileName.toUpperCase().includes('MSME')) {
-    values.udyam_reg_no = 'UDYAM-MH-03-0019284';
-    fields.udyam_reg_no = { value: 'UDYAM-MH-03-0019284', confidence: '98.2%', evidence: 'Ministry of MSME OCR' };
   }
 
   // Check CA UDIN
-  const udinMatch = text.match(/\b(?:UDIN\s*[:\-]?\s*)?([A-Z0-9]{18})\b/i);
+  const udinMatch = text.match(/\b(?:UDIN\s*[:\-]?\s*)?([0-9]{18})\b/i);
   if (udinMatch) {
     const val = udinMatch[1].toUpperCase();
     values.udin = val;
     fields.udin = { value: val, confidence: '97.5%', evidence: `ICAI Seal UDIN: ${val}` };
-  } else if (fileName.toUpperCase().includes('TURNOVER') || fileName.toUpperCase().includes('CA') || fileName.toUpperCase().includes('BALANCE')) {
-    values.udin = '26084912AAAAAA1234';
-    fields.udin = { value: '26084912AAAAAA1234', confidence: '98.0%', evidence: 'Chartered Accountant Certificate' };
   }
 
   return { values, fields };
