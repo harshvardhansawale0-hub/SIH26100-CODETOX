@@ -3,9 +3,9 @@ import { ChevronLeft, ChevronRight, Sparkles, ArrowRight, ShieldCheck, Award, He
 import { useLanguage } from '../context/LanguageContext';
 
 // Import the generated high-definition GeM banners
-import makeInIndiaImg from '../assets/gem_make_in_india.jpg';
-import womaniyaImg from '../assets/gem_womaniya_msme.jpg';
-import startupRunwayImg from '../assets/gem_startup_runway.jpg';
+import makeInIndiaImg from '../assets/gem_make_in_india.webp';
+import womaniyaImg from '../assets/gem_womaniya_msme.webp';
+import startupRunwayImg from '../assets/gem_startup_runway.webp';
 
 export default function GeMBannerShowcase({ 
   onExploreTenders, 
@@ -132,11 +132,14 @@ export default function GeMBannerShowcase({
         >
           {/* Slide image wrapper */}
           <div className="carousel-slide-wrapper">
-            <img 
-              src={slides[currentSlide].image} 
-              alt={slides[currentSlide].title} 
-              className="carousel-main-img"
-            />
+                  <img 
+                    src={slides[currentSlide].image} 
+                    alt={slides[currentSlide].title} 
+                    width="1920"
+                    height="1080"
+                    fetchpriority="high"
+                    className="carousel-main-img"
+                  />
             {/* Subtle gradient overlay */}
             <div className="carousel-gradient-overlay"></div>
           </div>

@@ -382,7 +382,8 @@ export default function GeMSubNavBar({
                 if (onNotificationClick) onNotificationClick();
               }}
               title="Notifications"
-              aria-label="View notifications"
+              aria-label="Notifications, 3 unread"
+              aria-expanded={openDropdown === 'notifications'}
             >
               <span className="bell-icon">🔔</span>
               <span className="bell-counter-badge">03</span>

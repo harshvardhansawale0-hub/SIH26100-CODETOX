@@ -96,7 +96,7 @@ def health_check():
 
 # Mount dist/assets for JS/CSS bundles (must come before the catch-all)
 if DIST_DIR.exists() and (DIST_DIR / "assets").exists():
-    app.mount("/assets", StaticFiles(directory=str(DIST_DIR / "assets")), name="static-assets")
+    app.mount("/assets", StaticFiles(directory=str(DIST_DIR / "assets"), headers={"Cache-Control": "public, max-age=31536000, immutable"}), name="static-assets")
 
 # Catch-all: serve React SPA index.html for all non-API routes
 @app.get("/{full_path:path}")

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import Navbar from './components/Navbar';
 import GeMSubNavBar from './components/GeMSubNavBar';
 import NotificationMarquee from './components/NotificationMarquee';
@@ -7,26 +7,26 @@ import ProcessSection from './components/ProcessSection';
 import PopularProductCategories from './components/PopularProductCategories';
 import CtaBanner from './components/CtaBanner';
 import Footer from './components/Footer';
-import BidVerificationModal from './components/BidVerificationModal';
+const BidVerificationModal = React.lazy(() => import('./components/BidVerificationModal'));
 import BidDetailModal from './components/BidDetailModal';
-import BuyerDashboard from './components/BuyerDashboard';
-import BidderDashboard from './components/BidderDashboard';
+const BuyerDashboard = React.lazy(() => import('./components/BuyerDashboard'));
+const BidderDashboard = React.lazy(() => import('./components/BidderDashboard'));
 import CreateBidModal from './components/CreateBidModal';
-import AuctionAnalysisView from './components/AuctionAnalysisView';
-import AboutSIHView from './components/AboutSIHView';
-import ContactView from './components/ContactView';
+const AuctionAnalysisView = React.lazy(() => import('./components/AuctionAnalysisView'));
+const AboutSIHView = React.lazy(() => import('./components/AboutSIHView'));
+const ContactView = React.lazy(() => import('./components/ContactView'));
 import AuthModal from './components/AuthModal';
 import AuthGate from './components/AuthGate';
-import TendersView from './components/TendersView';
+const TendersView = React.lazy(() => import('./components/TendersView'));
 import TenderDetailModal from './components/TenderDetailModal';
-import ContractsView from './components/ContractsView';
+const ContractsView = React.lazy(() => import('./components/ContractsView'));
 import InitiativeModal from './components/InitiativeModal';
-import SchemePortalView from './components/SchemePortalView';
-import AuctionsView from './components/AuctionsView';
-import BusinessOpportunitiesView from './components/BusinessOpportunitiesView';
-import CategoryCatalogView from './components/CategoryCatalogView';
-import AskGemmyModal from './components/AskGemmyModal';
-import CompliancePassportView from './components/CompliancePassportView';
+const SchemePortalView = React.lazy(() => import('./components/SchemePortalView'));
+const AuctionsView = React.lazy(() => import('./components/AuctionsView'));
+const BusinessOpportunitiesView = React.lazy(() => import('./components/BusinessOpportunitiesView'));
+const CategoryCatalogView = React.lazy(() => import('./components/CategoryCatalogView'));
+const AskGemmyModal = React.lazy(() => import('./components/AskGemmyModal'));
+const CompliancePassportView = React.lazy(() => import('./components/CompliancePassportView'));
 import { initialBids, initialTenders, initialMilestones, createDefaultMilestones } from './data/bidsData';
 import { LanguageProvider, useLanguage } from './context/LanguageContext';
 import { gemApi } from './services/api';
@@ -531,6 +531,7 @@ function MainApp() {
 
   return (
     <div className="app-container">
+      <h1 className="sr-only">GeM — AI-Powered Procurement Compliance Platform</h1>
       {/* 1. Top Navbar with Two-Role Switcher & Auth State */}
       <Navbar
         activeTab={activeTab}
@@ -982,7 +983,9 @@ function MainApp() {
 export default function App() {
   return (
     <LanguageProvider>
-      <MainApp />
+      <Suspense fallback={<div style={{display:'flex',justifyContent:'center',alignItems:'center',height:'100vh',fontSize:'1.5rem',color:'#0f2238'}}>Loading GeM Platform...</div>}>
+        <MainApp />
+      </Suspense>
     </LanguageProvider>
   );
 }

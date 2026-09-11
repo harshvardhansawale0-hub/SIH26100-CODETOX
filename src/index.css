@@ -1,3 +1,15 @@
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
 /* =========================================================================
    GeMComply AI - Comprehensive Design System & Stylesheet
    Smart India Hackathon 2026 - Problem Statement: SIH26100 (Codetox)
@@ -302,7 +314,7 @@ body {
   padding: 0.45rem 1.25rem;
   border-radius: 9999px;
   background-color: var(--orange-primary);
-  color: #ffffff;
+  color: #081729;
   font-size: 0.875rem;
   font-weight: 700;
   border: none;
@@ -513,7 +525,7 @@ body {
 
 /* Features & Benefits red highlighted with outline box */
 .subnav-btn-features {
-  color: #ef4444 !important;
+  color: #fca5a5 !important;
   border: 1px solid rgba(255, 255, 255, 0.45) !important;
   border-radius: 3px;
   padding: 0.22rem 0.65rem;
@@ -521,7 +533,7 @@ body {
 }
 
 .subnav-btn-features .subnav-caret {
-  color: #ef4444;
+  color: #fca5a5;
 }
 
 .subnav-btn-features:hover,
@@ -958,12 +970,24 @@ body {
 
 .carousel-dot {
   width: 10px;
+  position: relative;
   height: 10px;
   border-radius: 50%;
   background-color: rgba(255, 255, 255, 0.45);
   border: none;
   cursor: pointer;
   transition: all 0.25s ease;
+}
+
+
+.carousel-dot::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 24px;
+  min-height: 24px;
 }
 
 .carousel-dot.active {
@@ -1157,7 +1181,7 @@ body {
 .step-badge-tag {
   font-size: 0.68rem;
   font-weight: 800;
-  color: #0284c7;
+  color: #0369a1;
   background: #e0f2fe;
   padding: 0.15rem 0.45rem;
   border-radius: 4px;
@@ -1631,7 +1655,7 @@ body {
   align-items: center;
   justify-content: space-between;
   font-size: 0.82rem;
-  color: #64748b;
+  color: #94a3b8;
 }
 
 .footer-legal-links {
