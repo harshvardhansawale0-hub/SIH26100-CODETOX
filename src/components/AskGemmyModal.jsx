@@ -403,7 +403,7 @@ export default function AskGemmyModal({
 
                     {/* Content */}
                     <div className="gemmy-msg-text">
-                      {msg.content.split('\n\n').map((para, i) => (
+                      {(msg.content || '').split('\n\n').map((para, i) => (
                         <p key={i}>
                           {para.split('\n').map((line, j) => {
                             // Basic bold formatting

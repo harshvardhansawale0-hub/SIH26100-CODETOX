@@ -37,6 +37,12 @@ __pycache__/
 .coverage
 htmlcov/
 
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
+
 # RSA private keys for Compliance Passport signing
 backend/keys/
 

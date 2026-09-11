@@ -461,6 +461,56 @@ export const GEMMY_KNOWLEDGE_TOPICS = [
           `• **फर्निचर**: मॉड्यूलर वर्कस्टेशन्स, चेअर्स.\n` +
           `• **सेवा**: क्लाउड होस्टिंग, वाहन भाड्याने देणे, सुरक्षा रक्षक व स्वच्छता सेवा.`
     }
+  },
+
+  // 14. Digital Compliance Passport
+  {
+    id: 'compliance_passport',
+    keywords: ['passport', 'compliance passport', 'qr code', 'rsa-2048', 'reusable credential', 'presentation', 'पासपोर्ट', 'क्रेडेंशियल'],
+    citations: ['GeM Reusable Credential Architecture 2026', 'IT Act 2000'],
+    actions: [
+      { id: 'act_verify', label: 'Open Verification Dossier', action: 'OPEN_VERIFIER', icon: 'ShieldCheck' }
+    ],
+    responses: {
+      en: `**🛂 GeM Digital Compliance Passport (Reusable Vendor Credential):**\n\n` +
+          `1. **One-Time Statutory Verification**: Vendor's PAN, GSTIN, and UDYAM certificates are verified once against statutory APIs (NSDL, GSTN, MSME Registry).\n\n` +
+          `2. **Cryptographic RSA-2048 Digital Signing**: The backend issues a tamper-evident credential signed with RSA-2048 PSS + SHA-256 keys.\n\n` +
+          `3. **Privacy-Preserving QR Code**: Encodes masked statutory identifiers and points to the unique Passport UUID for instant tender qualification without re-uploading documents.\n\n` +
+          `4. **12-Month TTL & Audit Trail**: Passports remain valid for 12 months with continuous cryptographic verification across all submitted bids.`,
+      hi: `**🛂 GeM डिजिटल अनुपालन पासपोर्ट (रीयूजेबल क्रेडेंशियल):**\n\n` +
+          `1. **एकल सत्यापन**: पैन, जीएसटी और उद्यम का सरकारी डेटाबेस से एक बार सत्यापन होता है।\n` +
+          `2. **RSA-2048 डिजिटल हस्ताक्षर**: छेड़छाड़-रहित डिजिटल क्रेडेंशियल जारी किया जाता है जिस पर क्रिप्टोग्राफिक हस्ताक्षर होते हैं।\n` +
+          `3. **QR कोड सत्यापन**: टेंडर जमा करते समय विक्रेता सिर्फ अपना क्यूआर कोड या पासपोर्ट आईडी प्रस्तुत करता है।\n` +
+          `4. **12 महीने की वैधता**: 12 माह तक सभी टेंडरों में बिना दस्तावेज अपलोड किए तत्काल योग्यता मिलती है।`,
+      mr: `**🛂 GeM डिजिटल अनुपालन पासपोर्ट:**\n\n` +
+          `1. **एकदाच पडताळणी**: पॅन, GSTIN आणि UDYAM ची अधिकृत सरकारी डेटाबेसवरून एकदाच पडताळणी केली जाते.\n` +
+          `2. **RSA-2048 डिजिटल स्वाक्षरी**: क्रिप्टोग्राफिक स्वाक्षरी असलेला छेडछाड-मुक्त पासपोर्ट जारी केला जातो.\n` +
+          `3. **QR कोड**: निविदा दाखल करताना केवळ QR कोड स्कॅन करून कागदपत्रांशिवाय तत्काळ पात्रता मिळते.`
+    }
+  },
+
+  // 15. SIH 2026 & Team Codetox
+  {
+    id: 'sih_codetox',
+    keywords: ['sih', 'smart india hackathon', 'codetox', 'sih26100', 'devika', 'harshvardhan', 'aniket', 'krushnaprakash', 'sumit', 'namrata'],
+    citations: ['Smart India Hackathon 2026', 'Problem ID: SIH26100'],
+    actions: [
+      { id: 'act_verify', label: 'Explore Compliance Sandbox', action: 'OPEN_VERIFIER', icon: 'ShieldCheck' }
+    ],
+    responses: {
+      en: `**🏛️ Smart India Hackathon 2026 (Problem Statement ID: SIH26100) — Team Codetox:**\n\n` +
+          `• **Platform**: GeM AI-Powered Procurement Compliance, Document Forensics & Anti-Cartel Intelligence Platform.\n` +
+          `• **Ministry**: Ministry of Commerce & Industry, Government of India.\n` +
+          `• **Team Members**: Harshvardhan Sawale, Devika Patil, Aniket Sawarkar, Krushnaprakash Bhende, Sumit Deshmukh, Namrata Pawar.\n` +
+          `• **Core Innovations**: 8-Stage Autonomous Verification Pipeline, Neural Cartel Graph Detection, Reusable RSA-2048 Signed Compliance Passport, and Real-time OCR Forensics.`,
+      hi: `**🏛️ स्मार्ट इंडिया हैकाथॉन 2026 (समस्या आईडी: SIH26100) — टीम कोडटॉक्स:**\n\n` +
+          `• **परियोजना**: GeM AI अधिप्राप्ति अनुपालन, दस्तावेज फॉरेंसिक और एंटी-कार्टेल इंटेलिजेंस प्लेटफॉर्म।\n` +
+          `• **टीम सदस्य**: हर्षवर्धन सावले, देविका पाटिल, अनिकेत सावरकर, कृष्णप्रकाश भेंडे, सुमित देशमुख, नम्रता पवार।\n` +
+          `• **प्रमुख नवाचार**: स्वचालित GFR 2017 नियम इंजन, न्यूरल कार्टेल डिटेक्शन, डिजिटल अनुपालन पासपोर्ट।`,
+      mr: `**🏛️ स्मार्ट इंडिया हॅकाथॉन २०२६ (Problem ID: SIH26100) — टीम कोडटॉक्स:**\n\n` +
+          `• **प्रकल्प**: GeM AI सरकारी खरेदी पडताळणी, फॉरेन्सिक तपासणी आणि अँटी-कार्टेल प्रणाली.\n` +
+          `• **टीम सदस्य**: हर्षवर्धन सावळे, देविका पाटील, अनिकेत सावरकर, कृष्णप्रकाश भेंडे, सुमित देशमुख, नम्रता पवार.`
+    }
   }
 ];
 
