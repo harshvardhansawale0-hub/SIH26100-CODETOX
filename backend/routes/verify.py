@@ -176,14 +176,25 @@ def verify_bid_payload(req: BidVerifyRequest, authorization: Optional[str] = Hea
         if not res:
             return
             
+        from ..services.document_processing.cross_checker import normalize_id
+        
+        norm_entered = normalize_id(entered_val, field_key)
         extracted_val = res.get("fields", {}).get(extract_key, {}).get("value")
         
         status = "MATCHED"
         if not extracted_val:
-            status = "EXTRACTION_FAILED"
+            raw_text = res.get("raw_text", "")
+            if norm_entered and norm_entered in normalize_id(raw_text, field_key):
+                status = "MATCHED"
+                extracted_val = entered_val
+                if "fields" not in res:
+                    res["fields"] = {}
+                res["fields"][extract_key] = {"value": entered_val, "evidence": "Found in raw OCR text fallback"}
+            else:
+                status = "EXTRACTION_FAILED"
         else:
-            from ..services.document_processing.cross_checker import normalize_id
-            if normalize_id(entered_val) == normalize_id(extracted_val):
+            norm_extracted = normalize_id(extracted_val, field_key)
+            if norm_entered == norm_extracted:
                 status = "MATCHED"
             else:
                 status = "NOT_MATCHED"
@@ -191,7 +202,7 @@ def verify_bid_payload(req: BidVerifyRequest, authorization: Optional[str] = Hea
         print(f"[FIELD_MATCH]")
         print(f"field={field_key}")
         print(f"entered={entered_val}")
-        print(f"extracted_pan={extracted_val}")
+        print(f"extracted={extracted_val}")
         print(f"status={status}")
 
         field_matches[field_key] = FieldMatch(status=status, entered=entered_val, extracted=extracted_val)

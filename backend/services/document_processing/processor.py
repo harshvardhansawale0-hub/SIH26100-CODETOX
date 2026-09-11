@@ -91,5 +91,6 @@ def process_document(file_path: str, original_filename: str = "") -> Dict[str, A
         "classification": classification_result,
         "fields": extracted_fields,
         "validation_results": validation_results,
-        "extracted_text_preview": extraction_result["extracted_text"][:500] if extraction_result["extracted_text"] else ""
+        "extracted_text_preview": extraction_result["extracted_text"][:500] if extraction_result["extracted_text"] else "",
+        "raw_text": extraction_result["extracted_text"] if extraction_result["extracted_text"] else ""
     }

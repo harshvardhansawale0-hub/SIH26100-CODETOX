@@ -1,13 +1,43 @@
 from typing import Dict, Any
 from ...models import BidVerifyRequest
 
-def normalize_id(val: str) -> str:
-    """Normalizes an ID by stripping whitespace, newlines, and uppercasing."""
+import re
+
+def normalize_pan(val: str) -> str:
+    if not val: return ""
+    return re.sub(r'[^A-Z0-9]', '', val.upper())
+
+def normalize_gstin(val: str) -> str:
+    if not val: return ""
+    return re.sub(r'[^A-Z0-9]', '', val.upper())
+
+def normalize_udyam(val: str) -> str:
+    if not val: return ""
+    cleaned = re.sub(r'[^A-Z0-9]', '', val.upper())
+    if cleaned.startswith("UDYAM") and len(cleaned) >= 11:
+        return f"UDYAM-{cleaned[5:7]}-{cleaned[7:9]}-{cleaned[9:]}"
+    return cleaned
+
+def normalize_tender_id(val: str) -> str:
+    if not val: return ""
+    cleaned = re.sub(r'[^A-Z0-9]', '', val.upper())
+    if cleaned.startswith("GEM") and len(cleaned) >= 12:
+        return f"GEM/{cleaned[3:7]}/{cleaned[7:8]}/{cleaned[8:]}"
+    return cleaned
+
+def get_normalizer(field_key: str):
+    if field_key == "pan": return normalize_pan
+    if field_key == "gstin": return normalize_gstin
+    if field_key in ["udyam", "msmeRegNo"]: return normalize_udyam
+    if field_key in ["tenderId", "tender_id"]: return normalize_tender_id
+    return lambda x: re.sub(r'\s+', '', x.upper()) if x else ""
+
+def normalize_id(val: str, field_key: str = None) -> str:
     if not val:
         return ""
-    # Remove all whitespace characters including spaces, tabs, newlines
-    normalized = ''.join(val.split()).upper()
-    return normalized
+    if field_key:
+        return get_normalizer(field_key)(val)
+    return ''.join(val.split()).upper()
 
 def compare_strings(str1: str, str2: str) -> Dict[str, Any]:
     if not str1 or not str2:
