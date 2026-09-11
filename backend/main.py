@@ -98,6 +98,14 @@ def health_check():
 if DIST_DIR.exists() and (DIST_DIR / "assets").exists():
     app.mount("/assets", StaticFiles(directory=str(DIST_DIR / "assets")), name="static-assets")
 
+# Add cache-control headers for static assets via middleware (compatible with all Starlette versions)
+@app.middleware("http")
+async def add_cache_headers(request: Request, call_next):
+    response = await call_next(request)
+    if request.url.path.startswith("/assets/"):
+        response.headers["Cache-Control"] = "public, max-age=31536000, immutable"
+    return response
+
 # Catch-all: serve React SPA index.html for all non-API routes
 @app.get("/{full_path:path}")
 async def serve_spa(request: Request, full_path: str):

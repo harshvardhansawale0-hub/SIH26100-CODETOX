@@ -1,16 +1,24 @@
 from typing import Dict, Any
 from ...models import BidVerifyRequest
 
+def normalize_id(val: str) -> str:
+    """Normalizes an ID by stripping whitespace, newlines, and uppercasing."""
+    if not val:
+        return ""
+    # Remove all whitespace characters including spaces, tabs, newlines
+    normalized = ''.join(val.split()).upper()
+    return normalized
+
 def compare_strings(str1: str, str2: str) -> Dict[str, Any]:
     if not str1 or not str2:
         return {"result": "MISSING", "similarity": 0.0}
         
-    s1 = str1.strip().upper()
-    s2 = str2.strip().upper()
+    s1 = normalize_id(str1)
+    s2 = normalize_id(str2)
     
     if s1 == s2:
         return {"result": "MATCH", "similarity": 100.0}
-    
+        
     # Simple partial match: if one is completely inside the other
     if s1 in s2 or s2 in s1:
         return {"result": "PARTIAL_MATCH", "similarity": 80.0}

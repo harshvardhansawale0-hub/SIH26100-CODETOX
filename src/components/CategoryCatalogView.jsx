@@ -23,12 +23,7 @@ import {
 import { useLanguage } from '../context/LanguageContext';
 
 // Import image assets
-import oxygenImg from '../assets/gem_cat_oxygen.jpg';
-import medicalImg from '../assets/gem_cat_medical.jpg';
-import sarasImg from '../assets/gem_cat_saras.jpg';
-import furnitureImg from '../assets/gem_cat_furniture.jpg';
-import fireImg from '../assets/gem_cat_fire.jpg';
-import computersImg from '../assets/gem_cat_computers.jpg';
+
 
 export default function CategoryCatalogView({ 
   initialCategory = 'Oxygen Gas & Accessories', 
@@ -75,37 +70,31 @@ export default function CategoryCatalogView({
   const categoryConfigs = [
     {
       name: 'Oxygen Gas & Accessories',
-      image: oxygenImg,
       icon: '🫁',
       tagline: 'Medical grade oxygen, high-pressure cylinders, cryogenic tanks and PSA generation systems'
     },
     {
       name: 'Medical & Healthcare',
-      image: medicalImg,
       icon: '🩺',
       tagline: 'ICU monitors, diagnostic ECG machines, motorized beds and ventilators for healthcare centers'
     },
     {
       name: 'SARAS Handicrafts & Women Artisans',
-      image: sarasImg,
       icon: '🌸',
       tagline: 'Exclusive artisan creations, handloom weaves, and craft products from rural Women SHGs'
     },
     {
       name: 'Furniture & Fixtures',
-      image: furnitureImg,
       icon: '🪑',
       tagline: 'Heavy-gauge steel almirahs, ergonomic chairs, executive desks and institutional fixtures'
     },
     {
       name: 'Fire Safety & Security',
-      image: fireImg,
       icon: '🧯',
       tagline: 'ABC powder fire extinguishers, optical smoke sensors, motorized pumps and suppression systems'
     },
     {
       name: 'Computers & IT Hardware',
-      image: computersImg,
       icon: '💻',
       tagline: 'Commercial desktops, military-grade laptops, enterprise rack servers and network printers'
     },

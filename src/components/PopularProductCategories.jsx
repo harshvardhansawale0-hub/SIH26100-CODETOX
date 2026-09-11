@@ -1,11 +1,11 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import oxygenImg from '../assets/gem_cat_oxygen.jpg';
-import medicalImg from '../assets/gem_cat_medical.jpg';
-import sarasImg from '../assets/gem_cat_saras.jpg';
-import furnitureImg from '../assets/gem_cat_furniture.jpg';
-import fireImg from '../assets/gem_cat_fire.jpg';
-import computersImg from '../assets/gem_cat_computers.jpg';
+import oxygenImg from '../assets/gem_cat_oxygen.webp';
+import medicalImg from '../assets/gem_cat_medical.webp';
+import sarasImg from '../assets/gem_cat_saras.webp';
+import furnitureImg from '../assets/gem_cat_furniture.webp';
+import fireImg from '../assets/gem_cat_fire.webp';
+import computersImg from '../assets/gem_cat_computers.webp';
 
 export default function PopularProductCategories({ onCategoryClick, onOpenGemmy }) {
   const { t } = useLanguage();
@@ -158,6 +158,8 @@ export default function PopularProductCategories({ onCategoryClick, onOpenGemmy 
                   <img
                     src={cat.image}
                     alt={cat.alt}
+                    width="130"
+                    height="140"
                     className="category-product-img"
                     loading="lazy"
                   />

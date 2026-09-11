@@ -31,8 +31,6 @@ export default function Footer({
             <ul className="footer-links-list">
               <li><span className="footer-link" onClick={() => onOpenVerifier ? onOpenVerifier() : onNavigate('Bid')}>{t('bidVerification')}</span></li>
               <li><span className="footer-link" onClick={() => onNavigate('Auction')}>{t('vendorScreen')}</span></li>
-              <li><span className="footer-link" onClick={() => onNavigate('Auction')}>{t('auditLogs')}</span></li>
-              <li><span className="footer-link" onClick={() => onNavigate('Forward')}>{t('analytics')}</span></li>
             </ul>
           </div>
 
