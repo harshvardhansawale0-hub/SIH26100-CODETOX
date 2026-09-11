@@ -1,11 +1,63 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import {
   ShieldCheck, FileText, QrCode, Download, Search, CheckCircle2,
   XCircle, Clock, AlertTriangle, Award, Eye, RefreshCw, Shield,
-  Upload, Fingerprint, BadgeCheck, ChevronDown, ChevronUp, Copy, ExternalLink, Home
+  Upload, Fingerprint, BadgeCheck, ChevronDown, ChevronUp, Copy, ExternalLink, Home,
+  FileCheck, AlertCircle, Scan, Sparkles
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
+
+const DOCUMENT_CONFIGS = [
+  {
+    type: 'PAN',
+    name: 'Permanent Account Number',
+    authority: 'Income Tax Department (NSDL)',
+    defaultRef: 'AABCB1234F',
+    hint: 'e.g. AABCB1234F (10 chars)',
+    sampleFileName: 'PAN_Card_Certificate.pdf'
+  },
+  {
+    type: 'GST',
+    name: 'GSTIN Registration (FORM GST REG-06)',
+    authority: 'GSTN Portal / CBIC',
+    defaultRef: '27AABCB1234F1Z5',
+    hint: 'e.g. 27AABCB1234F1Z5 (15 chars)',
+    sampleFileName: 'GST_Registration_Certificate.pdf'
+  },
+  {
+    type: 'UDYAM',
+    name: 'Udyam MSME Registration',
+    authority: 'Ministry of MSME',
+    defaultRef: 'UDYAM-MH-03-0019284',
+    hint: 'e.g. UDYAM-MH-03-0019284',
+    sampleFileName: 'UDYAM_Registration_Cert.pdf'
+  },
+  {
+    type: 'MSME',
+    name: 'MSME Classification Undertaking',
+    authority: 'DPIIT Public Procurement Order',
+    defaultRef: 'MSME-REG-2026-9901',
+    hint: 'e.g. MSME-REG-2026-9901',
+    sampleFileName: 'MSME_Classification_Doc.pdf'
+  },
+  {
+    type: 'ISO',
+    name: 'ISO 9001:2015 Quality Management',
+    authority: 'NABCB Accredited Registrar',
+    defaultRef: 'ISO-9001-2015-CERT',
+    hint: 'e.g. ISO-9001-2015-CERT',
+    sampleFileName: 'ISO_9001_Quality_Cert.pdf'
+  },
+  {
+    type: 'CA_TURNOVER',
+    name: 'CA Audited Turnover Statement',
+    authority: 'ICAI UDIN Portal',
+    defaultRef: 'UDIN-2026-89124401',
+    hint: 'e.g. UDIN-2026-89124401',
+    sampleFileName: 'CA_Turnover_Statement.pdf'
+  }
+];
 
 export default function CompliancePassportView({ currentUser, currentRole, onNavigateHome }) {
   const { t } = useLanguage();
@@ -18,14 +70,53 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
   const [verificationsList, setVerificationsList] = useState([]);
   const [presentationsList, setPresentationsList] = useState([]);
   const [qrCodeBlob, setQrCodeBlob] = useState(null);
-  const [verifying, setVerifying] = useState(false);
   const [issuing, setIssuing] = useState(false);
+
+  // Per-document upload & verification state
+  const [docInputs, setDocInputs] = useState({});
+  const [docFiles, setDocFiles] = useState({});
+  const [docScanStatus, setDocScanStatus] = useState({});
+  const fileInputRefs = useRef({});
 
   // Buyer states
   const [vendorsList, setVendorsList] = useState([]);
   const [verifyPassportId, setVerifyPassportId] = useState('');
   const [verificationResult, setVerificationResult] = useState(null);
   const [verifyingPassport, setVerifyingPassport] = useState(false);
+
+  // Initialize input defaults from vendor data
+  const initDocInputs = useCallback((vendor, verifs = []) => {
+    const initialInputs = {
+      PAN: vendor?.pan || 'AABCB1234F',
+      GST: vendor?.gstin || '27AABCB1234F1Z5',
+      UDYAM: vendor?.udyamNo || 'UDYAM-MH-03-0019284',
+      MSME: 'MSME-REG-2026-9901',
+      ISO: 'ISO-9001-2015-CERT',
+      CA_TURNOVER: 'UDIN-2026-89124401'
+    };
+
+    setDocInputs(prev => ({ ...initialInputs, ...prev }));
+
+    // Pre-populate status from existing backend verifications
+    const statusMap = {};
+    (verifs || []).forEach(v => {
+      if (v.status === 'verified') {
+        let detailsObj = {};
+        try {
+          detailsObj = typeof v.details === 'string' ? JSON.parse(v.details) : (v.details || {});
+        } catch {
+          // ignore
+        }
+        statusMap[v.docType] = {
+          status: 'verified',
+          extractedId: v.docRef,
+          confidence: detailsObj.confidence || 98.5,
+          message: 'Document verified & matched via OCR'
+        };
+      }
+    });
+    setDocScanStatus(prev => ({ ...statusMap, ...prev }));
+  }, []);
 
   // Fetch Bidder View Data
   const fetchBidderData = useCallback(async () => {
@@ -44,6 +135,7 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
         setVendorData(v);
         setVerificationsList(fullData.verifications || []);
         setPresentationsList(fullData.presentations || []);
+        initDocInputs(v, fullData.verifications || []);
 
         const p = fullData.passport;
         if (p) {
@@ -65,7 +157,7 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
     } finally {
       setLoading(false);
     }
-  }, [currentUser]);
+  }, [currentUser, initDocInputs]);
 
   // Fetch Buyer View Data
   const fetchBuyerData = useCallback(async () => {
@@ -83,45 +175,130 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
     if (currentRole === 'bidder') {
       fetchBidderData();
     } else {
       fetchBuyerData();
     }
-    return () => { isMounted = false; };
   }, [currentRole, fetchBidderData, fetchBuyerData]);
 
-  // Bidder: Trigger Mock Verification
-  const handleVerifyDocuments = async () => {
+  // Handle Manual ID Input Change
+  const handleInputChange = (docType, value) => {
+    setDocInputs(prev => ({ ...prev, [docType]: value }));
+  };
+
+  // Handle File Upload Selection
+  const handleFileSelect = (docType, file) => {
+    if (!file) return;
+    setDocFiles(prev => ({ ...prev, [docType]: file }));
+    // Reset scan status for this doc
+    setDocScanStatus(prev => ({
+      ...prev,
+      [docType]: { status: 'selected', fileName: file.name }
+    }));
+  };
+
+  // Create simulated dummy file for easy testing if user didn't pick an external file
+  const createMockFile = (docType, manualId) => {
+    const content = `GOVERNMENT OF INDIA / OFFICIAL CERTIFICATE\nDOCUMENT TYPE: ${docType}\nREGISTRATION / ID NUMBER: ${manualId}\nDATE OF ISSUANCE: 2026-01-15\nSTATUS: ACTIVE & VERIFIED`;
+    const blob = new Blob([content], { type: 'text/plain' });
+    return new File([blob], `${docType}_Certificate.txt`, { type: 'text/plain' });
+  };
+
+  // Scan & Verify Single Document via OCR
+  const handleScanSingleDoc = async (docType) => {
     if (!vendorData) return;
+    const manualId = (docInputs[docType] || '').trim();
+    if (!manualId) {
+      alert(`Please enter the Document Number / ID for ${docType}`);
+      return;
+    }
+
+    let file = docFiles[docType];
+    if (!file) {
+      // Auto-create a simulated certificate file with the specified document number
+      file = createMockFile(docType, manualId);
+      setDocFiles(prev => ({ ...prev, [docType]: file }));
+    }
+
     try {
-      setVerifying(true);
-      const docs = [
-        { docType: 'PAN', docRef: vendorData.pan || 'AABCB1234F' },
-        { docType: 'GST', docRef: vendorData.gstin || '27AABCB1234F1Z5' },
-        { docType: 'UDYAM', docRef: vendorData.udyamNo || 'UDYAM-MH-03-0019284' },
-        { docType: 'MSME', docRef: 'MSME-REG-2026-9901' },
-        { docType: 'ISO', docRef: 'ISO-9001-2015-CERT' },
-        { docType: 'CA_TURNOVER', docRef: 'UDIN-2026-89124401' }
-      ];
-      await gemApi.verifyVendorDocuments(vendorData.id, docs);
-      await fetchBidderData();
+      setDocScanStatus(prev => ({
+        ...prev,
+        [docType]: { status: 'scanning', message: 'Extracting text with OCR...' }
+      }));
+
+      const result = await gemApi.verifyDocumentUpload(vendorData.id, file, docType, manualId);
+
+      if (result.success || result.ocrResult?.match) {
+        setDocScanStatus(prev => ({
+          ...prev,
+          [docType]: {
+            status: 'verified',
+            extractedId: result.ocrResult?.extractedId || manualId,
+            confidence: result.ocrResult?.confidence || 98.5,
+            message: result.message || 'OCR match confirmed!'
+          }
+        }));
+        // Refresh verification list from backend
+        const fullData = await gemApi.getVendorById(vendorData.id);
+        if (fullData.verifications) {
+          setVerificationsList(fullData.verifications);
+        }
+      } else {
+        setDocScanStatus(prev => ({
+          ...prev,
+          [docType]: {
+            status: 'failed',
+            extractedId: result.ocrResult?.extractedId || 'Unrecognized',
+            confidence: result.ocrResult?.confidence || 40.0,
+            message: result.message || `OCR Mismatch: ID did not match '${manualId}'`
+          }
+        }));
+      }
     } catch (err) {
       console.error(err);
-      alert('Verification error: ' + (err.message || 'Check network connection'));
-    } finally {
-      setVerifying(false);
+      setDocScanStatus(prev => ({
+        ...prev,
+        [docType]: {
+          status: 'failed',
+          message: err.message || 'OCR processing error'
+        }
+      }));
     }
   };
 
-  // Bidder: Issue or Renew Passport
+  // Scan & Verify ALL Documents in sequence
+  const handleScanAllDocs = async () => {
+    for (const doc of DOCUMENT_CONFIGS) {
+      await handleScanSingleDoc(doc.type);
+    }
+  };
+
+  // Check how many documents are verified
+  const verifiedDocMap = useMemo(() => {
+    const map = {};
+    DOCUMENT_CONFIGS.forEach(doc => {
+      const isVerifiedInDb = verificationsList.some(v => v.docType === doc.type && v.status === 'verified');
+      const isVerifiedInState = docScanStatus[doc.type]?.status === 'verified';
+      if (isVerifiedInDb || isVerifiedInState) {
+        map[doc.type] = true;
+      }
+    });
+    return map;
+  }, [verificationsList, docScanStatus]);
+
+  const verifiedCount = Object.keys(verifiedDocMap).length;
+  const allVerified = verifiedCount === DOCUMENT_CONFIGS.length;
+  const canIssue = verifiedCount >= 2 && (verifiedDocMap['PAN'] && verifiedDocMap['GST']);
+
+  // Issue or Renew Passport
   const handleIssuePassport = async () => {
     if (!vendorData) return;
     try {
       setIssuing(true);
-      await gemApi.issuePassport(vendorData.id);
+      const res = await gemApi.issuePassport(vendorData.id);
       await fetchBidderData();
+      alert(res.message || 'Digital Compliance Passport issued successfully with 1-Month QR validity!');
     } catch (err) {
       console.error(err);
       alert('Failed to issue passport: ' + (err.message || 'Missing verified documents'));
@@ -196,7 +373,6 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
   if (currentRole === 'bidder') {
     const score = vendorData?.complianceScore || vendorData?.compliance_score || 96;
     const badgeColor = score >= 80 ? 'green' : score >= 60 ? 'orange' : 'red';
-    const verifiedCount = verificationsList.filter(v => v.status === 'verified').length;
 
     const pStatus = passportData?.status ? (passportData.status.charAt(0).toUpperCase() + passportData.status.slice(1)) : 'None';
     const pColor = pStatus === 'Active' ? '#10b981' : (pStatus === 'Expired' || pStatus === 'Revoked') ? '#ef4444' : '#94a3b8';
@@ -207,12 +383,9 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
       daysToExpiry = Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
     }
 
-    const hasPan = verificationsList.some(v => v.docType === 'PAN' && v.status === 'verified');
-    const hasGst = verificationsList.some(v => v.docType === 'GST' && v.status === 'verified');
-    const canIssue = hasPan && hasGst;
-
     return (
       <div style={{ backgroundColor: '#0b1a2d', minHeight: '80vh', padding: '2.5rem 1.5rem', color: '#ffffff' }}>
+        {/* Header */}
         <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <span className="section-tag" style={{ display: 'inline-block', backgroundColor: '#1e385b', color: '#38bdf8', padding: '0.25rem 0.75rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold', letterSpacing: '0.05em', marginBottom: '0.75rem', textTransform: 'uppercase' }}>
@@ -222,7 +395,7 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
               {t('passportTitle') || 'Digital Compliance Passport'}
             </h1>
             <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>
-              {t('passportSubtitle') || 'Reusable, cryptographically signed digital credential for instant GeM bid qualification.'}
+              Upload each statutory document, scan via OCR, match IDs, and generate a 1-Month QR Passport for instant bid qualification.
             </p>
           </div>
           {onNavigateHome && (
@@ -250,6 +423,7 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
           )}
         </div>
 
+        {/* Top Summary Stats */}
         <div className="terminal-stat-cards" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
           <div className="terminal-card" style={{ backgroundColor: '#0f2238', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem' }}>
             <span className="t-card-label" style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Compliance Score</span>
@@ -262,10 +436,14 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
           </div>
 
           <div className="terminal-card" style={{ backgroundColor: '#0f2238', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem' }}>
-            <span className="t-card-label" style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Verified Documents</span>
+            <span className="t-card-label" style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>OCR Verified Documents</span>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: '0.4rem' }}>
-              <span style={{ fontSize: '1.8rem', fontWeight: '800', color: '#ffffff' }}>{verifiedCount} / 6</span>
-              <span style={{ fontSize: '0.75rem', color: '#38bdf8' }}>AI Stamped</span>
+              <span style={{ fontSize: '1.8rem', fontWeight: '800', color: verifiedCount === 6 ? '#34d399' : '#38bdf8' }}>
+                {verifiedCount} / 6
+              </span>
+              <span style={{ fontSize: '0.75rem', color: allVerified ? '#34d399' : '#f59e0b', fontWeight: '700' }}>
+                {allVerified ? '✓ 100% Matched' : `${6 - verifiedCount} Pending`}
+              </span>
             </div>
           </div>
 
@@ -278,16 +456,268 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
           </div>
 
           <div className="terminal-card" style={{ backgroundColor: '#0f2238', border: '1px solid #1e385b', borderRadius: '10px', padding: '1.25rem' }}>
-            <span className="t-card-label" style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Days Until Expiry</span>
+            <span className="t-card-label" style={{ fontSize: '0.8rem', color: '#94a3b8', textTransform: 'uppercase' }}>Passport Validity TTL</span>
             <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginTop: '0.4rem' }}>
               <span style={{ fontSize: '1.8rem', fontWeight: '800', color: '#ffffff' }}>
-                {daysToExpiry !== 'N/A' ? `${daysToExpiry}d` : 'N/A'}
+                {daysToExpiry !== 'N/A' ? `${daysToExpiry}d` : '30 Days'}
               </span>
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>12-Mo TTL</span>
+              <span style={{ fontSize: '0.75rem', color: '#38bdf8', fontWeight: '700' }}>1-Month Expiry</span>
             </div>
           </div>
         </div>
 
+        {/* Section 1: Per-Document Upload & OCR Verification Panel */}
+        <div style={{ backgroundColor: '#0f2238', border: '1px solid #1e385b', borderRadius: '12px', padding: '1.75rem', marginBottom: '2.5rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', marginBottom: '1.5rem', borderBottom: '1px solid #1e385b', paddingBottom: '1rem' }}>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '1.35rem', display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ffffff' }}>
+                <Scan size={22} color="#38bdf8" />
+                <span>Step 1: Upload Documents & Verify IDs with OCR</span>
+              </h2>
+              <p style={{ margin: '0.35rem 0 0 0', fontSize: '0.85rem', color: '#94a3b8' }}>
+                Enter your document ID, attach the certificate file (PDF/Image), and run OCR scan. If the OCR-extracted number matches your manual input, the document gets verified.
+              </p>
+            </div>
+
+            <button
+              onClick={handleScanAllDocs}
+              style={{
+                backgroundColor: '#1e385b',
+                color: '#38bdf8',
+                border: '1px solid #38bdf8',
+                borderRadius: '6px',
+                padding: '0.6rem 1.1rem',
+                fontSize: '0.85rem',
+                fontWeight: '700',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                transition: 'all 0.2s ease'
+              }}
+            >
+              <Sparkles size={16} />
+              <span>Auto Scan & Match All 6</span>
+            </button>
+          </div>
+
+          {/* Progress Bar */}
+          <div style={{ marginBottom: '1.5rem', backgroundColor: '#081729', padding: '1rem', borderRadius: '8px', border: '1px solid #1e385b' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.84rem', marginBottom: '0.5rem' }}>
+              <span style={{ color: '#cbd5e1', fontWeight: '600' }}>Overall Document Verification Progress:</span>
+              <span style={{ color: allVerified ? '#34d399' : '#38bdf8', fontWeight: '800' }}>
+                {verifiedCount} of 6 Documents Verified ({Math.round((verifiedCount / 6) * 100)}%)
+              </span>
+            </div>
+            <div style={{ width: '100%', height: '8px', backgroundColor: '#1e385b', borderRadius: '4px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  width: `${(verifiedCount / 6) * 100}%`,
+                  height: '100%',
+                  backgroundColor: allVerified ? '#10b981' : '#38bdf8',
+                  transition: 'width 0.4s ease'
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Document Cards Grid */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.25rem' }}>
+            {DOCUMENT_CONFIGS.map((doc) => {
+              const isVerified = verifiedDocMap[doc.type];
+              const statusObj = docScanStatus[doc.type] || {};
+              const isScanning = statusObj.status === 'scanning';
+              const isFailed = statusObj.status === 'failed';
+              const manualVal = docInputs[doc.type] || '';
+              const fileObj = docFiles[doc.type];
+
+              let cardBorder = '#1e385b';
+              let cardBg = '#081729';
+              if (isVerified) {
+                cardBorder = 'rgba(16, 185, 129, 0.4)';
+                cardBg = 'rgba(16, 185, 129, 0.04)';
+              } else if (isFailed) {
+                cardBorder = 'rgba(239, 68, 68, 0.4)';
+                cardBg = 'rgba(239, 68, 68, 0.04)';
+              }
+
+              return (
+                <div
+                  key={doc.type}
+                  style={{
+                    backgroundColor: cardBg,
+                    border: `1px solid ${cardBorder}`,
+                    borderRadius: '10px',
+                    padding: '1.25rem',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between',
+                    gap: '1rem',
+                    position: 'relative'
+                  }}
+                >
+                  {/* Card Header */}
+                  <div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                      <div>
+                        <span style={{ fontSize: '0.72rem', color: '#38bdf8', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                          {doc.type} • {doc.authority}
+                        </span>
+                        <h3 style={{ margin: '0.2rem 0', fontSize: '1.05rem', color: '#ffffff' }}>
+                          {doc.name}
+                        </h3>
+                      </div>
+
+                      {/* Status Tag */}
+                      {isVerified ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.25rem 0.6rem', backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#34d399', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '700' }}>
+                          <CheckCircle2 size={13} /> Matched
+                        </span>
+                      ) : isFailed ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.25rem 0.6rem', backgroundColor: 'rgba(239, 68, 68, 0.2)', color: '#ef4444', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '700' }}>
+                          <XCircle size={13} /> Mismatch
+                        </span>
+                      ) : isScanning ? (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.25rem 0.6rem', backgroundColor: 'rgba(56, 189, 248, 0.2)', color: '#38bdf8', borderRadius: '4px', fontSize: '0.75rem', fontWeight: '700' }}>
+                          <RefreshCw size={13} className="spinner" /> OCR Scanning
+                        </span>
+                      ) : (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', padding: '0.25rem 0.6rem', backgroundColor: 'rgba(148, 163, 184, 0.12)', color: '#94a3b8', borderRadius: '4px', fontSize: '0.75rem' }}>
+                          <Clock size={13} /> Pending Scan
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Manual ID Input */}
+                    <div style={{ marginTop: '0.75rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.76rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                        1. Enter Document Number / ID:
+                      </label>
+                      <input
+                        type="text"
+                        value={manualVal}
+                        onChange={(e) => handleInputChange(doc.type, e.target.value)}
+                        placeholder={doc.hint}
+                        className="mono-text"
+                        style={{
+                          width: '100%',
+                          padding: '0.55rem 0.75rem',
+                          backgroundColor: '#0f2238',
+                          border: '1px solid #1e385b',
+                          borderRadius: '6px',
+                          color: '#ffffff',
+                          fontSize: '0.85rem',
+                          boxSizing: 'border-box'
+                        }}
+                      />
+                    </div>
+
+                    {/* Upload File Input Slot */}
+                    <div style={{ marginTop: '0.75rem' }}>
+                      <label style={{ display: 'block', fontSize: '0.76rem', color: '#cbd5e1', marginBottom: '0.3rem', fontWeight: '600' }}>
+                        2. Upload Document File (PDF / Scanned Image):
+                      </label>
+                      <input
+                        type="file"
+                        ref={el => fileInputRefs.current[doc.type] = el}
+                        style={{ display: 'none' }}
+                        accept=".pdf,.png,.jpg,.jpeg,.txt"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileSelect(doc.type, e.target.files[0]);
+                          }
+                        }}
+                      />
+                      <div
+                        onClick={() => fileInputRefs.current[doc.type]?.click()}
+                        style={{
+                          border: '1px dashed #1e385b',
+                          borderRadius: '6px',
+                          padding: '0.55rem 0.75rem',
+                          backgroundColor: '#0f2238',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.5rem',
+                          transition: 'border-color 0.2s'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', overflow: 'hidden' }}>
+                          <Upload size={14} color="#38bdf8" />
+                          <span style={{ fontSize: '0.8rem', color: fileObj ? '#38bdf8' : '#94a3b8', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                            {fileObj ? fileObj.name : `Attach ${doc.sampleFileName}`}
+                          </span>
+                        </div>
+                        <span style={{ fontSize: '0.72rem', color: '#64748b', textTransform: 'uppercase', flexShrink: 0 }}>
+                          {fileObj ? 'Change' : 'Browse'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* OCR Match Feedback / Details */}
+                  {statusObj.message && (
+                    <div style={{
+                      padding: '0.5rem 0.75rem',
+                      borderRadius: '6px',
+                      fontSize: '0.76rem',
+                      backgroundColor: isVerified ? 'rgba(16, 185, 129, 0.1)' : isFailed ? 'rgba(239, 68, 68, 0.1)' : 'rgba(56, 189, 248, 0.1)',
+                      color: isVerified ? '#34d399' : isFailed ? '#ef4444' : '#38bdf8',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.4rem'
+                    }}>
+                      {isVerified ? <CheckCircle2 size={14} /> : isFailed ? <AlertCircle size={14} /> : <Scan size={14} />}
+                      <span>{statusObj.message}</span>
+                    </div>
+                  )}
+
+                  {/* Action Button */}
+                  <button
+                    onClick={() => handleScanSingleDoc(doc.type)}
+                    disabled={isScanning}
+                    style={{
+                      width: '100%',
+                      padding: '0.55rem 0.9rem',
+                      backgroundColor: isVerified ? 'rgba(16, 185, 129, 0.15)' : '#0284c7',
+                      color: isVerified ? '#34d399' : '#ffffff',
+                      border: isVerified ? '1px solid #10b981' : 'none',
+                      borderRadius: '6px',
+                      cursor: isScanning ? 'not-allowed' : 'pointer',
+                      fontWeight: '700',
+                      fontSize: '0.82rem',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      gap: '0.45rem',
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {isScanning ? (
+                      <>
+                        <RefreshCw size={14} className="spinner" />
+                        <span>Scanning via OCR...</span>
+                      </>
+                    ) : isVerified ? (
+                      <>
+                        <CheckCircle2 size={14} />
+                        <span>Re-Scan & Verify OCR</span>
+                      </>
+                    ) : (
+                      <>
+                        <Scan size={14} />
+                        <span>Scan & Match Document</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Section 2: Passport Issuance & QR Display */}
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))', gap: '2rem', marginBottom: '2.5rem' }}>
           
           {/* Passport Credential Card */}
@@ -337,26 +767,33 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
             {passportData ? (
               <>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem', padding: '1.25rem', backgroundColor: '#081729', borderRadius: '8px', border: '1px solid #1e385b', marginBottom: '1rem' }}>
-                  <div style={{ width: '96px', height: '96px', backgroundColor: '#ffffff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0 }}>
+                  <div style={{ width: '108px', height: '108px', backgroundColor: '#ffffff', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', flexShrink: 0, padding: '4px' }}>
                     {qrCodeBlob ? (
                       <img src={qrCodeBlob} alt="Passport QR" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     ) : (
-                      <QrCode size={64} color="#0b1a2d" />
+                      <QrCode size={72} color="#0b1a2d" />
                     )}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Passport Token ID</div>
-                    <div className="mono-text" style={{ fontSize: '0.85rem', color: '#38bdf8', wordBreak: 'break-all', marginBottom: '0.5rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.2rem' }}>
+                      <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Passport Token ID</span>
+                      <span style={{ fontSize: '0.68rem', padding: '0.1rem 0.4rem', backgroundColor: 'rgba(16, 185, 129, 0.2)', color: '#10b981', borderRadius: '3px', fontWeight: '700' }}>
+                        1-Month QR Code
+                      </span>
+                    </div>
+                    <div className="mono-text" style={{ fontSize: '0.82rem', color: '#38bdf8', wordBreak: 'break-all', marginBottom: '0.5rem' }}>
                       {passportData.id}
                     </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', fontSize: '0.78rem' }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.4rem', fontSize: '0.78rem' }}>
                       <div>
                         <span style={{ color: '#94a3b8' }}>Issued: </span>
                         <span>{passportData.issuedAt ? passportData.issuedAt.slice(0, 10) : 'N/A'}</span>
                       </div>
                       <div>
                         <span style={{ color: '#94a3b8' }}>Expires: </span>
-                        <span>{passportData.expiresAt ? passportData.expiresAt.slice(0, 10) : 'N/A'}</span>
+                        <span style={{ color: '#f59e0b', fontWeight: '700' }}>
+                          {passportData.expiresAt ? passportData.expiresAt.slice(0, 10) : 'N/A'} (30d)
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -383,7 +820,7 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
                       fontWeight: '700'
                     }}
                   >
-                    <Download size={14} /> Download QR
+                    <Download size={14} /> Download QR Code
                   </button>
                 </div>
               </>
@@ -392,113 +829,81 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
                 <Shield size={42} color="#64748b" style={{ marginBottom: '0.5rem', opacity: 0.6 }} />
                 <h4 style={{ margin: '0 0 0.3rem 0', color: '#94a3b8' }}>No Active Compliance Passport</h4>
                 <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b' }}>
-                  Verify your PAN & GST credentials below to generate your reusable credential.
+                  Scan & verify your documents above to generate your 1-Month QR Compliance Passport.
                 </p>
               </div>
             )}
           </div>
 
-          {/* Document Verification Checklist */}
-          <div style={{ backgroundColor: '#0f2238', border: '1px solid #1e385b', borderRadius: '12px', padding: '1.75rem' }}>
-            <h3 style={{ margin: '0 0 1.25rem 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <BadgeCheck size={20} color="#38bdf8" />
-              <span>Statutory Document Verification</span>
-            </h3>
+          {/* Issue Passport Action Box */}
+          <div style={{ backgroundColor: '#0f2238', border: '1px solid #1e385b', borderRadius: '12px', padding: '1.75rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+            <div>
+              <h3 style={{ margin: '0 0 0.75rem 0', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Award size={20} color="#38bdf8" />
+                <span>Step 2: Generate Digital Compliance Passport</span>
+              </h3>
+              <p style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: '1.5', margin: '0 0 1.25rem 0' }}>
+                Once your statutory documents match the OCR scans, generate your digitally-signed QR Passport with a <strong>1-month expiration deadline</strong>.
+              </p>
 
-            <div style={{ display: 'grid', gap: '0.75rem', marginBottom: '1.5rem' }}>
-              {[
-                { type: 'PAN', name: 'Permanent Account Number (NSDL)' },
-                { type: 'GST', name: 'GSTIN Registration (GSTN Portal)' },
-                { type: 'UDYAM', name: 'Udyam MSME Certificate' },
-                { type: 'MSME', name: 'MSME Classification' },
-                { type: 'ISO', name: 'ISO 9001:2015 Quality Cert' },
-                { type: 'CA_TURNOVER', name: 'CA Audited Turnover with UDIN' }
-              ].map(doc => {
-                const isVerified = verificationsList.some(v => v.docType === doc.type && v.status === 'verified');
-                return (
-                  <div
-                    key={doc.type}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      padding: '0.7rem 1rem',
-                      backgroundColor: '#081729',
-                      borderRadius: '6px',
-                      border: isVerified ? '1px solid rgba(52, 211, 153, 0.3)' : '1px solid #1e385b'
-                    }}
-                  >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <FileText size={16} color={isVerified ? '#34d399' : '#94a3b8'} />
-                      <div>
-                        <span style={{ fontSize: '0.86rem', fontWeight: '700', color: '#ffffff' }}>{doc.type}</span>
-                        <span style={{ fontSize: '0.76rem', color: '#94a3b8', marginLeft: '0.5rem' }}>({doc.name})</span>
-                      </div>
-                    </div>
-                    {isVerified ? (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#34d399', fontSize: '0.8rem', fontWeight: '700' }}>
-                        <CheckCircle2 size={15} /> Verified
-                      </span>
-                    ) : (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#f59e0b', fontSize: '0.8rem' }}>
-                        <Clock size={15} /> Pending
-                      </span>
-                    )}
+              <div style={{ backgroundColor: '#081729', borderRadius: '8px', padding: '1rem', border: '1px solid #1e385b', marginBottom: '1.5rem' }}>
+                <div style={{ fontSize: '0.82rem', fontWeight: '700', color: '#38bdf8', marginBottom: '0.5rem' }}>
+                  Issuance Requirements:
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem', fontSize: '0.8rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: verifiedDocMap['PAN'] ? '#34d399' : '#94a3b8' }}>
+                    {verifiedDocMap['PAN'] ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+                    <span>PAN Document OCR Matched</span>
                   </div>
-                );
-              })}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: verifiedDocMap['GST'] ? '#34d399' : '#94a3b8' }}>
+                    {verifiedDocMap['GST'] ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+                    <span>GSTIN Document OCR Matched</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: allVerified ? '#34d399' : '#94a3b8' }}>
+                    {allVerified ? <CheckCircle2 size={14} /> : <Clock size={14} />}
+                    <span>All 6 Documents OCR Matched ({verifiedCount}/6)</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#38bdf8' }}>
+                    <ShieldCheck size={14} />
+                    <span>RSA-2048 Digital Signature & 1-Month Expiry Attached</span>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-              <button
-                onClick={handleVerifyDocuments}
-                disabled={verifying}
-                style={{
-                  flex: 1,
-                  padding: '0.65rem 1rem',
-                  backgroundColor: '#1e385b',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '6px',
-                  cursor: verifying ? 'not-allowed' : 'pointer',
-                  fontWeight: '700',
-                  fontSize: '0.84rem',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: '0.5rem'
-                }}
-              >
-                {verifying ? <RefreshCw size={16} className="spinner" /> : <Upload size={16} />}
-                <span>{verifying ? 'Verifying with Portals...' : 'Verify Documents via AI'}</span>
-              </button>
-
-              {canIssue && (
-                <button
-                  onClick={handleIssuePassport}
-                  disabled={issuing}
-                  style={{
-                    flex: 1,
-                    padding: '0.65rem 1rem',
-                    backgroundColor: '#10b981',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '6px',
-                    cursor: issuing ? 'not-allowed' : 'pointer',
-                    fontWeight: '800',
-                    fontSize: '0.84rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '0.5rem',
-                    boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)'
-                  }}
-                >
-                  {issuing ? <RefreshCw size={16} className="spinner" /> : <Award size={16} />}
-                  <span>{passportData ? 'Renew Passport' : 'Issue Passport (Sign RSA)'}</span>
-                </button>
+            <button
+              onClick={handleIssuePassport}
+              disabled={issuing || !canIssue}
+              style={{
+                width: '100%',
+                padding: '0.85rem 1.25rem',
+                backgroundColor: canIssue ? '#10b981' : '#1e385b',
+                color: canIssue ? '#ffffff' : '#64748b',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: (issuing || !canIssue) ? 'not-allowed' : 'pointer',
+                fontWeight: '800',
+                fontSize: '0.95rem',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '0.6rem',
+                boxShadow: canIssue ? '0 4px 16px rgba(16, 185, 129, 0.4)' : 'none',
+                transition: 'all 0.2s'
+              }}
+            >
+              {issuing ? (
+                <>
+                  <RefreshCw size={18} className="spinner" />
+                  <span>Signing Credential & Generating QR...</span>
+                </>
+              ) : (
+                <>
+                  <QrCode size={18} />
+                  <span>{passportData ? 'Regenerate 1-Month Passport QR' : 'Generate Compliance Passport (1-Month QR)'}</span>
+                </>
               )}
-            </div>
+            </button>
           </div>
         </div>
 
