@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from 'react';
 import { 
   Bot, Send, Mic, MicOff, Volume2, VolumeX, X, 
   Minimize2, Maximize2, Trash2, ShieldCheck, 
-  FileText, TrendingDown, Award, Sparkles, PlusCircle, CheckCircle2
+  FileText, TrendingDown, Award, Sparkles, PlusCircle, CheckCircle2,
+  Globe, ChevronDown, Check
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { translations } from '../i18n/translations';
 import { GEMMY_SUGGESTED_PROMPTS, getSmartGeMResponse } from '../data/gemmyKnowledge';
 
 export default function AskGemmyModal({ 
@@ -12,11 +14,18 @@ export default function AskGemmyModal({
   onClose, 
   onOpenVerifier, 
   onNavigateTab, 
-  onOpenCreateBid,
+  onOpenCreateBid, 
   onOpenCategory 
 }) {
-  const { t, lang } = useLanguage();
-  const language = lang || 'en';
+  const { t, lang: portalLang } = useLanguage();
+
+  // Separate, independent language state for GeMMy Chatbot
+  const [chatLanguage, setChatLanguage] = useState(() => {
+    return localStorage.getItem('gemmy_chatbot_lang') || portalLang || 'en';
+  });
+  const [isLangDropdownOpen, setIsLangDropdownOpen] = useState(false);
+  const langDropdownRef = useRef(null);
+
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -31,14 +40,46 @@ export default function AskGemmyModal({
   const recognitionRef = useRef(null);
   const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
 
-  // Initialize SpeechRecognition if available
+  const chatLangOptions = [
+    { code: 'en', label: 'English', short: 'EN', native: 'English', flag: '🇬🇧' },
+    { code: 'hi', label: 'Hindi', short: 'HI', native: 'हिंदी', flag: '🇮🇳' },
+    { code: 'mr', label: 'Marathi', short: 'MR', native: 'मराठी', flag: '🇮🇳' }
+  ];
+  const currentChatLang = chatLangOptions.find(o => o.code === chatLanguage) || chatLangOptions[0];
+
+  // Helper to translate strings specific to chatbot's independent language
+  const chatT = (key) => {
+    return translations[chatLanguage]?.[key] || translations['en']?.[key] || t(key);
+  };
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (langDropdownRef.current && !langDropdownRef.current.contains(event.target)) {
+        setIsLangDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Update chatbot language and reload its prompts
+  const handleSelectChatLang = (code) => {
+    setChatLanguage(code);
+    localStorage.setItem('gemmy_chatbot_lang', code);
+    setIsLangDropdownOpen(false);
+    fetchSuggestedPrompts(code);
+    if (synthRef.current?.speaking) synthRef.current.cancel();
+  };
+
+  // Initialize SpeechRecognition if available (using chatbot language)
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
       const recognition = new SpeechRecognition();
       recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN';
+      recognition.lang = chatLanguage === 'hi' ? 'hi-IN' : chatLanguage === 'mr' ? 'mr-IN' : 'en-IN';
 
       recognition.onstart = () => setIsListening(true);
       recognition.onend = () => setIsListening(false);
@@ -56,12 +97,12 @@ export default function AskGemmyModal({
 
       recognitionRef.current = recognition;
     }
-  }, [language]);
+  }, [chatLanguage]);
 
-  // Update suggested prompts when language changes
+  // Update suggested prompts when chatbot language changes
   useEffect(() => {
-    fetchSuggestedPrompts(language);
-  }, [language]);
+    fetchSuggestedPrompts(chatLanguage);
+  }, [chatLanguage]);
 
   // Scroll to bottom when messages update
   useEffect(() => {
@@ -107,7 +148,7 @@ export default function AskGemmyModal({
       .replace(/\n+/g, ' ');
 
     const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN';
+    utterance.lang = chatLanguage === 'hi' ? 'hi-IN' : chatLanguage === 'mr' ? 'mr-IN' : 'en-IN';
     utterance.rate = 1.0;
 
     utterance.onstart = () => setSpeakingMsgId(msgId);
@@ -129,7 +170,7 @@ export default function AskGemmyModal({
       setIsListening(false);
     } else {
       try {
-        recognitionRef.current.lang = language === 'hi' ? 'hi-IN' : language === 'mr' ? 'mr-IN' : 'en-IN';
+        recognitionRef.current.lang = chatLanguage === 'hi' ? 'hi-IN' : chatLanguage === 'mr' ? 'mr-IN' : 'en-IN';
         recognitionRef.current.start();
       } catch (err) {
         console.error("Recognition start error:", err);
@@ -163,7 +204,7 @@ export default function AskGemmyModal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           message: query,
-          language: language,
+          language: chatLanguage,
           role: 'public',
           history: newMessages.slice(-6).map(m => ({ role: m.role, content: m.content }))
         })
@@ -180,9 +221,9 @@ export default function AskGemmyModal({
       let replyActions = data.actions || [];
       let replyModel = data.model || 'Groq (qwen/qwen3.8-27b)';
 
-      // If backend returned empty or a generic fallback without answering specifically, enhance with local GeM intelligence
+      // If backend returned empty or generic fallback without answering specifically, enhance with local GeM intelligence
       if (!replyText || replyText.trim().length === 0) {
-        const smartFallback = getSmartGeMResponse(query, language);
+        const smartFallback = getSmartGeMResponse(query, chatLanguage);
         replyText = smartFallback.reply;
         replyCitations = smartFallback.citations;
         replyActions = smartFallback.actions;
@@ -209,7 +250,7 @@ export default function AskGemmyModal({
       console.warn("Backend chat unavailable, applying intelligent GeM procurement engine:", err);
       
       // Client-side intelligent response tailored precisely to the user's specific GeM question
-      const smartRes = getSmartGeMResponse(query, language);
+      const smartRes = getSmartGeMResponse(query, chatLanguage);
       const assistantMessageId = `gemmy_${Date.now()}`;
       const fallbackMsg = {
         id: assistantMessageId,
@@ -272,11 +313,47 @@ export default function AskGemmyModal({
             </div>
             <div className="gemmy-header-text">
               <div className="gemmy-header-title-row">
-                <h3 className="gemmy-title">{t('gemmyTitle')}</h3>
+                <h3 className="gemmy-title">{chatT('gemmyTitle')}</h3>
                 <span className="gemmy-ai-badge">AI 2.0</span>
-                <span className="gemmy-lang-pill">{language.toUpperCase()}</span>
+
+                {/* Dedicated Chatbot Language Selector */}
+                <div className="gemmy-lang-selector-wrap" ref={langDropdownRef}>
+                  <button
+                    type="button"
+                    className="gemmy-lang-select-btn"
+                    onClick={() => setIsLangDropdownOpen(!isLangDropdownOpen)}
+                    title="Change Chatbot Language (English / हिंदी / मराठी)"
+                    aria-label="Change Chatbot Language"
+                  >
+                    <Globe size={12} className="gemmy-globe-icon" />
+                    <span>{currentChatLang.native}</span>
+                    <span className="gemmy-lang-code-pill">{currentChatLang.short}</span>
+                    <ChevronDown size={11} className={`gemmy-lang-caret ${isLangDropdownOpen ? 'open' : ''}`} />
+                  </button>
+
+                  {isLangDropdownOpen && (
+                    <div className="gemmy-lang-menu">
+                      <div className="gemmy-lang-menu-title">Chatbot Language</div>
+                      {chatLangOptions.map(opt => (
+                        <button
+                          key={opt.code}
+                          type="button"
+                          className={`gemmy-lang-option ${chatLanguage === opt.code ? 'selected' : ''}`}
+                          onClick={() => handleSelectChatLang(opt.code)}
+                        >
+                          <span className="gemmy-lang-opt-flag">{opt.flag}</span>
+                          <span className="gemmy-lang-opt-text">
+                            <strong>{opt.native}</strong>
+                            <small>({opt.label})</small>
+                          </span>
+                          {chatLanguage === opt.code && <Check size={14} className="gemmy-lang-check" />}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
-              <p className="gemmy-subtitle">{t('gemmyOnlineStatus')}</p>
+              <p className="gemmy-subtitle">{chatT('gemmyOnlineStatus')}</p>
             </div>
           </div>
 
@@ -288,7 +365,7 @@ export default function AskGemmyModal({
                 setTtsEnabled(!ttsEnabled);
                 if (synthRef.current?.speaking) synthRef.current.cancel();
               }}
-              title={ttsEnabled ? t('gemmyVoiceOn') : t('gemmyVoiceOff')}
+              title={ttsEnabled ? chatT('gemmyVoiceOn') : chatT('gemmyVoiceOff')}
               aria-label="Toggle Text-to-Speech"
             >
               {ttsEnabled ? <Volume2 size={17} /> : <VolumeX size={17} />}
@@ -302,7 +379,7 @@ export default function AskGemmyModal({
                   setMessages([]);
                   if (synthRef.current?.speaking) synthRef.current.cancel();
                 }}
-                title={t('gemmyClear')}
+                title={chatT('gemmyClear')}
                 aria-label="Clear chat"
               >
                 <Trash2 size={16} />
@@ -313,7 +390,7 @@ export default function AskGemmyModal({
             <button
               className="gemmy-control-btn"
               onClick={() => setIsMinimized(!isMinimized)}
-              title={t('gemmyMinimize')}
+              title={chatT('gemmyMinimize')}
               aria-label="Minimize"
             >
               <Minimize2 size={16} />
@@ -323,7 +400,7 @@ export default function AskGemmyModal({
             <button
               className="gemmy-control-btn desktop-only"
               onClick={() => setIsExpanded(!isExpanded)}
-              title={t('gemmyMaximize')}
+              title={chatT('gemmyMaximize')}
               aria-label="Maximize"
             >
               <Maximize2 size={16} />
@@ -336,7 +413,7 @@ export default function AskGemmyModal({
                 if (synthRef.current?.speaking) synthRef.current.cancel();
                 onClose();
               }}
-              title={t('gemmyClose')}
+              title={chatT('gemmyClose')}
               aria-label="Close"
             >
               <X size={18} />
@@ -355,12 +432,12 @@ export default function AskGemmyModal({
                     <div className="gemmy-welcome-icon-wrap">
                       <Sparkles size={28} className="text-amber-400" />
                     </div>
-                    <h4>{t('gemmyWelcomeTitle')}</h4>
-                    <p>{t('gemmyWelcomeDesc')}</p>
+                    <h4>{chatT('gemmyWelcomeTitle')}</h4>
+                    <p>{chatT('gemmyWelcomeDesc')}</p>
                   </div>
 
                   <div className="gemmy-prompts-section">
-                    <span className="gemmy-prompts-label">{t('gemmyQuickPrompts')}</span>
+                    <span className="gemmy-prompts-label">{chatT('gemmyQuickPrompts')}</span>
                     <div className="gemmy-prompts-grid">
                       {suggestedPrompts.map((item, idx) => (
                         <button
@@ -427,7 +504,7 @@ export default function AskGemmyModal({
                     {/* Regulatory Citations */}
                     {msg.citations && msg.citations.length > 0 && (
                       <div className="gemmy-citations-tray">
-                        <span className="gemmy-citation-label">📜 {t('gemmyCitRef')}:</span>
+                        <span className="gemmy-citation-label">📜 {chatT('gemmyCitRef')}:</span>
                         {msg.citations.map((cit, ci) => (
                           <span key={ci} className="gemmy-citation-pill">
                             {cit}
@@ -439,7 +516,7 @@ export default function AskGemmyModal({
                     {/* Action Buttons */}
                     {msg.actions && msg.actions.length > 0 && (
                       <div className="gemmy-actions-tray">
-                        <span className="gemmy-actions-title">⚡ {t('gemmyActions')}:</span>
+                        <span className="gemmy-actions-title">⚡ {chatT('gemmyActions')}:</span>
                         <div className="gemmy-actions-list">
                           {msg.actions.map((act) => (
                             <button
@@ -520,7 +597,7 @@ export default function AskGemmyModal({
                 <input
                   type="text"
                   className="gemmy-text-input"
-                  placeholder={isListening ? t('gemmyListening') : t('gemmyPlaceholder')}
+                  placeholder={isListening ? chatT('gemmyListening') : chatT('gemmyPlaceholder')}
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}
                   disabled={isLoading}
@@ -531,7 +608,7 @@ export default function AskGemmyModal({
                   type="submit"
                   className="gemmy-send-btn"
                   disabled={!inputValue.trim() || isLoading}
-                  title={t('gemmySend')}
+                  title={chatT('gemmySend')}
                   aria-label="Send message"
                 >
                   <Send size={16} />
@@ -548,3 +625,4 @@ export default function AskGemmyModal({
     </div>
   );
 }
+
