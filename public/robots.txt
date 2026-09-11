@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+
+Sitemap: https://gem-procure-ai.onrender.com/sitemap.xml
+

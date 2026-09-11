@@ -1,0 +1,19 @@
+# GeM AI Procurement Compliance Platform
+
+> AI-powered integrated bid compliance verification platform for GeM procurement.
+
+## Capabilities
+- Real-time OCR document ingestion and parsing
+- NLP entity validation (PAN, GSTIN, Udyam, CA Turnover)
+- GFR 2017 & DPIIT Make-in-India automated rule engine
+- Cartel anomaly detection via AI
+- Digital Compliance Passport system
+
+## Important Pages
+- [Homepage](/) - Core dashboard and procurement features
+- [Active Tenders](/tenders) - Search and apply for government tenders
+- [Live Auctions](/auctions) - Real-time price bidding and anomaly monitoring
+
+## Documentation
+Refer to the standard GeM and GFR 2017 guidelines for procurement policies.
+

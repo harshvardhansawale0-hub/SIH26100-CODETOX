@@ -17,23 +17,20 @@ import {
   PlusCircle,
   Truck,
   Building2,
-  ExternalLink
+  ExternalLink,
+  Home
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
 // Import image assets
-import oxygenImg from '../assets/gem_cat_oxygen.jpg';
-import medicalImg from '../assets/gem_cat_medical.jpg';
-import sarasImg from '../assets/gem_cat_saras.jpg';
-import furnitureImg from '../assets/gem_cat_furniture.jpg';
-import fireImg from '../assets/gem_cat_fire.jpg';
-import computersImg from '../assets/gem_cat_computers.jpg';
+
 
 export default function CategoryCatalogView({ 
   initialCategory = 'Oxygen Gas & Accessories', 
   currentUser,
   onNavigateToTenders,
-  onOpenCreateBid
+  onOpenCreateBid,
+  onNavigateHome
 }) {
   const { t } = useLanguage();
   const [selectedCategory, setSelectedCategory] = useState(initialCategory || 'Oxygen Gas & Accessories');
@@ -73,37 +70,31 @@ export default function CategoryCatalogView({
   const categoryConfigs = [
     {
       name: 'Oxygen Gas & Accessories',
-      image: oxygenImg,
       icon: '🫁',
       tagline: 'Medical grade oxygen, high-pressure cylinders, cryogenic tanks and PSA generation systems'
     },
     {
       name: 'Medical & Healthcare',
-      image: medicalImg,
       icon: '🩺',
       tagline: 'ICU monitors, diagnostic ECG machines, motorized beds and ventilators for healthcare centers'
     },
     {
       name: 'SARAS Handicrafts & Women Artisans',
-      image: sarasImg,
       icon: '🌸',
       tagline: 'Exclusive artisan creations, handloom weaves, and craft products from rural Women SHGs'
     },
     {
       name: 'Furniture & Fixtures',
-      image: furnitureImg,
       icon: '🪑',
       tagline: 'Heavy-gauge steel almirahs, ergonomic chairs, executive desks and institutional fixtures'
     },
     {
       name: 'Fire Safety & Security',
-      image: fireImg,
       icon: '🧯',
       tagline: 'ABC powder fire extinguishers, optical smoke sensors, motorized pumps and suppression systems'
     },
     {
       name: 'Computers & IT Hardware',
-      image: computersImg,
       icon: '💻',
       tagline: 'Commercial desktops, military-grade laptops, enterprise rack servers and network printers'
     },
@@ -498,7 +489,30 @@ export default function CategoryCatalogView({
             </p>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            {onNavigateHome && (
+              <button 
+                onClick={onNavigateHome}
+                style={{
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  color: '#e2e8f0',
+                  border: '1px solid #1e385b',
+                  borderRadius: '8px',
+                  padding: '0.65rem 1.15rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  fontWeight: '700',
+                  fontSize: '0.85rem',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Return to GeM Homepage"
+              >
+                <Home size={15} color="#38bdf8" />
+                <span>🏠 Homepage</span>
+              </button>
+            )}
             <div style={{ backgroundColor: '#0b1a2d', border: '1px solid #1e385b', padding: '0.65rem 1.25rem', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <ShoppingBag size={18} color="#38bdf8" />
               <span style={{ fontSize: '0.85rem', color: '#cbd5e1' }}>Direct Indents: <strong>{cartCount} Generated</strong></span>

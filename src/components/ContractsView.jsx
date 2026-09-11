@@ -2,9 +2,9 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
 import { initialContracts } from '../data/bidsData';
-import { Search, Filter, FileText, CheckCircle, IndianRupee, Clock, Briefcase, FileSignature, X } from 'lucide-react';
+import { Search, Filter, FileText, CheckCircle, IndianRupee, Clock, Briefcase, FileSignature, X, Home } from 'lucide-react';
 
-const ContractsView = ({ currentUser, initialFilter = 'ALL', initialSearch = '' }) => {
+const ContractsView = ({ currentUser, initialFilter = 'ALL', initialSearch = '', onNavigateHome }) => {
   const { t } = useLanguage();
   const [contracts, setContracts] = useState(initialContracts || []);
   const [loading, setLoading] = useState(false);
@@ -121,14 +121,39 @@ const ContractsView = ({ currentUser, initialFilter = 'ALL', initialSearch = '' 
 
   return (
     <div style={{ padding: '1.5rem', color: '#ffffff', minHeight: '80vh' }}>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <span className="section-tag">{t('contractTag') || 'CONTRACTS & PAYMENTS (GFR 225)'}</span>
-        <h2 className="serif-heading" style={{ margin: '0.4rem 0', fontSize: '1.9rem', color: '#ffffff' }}>
-          {t('contractTitle') || 'Contract Management Portal'}
-        </h2>
-        <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>
-          {t('contractSubtitle') || 'Track CRAC inspections, process 10-day PFMS payments, and manage contract lifecycles.'}
-        </p>
+      <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <div>
+          <span className="section-tag">{t('contractTag') || 'CONTRACTS & PAYMENTS (GFR 225)'}</span>
+          <h2 className="serif-heading" style={{ margin: '0.4rem 0', fontSize: '1.9rem', color: '#ffffff' }}>
+            {t('contractTitle') || 'Contract Management Portal'}
+          </h2>
+          <p style={{ color: '#94a3b8', margin: 0, fontSize: '0.95rem' }}>
+            {t('contractSubtitle') || 'Track CRAC inspections, process 10-day PFMS payments, and manage contract lifecycles.'}
+          </p>
+        </div>
+        {onNavigateHome && (
+          <button 
+            onClick={onNavigateHome}
+            style={{
+              backgroundColor: 'rgba(255, 255, 255, 0.06)',
+              color: '#e2e8f0',
+              border: '1px solid #1e385b',
+              borderRadius: '6px',
+              padding: '0.65rem 1.15rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.45rem',
+              fontWeight: '700',
+              fontSize: '0.85rem',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+            title="Return to GeM Homepage"
+          >
+            <Home size={15} color="#38bdf8" />
+            <span>🏠 Homepage</span>
+          </button>
+        )}
       </div>
 
       <div className="terminal-stat-cards" style={{ marginBottom: '1.75rem' }}>

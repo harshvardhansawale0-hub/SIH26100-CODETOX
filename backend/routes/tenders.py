@@ -86,10 +86,11 @@ def publish_tender(payload: TenderCreateRequest, authorization: Optional[str] = 
     created = create_tender(new_tender)
     return created
 
-@router.delete("/{tender_id}", response_model=Dict[str, Any])
+@router.delete("/{tender_id:path}", response_model=Dict[str, Any])
 def remove_tender(tender_id: str):
     """
     Buyer deletes a tender by ID.
+    Supports slash-containing Tender IDs (e.g. GEM/2026/B/891244).
     """
     deleted = delete_tender(tender_id)
     if not deleted:

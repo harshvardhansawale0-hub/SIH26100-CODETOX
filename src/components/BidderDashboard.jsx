@@ -3,7 +3,7 @@ import {
   Building2, Search, Filter, ShieldCheck, CheckCircle2, AlertTriangle,
   XCircle, Award, FileText, ArrowRight, UploadCloud, Eye, RefreshCw,
   Layers, Clock, AlertCircle, CheckCircle, ChevronRight, X, Cpu,
-  Sparkles, ExternalLink, ShieldAlert, BarChart3, HelpCircle
+  Sparkles, ExternalLink, ShieldAlert, BarChart3, HelpCircle, Home
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import AwardedTenderKeymap from './AwardedTenderKeymap';
@@ -17,7 +17,8 @@ export default function BidderDashboard({
   onOpenVerifierWithTender,
   onSelectBid,
   onNavigateToPassport,
-  currentUser = null
+  currentUser = null,
+  onNavigateHome
 }) {
   const { t } = useLanguage();
 
@@ -222,6 +223,29 @@ export default function BidderDashboard({
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+            {onNavigateHome && (
+              <button
+                onClick={onNavigateHome}
+                style={{
+                  padding: '0.7rem 1.25rem',
+                  backgroundColor: 'rgba(255, 255, 255, 0.06)',
+                  color: '#e2e8f0',
+                  fontWeight: '700',
+                  fontSize: '0.88rem',
+                  borderRadius: '8px',
+                  border: '1px solid #1e385b',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.45rem',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Return to GeM Homepage"
+              >
+                <Home size={16} color="#34d399" />
+                <span>🏠 Homepage</span>
+              </button>
+            )}
             <button
               onClick={() => onOpenVerifierWithTender(tenders[0] || null)}
               style={{
@@ -489,6 +513,28 @@ export default function BidderDashboard({
         {/* Tab Selection Filter Bar (Tender Selection Page vs My Submissions) */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', borderBottom: '1px solid #1e385b', paddingBottom: '0.75rem', marginBottom: '1.5rem' }}>
           <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+            {onNavigateHome && (
+              <button
+                onClick={onNavigateHome}
+                style={{
+                  padding: '0.55rem 1rem',
+                  borderRadius: '6px',
+                  border: '1px solid #1e385b',
+                  backgroundColor: 'rgba(255, 255, 255, 0.05)',
+                  color: '#34d399',
+                  fontWeight: '700',
+                  fontSize: '0.84rem',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.35rem',
+                  transition: 'all 0.2s ease'
+                }}
+                title="Return to GeM Homepage"
+              >
+                <Home size={15} /> 🏠 Homepage
+              </button>
+            )}
             <button
               onClick={() => setSelectedCategoryTab('ALL')}
               style={{

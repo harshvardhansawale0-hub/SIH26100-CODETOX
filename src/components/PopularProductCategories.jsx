@@ -1,11 +1,11 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import oxygenImg from '../assets/gem_cat_oxygen.jpg';
-import medicalImg from '../assets/gem_cat_medical.jpg';
-import sarasImg from '../assets/gem_cat_saras.jpg';
-import furnitureImg from '../assets/gem_cat_furniture.jpg';
-import fireImg from '../assets/gem_cat_fire.jpg';
-import computersImg from '../assets/gem_cat_computers.jpg';
+import oxygenImg from '../assets/gem_cat_oxygen.webp';
+import medicalImg from '../assets/gem_cat_medical.webp';
+import sarasImg from '../assets/gem_cat_saras.webp';
+import furnitureImg from '../assets/gem_cat_furniture.webp';
+import fireImg from '../assets/gem_cat_fire.webp';
+import computersImg from '../assets/gem_cat_computers.webp';
 
 export default function PopularProductCategories({ onCategoryClick, onOpenGemmy }) {
   const { t } = useLanguage();
@@ -158,6 +158,8 @@ export default function PopularProductCategories({ onCategoryClick, onOpenGemmy 
                   <img
                     src={cat.image}
                     alt={cat.alt}
+                    width="130"
+                    height="140"
                     className="category-product-img"
                     loading="lazy"
                   />
@@ -168,62 +170,6 @@ export default function PopularProductCategories({ onCategoryClick, onOpenGemmy 
         </div>
       </div>
 
-      {/* Right-Side Quick Social Floating Dock */}
-      <aside className="gem-social-dock" aria-label="GeM Social Media and Navigation">
-        <a
-          href="https://instagram.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-ig"
-          title="Instagram"
-        >
-          📷
-        </a>
-        <a
-          href="https://facebook.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-fb"
-          title="Facebook"
-        >
-          f
-        </a>
-        <a
-          href="https://twitter.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-tw"
-          title="X (Twitter)"
-        >
-          𝕏
-        </a>
-        <a
-          href="https://youtube.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-yt"
-          title="YouTube"
-        >
-          ▶
-        </a>
-        <a
-          href="https://linkedin.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="social-dock-icon social-li"
-          title="LinkedIn"
-        >
-          in
-        </a>
-        <button
-          type="button"
-          className="social-dock-icon social-top"
-          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          title="Back to Top"
-        >
-          ︽
-        </button>
-      </aside>
     </section>
   );
 }

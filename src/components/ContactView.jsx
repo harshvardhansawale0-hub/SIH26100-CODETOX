@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Mail, Phone, MapPin, Send, CheckCircle } from 'lucide-react';
+import { Mail, Phone, MapPin, Send, CheckCircle, Home } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 
-export default function ContactView() {
+export default function ContactView({ onNavigateHome }) {
   const { t } = useLanguage();
   const [submitted, setSubmitted] = useState(false);
   const [formData, setFormData] = useState({
@@ -21,6 +21,32 @@ export default function ContactView() {
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '80vh', padding: '4rem 1.5rem', color: '#0f172a' }}>
       <div className="container-custom" style={{ maxWidth: '960px' }}>
+        {onNavigateHome && (
+          <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: '2rem' }}>
+            <button
+              onClick={onNavigateHome}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.45rem',
+                padding: '0.55rem 1.15rem',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                backgroundColor: '#ffffff',
+                color: '#0284c7',
+                fontWeight: '700',
+                fontSize: '0.85rem',
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
+                transition: 'all 0.2s ease'
+              }}
+              title="Return to GeM Homepage"
+            >
+              <Home size={16} />
+              <span>🏠 Return to Homepage</span>
+            </button>
+          </div>
+        )}
         <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
           <span className="section-tag">{t('contactTag')}</span>
           <h1 className="serif-heading" style={{ fontSize: '2.5rem', color: '#0b1a2d', marginBottom: '0.75rem' }}>

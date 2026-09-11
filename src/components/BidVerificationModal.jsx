@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Upload, CheckCircle2, AlertTriangle, XCircle, FileText, Cpu, ShieldCheck, Download, RefreshCw, Trash2, Check } from 'lucide-react';
-import confetti from 'canvas-confetti';
 import { samplePreloads } from '../data/bidsData';
 import { useLanguage } from '../context/LanguageContext';
 import { gemApi } from '../services/api';
@@ -215,10 +214,13 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
         setResult(evalResult);
 
         if (evalResult.status === 'Compliant') {
-          confetti({
-            particleCount: 70,
-            spread: 60,
-            origin: { y: 0.6 }
+          import('canvas-confetti').then((module) => {
+            const fireConfetti = module.default;
+            fireConfetti({
+              particleCount: 70,
+              spread: 60,
+              origin: { y: 0.6 }
+            });
           });
         }
 
