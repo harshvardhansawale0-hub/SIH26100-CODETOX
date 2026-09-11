@@ -26,24 +26,25 @@ export default function ContactView({ onNavigateHome }) {
             <button
               onClick={onNavigateHome}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.45rem',
-                padding: '0.55rem 1.15rem',
+                width: '40px',
+                height: '40px',
+                padding: 0,
                 borderRadius: '8px',
                 border: '1px solid #cbd5e1',
                 backgroundColor: '#ffffff',
                 color: '#0284c7',
-                fontWeight: '700',
-                fontSize: '0.85rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 cursor: 'pointer',
                 boxShadow: '0 2px 6px rgba(0, 0, 0, 0.04)',
-                transition: 'all 0.2s ease'
+                transition: 'all 0.2s ease',
+                flexShrink: 0
               }}
               title="Return to GeM Homepage"
+              aria-label="Return to GeM Homepage"
             >
-              <Home size={16} />
-              <span>🏠 Return to Homepage</span>
+              <Home size={18} color="#0284c7" />
             </button>
           </div>
         )}

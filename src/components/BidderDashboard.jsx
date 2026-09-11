@@ -239,24 +239,25 @@ export default function BidderDashboard({
               <button
                 onClick={onNavigateHome}
                 style={{
-                  padding: '0.7rem 1.25rem',
+                  width: '40px',
+                  height: '40px',
+                  padding: 0,
                   backgroundColor: '#ffffff',
-                  color: '#0f172a',
-                  fontWeight: '700',
-                  fontSize: '0.88rem',
+                  color: '#0284c7',
                   borderRadius: '10px',
                   border: '1px solid #cbd5e1',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.45rem',
+                  justifyContent: 'center',
                   boxShadow: '0 2px 8px rgba(0,0,0,0.05)',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
                 }}
                 title="Return to GeM Homepage"
+                aria-label="Return to GeM Homepage"
               >
-                <Home size={16} color="#0284c7" />
-                <span>🏠 Homepage</span>
+                <Home size={18} color="#0284c7" />
               </button>
             )}
             <button
@@ -534,23 +535,25 @@ export default function BidderDashboard({
               <button
                 onClick={onNavigateHome}
                 style={{
-                  padding: '0.55rem 1rem',
+                  width: '38px',
+                  height: '38px',
+                  padding: 0,
                   borderRadius: '8px',
                   border: '1px solid #cbd5e1',
                   backgroundColor: '#ffffff',
                   color: '#0284c7',
-                  fontWeight: '700',
-                  fontSize: '0.84rem',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.35rem',
+                  justifyContent: 'center',
                   boxShadow: '0 1px 4px rgba(0,0,0,0.04)',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
                 }}
                 title="Return to GeM Homepage"
+                aria-label="Return to GeM Homepage"
               >
-                <Home size={15} color="#0284c7" /> <span>🏠 Homepage</span>
+                <Home size={17} color="#0284c7" />
               </button>
             )}
             <button
