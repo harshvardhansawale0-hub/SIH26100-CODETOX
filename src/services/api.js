@@ -1,4 +1,4 @@
-import { initialBids, initialTenders, initialContracts, summaryMetrics } from '../data/bidsData';
+import { initialBids, initialTenders, initialContracts, summaryMetrics, initialMilestones, createDefaultMilestones } from '../data/bidsData';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || (
   typeof window !== 'undefined'
@@ -398,6 +398,49 @@ export const gemApi = {
         paymentStatus: 'Settled (100%)',
         disbursementRef: `PFMS-${Date.now()}`
       };
+    }
+  },
+
+  // 5.1 Awarded Tender Execution Keymaps
+  async getAwardedMilestones() {
+    try {
+      const stored = localStorage.getItem('gem_awarded_milestones');
+      if (stored) {
+        return JSON.parse(stored);
+      }
+    } catch {}
+    return initialMilestones;
+  },
+
+  async updateAwardedMilestone(tenderId, stepKey, approvalData) {
+    try {
+      let current = {};
+      try {
+        const stored = localStorage.getItem('gem_awarded_milestones');
+        current = stored ? JSON.parse(stored) : { ...initialMilestones };
+      } catch {
+        current = { ...initialMilestones };
+      }
+
+      if (!current[tenderId]) {
+        current[tenderId] = createDefaultMilestones(tenderId);
+      }
+
+      if (current[tenderId]?.steps?.[stepKey]) {
+        current[tenderId].steps[stepKey] = {
+          ...current[tenderId].steps[stepKey],
+          ...approvalData
+        };
+      }
+
+      try {
+        localStorage.setItem('gem_awarded_milestones', JSON.stringify(current));
+      } catch {}
+
+      return current[tenderId];
+    } catch (err) {
+      console.warn('[GeM API] updateAwardedMilestone fallback error:', err);
+      return null;
     }
   },
 

@@ -9,7 +9,7 @@ export const initialBids = [
     tenderId: "GEM/2026/B/891244",
     tenderValue: "₹1.45 Cr",
     bidAmount: "₹1.38 Cr",
-    status: "Compliant",
+    status: "Selected",
     score: 96,
     miiContent: "68% (Class-I Local)",
     turnover: "₹12.4 Cr (Req: ₹5 Cr)",
@@ -650,5 +650,319 @@ export const initialContracts = [
     disbursementRef: "PFMS-TXN-2026-0829-4419"
   }
 ];
+
+export const createDefaultMilestones = (tenderId, options = {}) => {
+  const now = new Date();
+  const dateStr = now.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) + ', ' +
+    now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+
+  return {
+    tenderId,
+    contractId: options.contractId || `PO-GEM-2026-${Math.floor(1000 + Math.random() * 9000)}`,
+    vendorName: options.vendorName || "Apex Supplies Ltd.",
+    buyerOrg: options.buyerOrg || "Procuring Authority",
+    awardedValue: options.awardedValue || "₹1.38 Cr",
+    poDate: options.poDate || dateStr.split(',')[0],
+    steps: {
+      tender_approved: {
+        id: "tender_approved",
+        step: 1,
+        title: "Tender Approved & Contract Awarded",
+        subtitle: "Official GeM Contract & Letter of Award (LOA) issued to qualified L1 Bidder",
+        status: options.tender_approved?.status || "completed",
+        approved: options.tender_approved?.approved !== undefined ? options.tender_approved.approved : true,
+        approvedAt: options.tender_approved?.approvedAt || dateStr,
+        approvedBy: options.tender_approved?.approvedBy || "Dir. Rajesh Verma (Chief Procurement Officer)",
+        notes: options.tender_approved?.notes || "Letter of Award (LOA) issued; contract signed with DSC.",
+        docRef: options.tender_approved?.docRef || "LOA-GEM-2026-CONTRACT.pdf"
+      },
+      stock_supplied: {
+        id: "stock_supplied",
+        step: 2,
+        title: "Stock Supplied / Consignment Received",
+        subtitle: "Vendor dispatches stock; consignee depot verifies delivery receipt & delivery challan",
+        status: options.stock_supplied?.status || "pending",
+        approved: options.stock_supplied?.approved || false,
+        approvedAt: options.stock_supplied?.approvedAt || null,
+        approvedBy: options.stock_supplied?.approvedBy || null,
+        notes: options.stock_supplied?.notes || "",
+        dispatchDetails: options.stock_supplied?.dispatchDetails || {
+          challanNo: `DC-${Math.floor(1000 + Math.random() * 9000)}`,
+          carrier: "BlueDart Express Logistics",
+          dispatchDate: dateStr.split(',')[0],
+          trackingId: `TRK-${Math.floor(100000 + Math.random() * 900000)}`,
+          qtyReceived: 250
+        }
+      },
+      inspection: {
+        id: "inspection",
+        step: 3,
+        title: "Quality Inspection & CRAC Issued",
+        subtitle: "Consignee Receipt & Acceptance Certificate (CRAC) inspection & technical BOQ verification under GFR 149",
+        status: options.inspection?.status || "pending",
+        approved: options.inspection?.approved || false,
+        approvedAt: options.inspection?.approvedAt || null,
+        approvedBy: options.inspection?.approvedBy || null,
+        notes: options.inspection?.notes || "",
+        cracNumber: options.inspection?.cracNumber || `CRAC-GEM-2026-${Math.floor(1000 + Math.random() * 9000)}`
+      },
+      invoice: {
+        id: "invoice",
+        step: 4,
+        title: "Commercial Tax Invoice Verification",
+        subtitle: "Vendor GST commercial tax invoice submitted & validated against BOQ & CRAC audit",
+        status: options.invoice?.status || "pending",
+        approved: options.invoice?.approved || false,
+        approvedAt: options.invoice?.approvedAt || null,
+        approvedBy: options.invoice?.approvedBy || null,
+        notes: options.invoice?.notes || "",
+        invoiceDetails: options.invoice?.invoiceDetails || {
+          invoiceNo: `INV-2026-${Math.floor(100 + Math.random() * 900)}`,
+          invoiceDate: dateStr.split(',')[0],
+          invoiceAmount: options.awardedValue || "₹1.38 Cr",
+          gstNumber: "27AABCB1234F1Z5",
+          taxVerified: true
+        }
+      },
+      payment: {
+        id: "payment",
+        step: 5,
+        title: "PFMS / Treasury Payment Settlement",
+        subtitle: "10-Day statutory guaranteed digital payment disbursement released via PFMS / Treasury under GFR Rule 225",
+        status: options.payment?.status || "pending",
+        approved: options.payment?.approved || false,
+        approvedAt: options.payment?.approvedAt || null,
+        approvedBy: options.payment?.approvedBy || null,
+        notes: options.payment?.notes || "",
+        disbursementRef: options.payment?.disbursementRef || `PFMS-TXN-2026-${Math.floor(1000 + Math.random() * 9000)}`
+      }
+    }
+  };
+};
+
+export const initialMilestones = {
+  "GEM/2026/B/891244": {
+    tenderId: "GEM/2026/B/891244",
+    contractId: "PO-GEM-2026-9901",
+    vendorName: "Apex Supplies Ltd.",
+    buyerOrg: "DRDO Research Labs, Min of Defence",
+    awardedValue: "₹1.38 Cr",
+    poDate: "06 Sep 2026",
+    steps: {
+      tender_approved: {
+        id: "tender_approved",
+        step: 1,
+        title: "Tender Approved & Contract Awarded",
+        subtitle: "Official GeM Contract & Letter of Award (LOA) generated to qualified L1 Bidder",
+        status: "completed",
+        approved: true,
+        approvedAt: "06 Sep 2026, 11:30 AM",
+        approvedBy: "Dir. Rajesh Verma (Chief Procurement Officer)",
+        notes: "Official Letter of Award (LOA) issued; contract signed with DSC.",
+        docRef: "LOA-GEM-2026-9901.pdf"
+      },
+      stock_supplied: {
+        id: "stock_supplied",
+        step: 2,
+        title: "Stock Supplied / Consignment Received",
+        subtitle: "Vendor dispatches stock; consignee depot verifies delivery receipt & delivery challan",
+        status: "completed",
+        approved: true,
+        approvedAt: "07 Sep 2026, 02:15 PM",
+        approvedBy: "Consignee Depot Superintendent (DRDO Delhi Depot)",
+        notes: "Consignment of 250 AI Workstations received in full. Delivery Challan #DC-9901-A verified.",
+        dispatchDetails: {
+          challanNo: "DC-9901-A",
+          carrier: "BlueDart Express Logistics",
+          dispatchDate: "06 Sep 2026",
+          trackingId: "BD-882199042",
+          qtyReceived: 250
+        }
+      },
+      inspection: {
+        id: "inspection",
+        step: 3,
+        title: "Quality Inspection & CRAC Issued",
+        subtitle: "Consignee Receipt & Acceptance Certificate (CRAC) inspection & technical BOQ verification under GFR 149",
+        status: "completed",
+        approved: true,
+        approvedAt: "08 Sep 2026, 03:30 PM",
+        approvedBy: "Senior QA/QC Officer (Technical Evaluation Board)",
+        notes: "CRAC certificate approved under GFR 149. 100% units conform to Make-in-India (68%) and RTX 6000 specs.",
+        cracNumber: "CRAC-2026-9901"
+      },
+      invoice: {
+        id: "invoice",
+        step: 4,
+        title: "Commercial Tax Invoice Verification",
+        subtitle: "Vendor GST commercial tax invoice submitted & validated against BOQ & CRAC audit",
+        status: "in_progress",
+        approved: false,
+        approvedAt: null,
+        approvedBy: null,
+        notes: "Commercial Tax Invoice #INV-2026-081 uploaded by vendor for ₹1.38 Cr. Under officer verification.",
+        invoiceDetails: {
+          invoiceNo: "INV-2026-081",
+          invoiceDate: "08 Sep 2026",
+          invoiceAmount: "₹1,38,00,000",
+          gstNumber: "27AABCB1234F1Z5",
+          taxVerified: true
+        }
+      },
+      payment: {
+        id: "payment",
+        step: 5,
+        title: "PFMS / Treasury Payment Settlement",
+        subtitle: "10-Day statutory guaranteed digital payment disbursement released via PFMS / Treasury under GFR Rule 225",
+        status: "pending",
+        approved: false,
+        approvedAt: null,
+        approvedBy: null,
+        notes: "Awaiting final invoice clearance for PFMS 10-day guaranteed digital disbursement.",
+        disbursementRef: "Pending Invoice Approval"
+      }
+    }
+  },
+  "GEM/2026/B/889105": {
+    tenderId: "GEM/2026/B/889105",
+    contractId: "PO-GEM-2026-9874",
+    vendorName: "TechForce Pvt Ltd",
+    buyerOrg: "Smart Cities Mission Directorate",
+    awardedValue: "₹1.95 Cr",
+    poDate: "04 Sep 2026",
+    steps: {
+      tender_approved: {
+        id: "tender_approved",
+        step: 1,
+        title: "Tender Approved & Contract Awarded",
+        subtitle: "Official GeM Contract & Letter of Award (LOA) generated to qualified L1 Bidder",
+        status: "completed",
+        approved: true,
+        approvedAt: "04 Sep 2026, 10:00 AM",
+        approvedBy: "Procurement Director (Smart Cities Mission)",
+        notes: "LOA-GEM-2026-9874 issued.",
+        docRef: "LOA-GEM-2026-9874.pdf"
+      },
+      stock_supplied: {
+        id: "stock_supplied",
+        step: 2,
+        title: "Stock Supplied / Consignment Received",
+        subtitle: "Vendor dispatches stock; consignee depot verifies delivery receipt & delivery challan",
+        status: "completed",
+        approved: true,
+        approvedAt: "04 Sep 2026, 04:30 PM",
+        approvedBy: "Digital Infrastructure Custodian",
+        notes: "Cloud GIS software package & enterprise licenses delivered.",
+        dispatchDetails: { challanNo: "DC-9874-S", carrier: "Secure Digital Delivery", dispatchDate: "04 Sep 2026", trackingId: "LIC-CLOUD-9874", qtyReceived: 1 }
+      },
+      inspection: {
+        id: "inspection",
+        step: 3,
+        title: "Quality Inspection & CRAC Issued",
+        subtitle: "Consignee Receipt & Acceptance Certificate (CRAC) inspection & technical BOQ verification",
+        status: "completed",
+        approved: true,
+        approvedAt: "05 Sep 2026, 11:00 AM",
+        approvedBy: "Chief Technical Officer",
+        notes: "Security and integration testing cleared. CRAC issued.",
+        cracNumber: "CRAC-2026-9874"
+      },
+      invoice: {
+        id: "invoice",
+        step: 4,
+        title: "Commercial Tax Invoice Verification",
+        subtitle: "Vendor GST commercial tax invoice submitted & validated against BOQ & CRAC audit",
+        status: "completed",
+        approved: true,
+        approvedAt: "05 Sep 2026, 02:00 PM",
+        approvedBy: "Finance & Accounts Wing",
+        notes: "Invoice #INV-2026-9874 verified and approved.",
+        invoiceDetails: { invoiceNo: "INV-2026-9874", invoiceDate: "05 Sep 2026", invoiceAmount: "₹1,95,00,000", gstNumber: "27KAVRI5678B1Z2", taxVerified: true }
+      },
+      payment: {
+        id: "payment",
+        step: 5,
+        title: "PFMS / Treasury Payment Settlement",
+        subtitle: "10-Day statutory guaranteed digital payment disbursement released via PFMS / Treasury",
+        status: "completed",
+        approved: true,
+        approvedAt: "06 Sep 2026, 09:30 AM",
+        approvedBy: "Treasury Officer (PFMS)",
+        notes: "100% payment settled via PFMS. Ref: PFMS-TXN-2026-0905-1102.",
+        disbursementRef: "PFMS-TXN-2026-0905-1102"
+      }
+    }
+  },
+  "GEM/2026/B/892301": {
+    tenderId: "GEM/2026/B/892301",
+    contractId: "PO-GEM-2026-9780",
+    vendorName: "Bharat Medical Gas Solutions",
+    buyerOrg: "AIIMS New Delhi, Health Ministry",
+    awardedValue: "₹1.12 Cr",
+    poDate: "02 Sep 2026",
+    steps: {
+      tender_approved: {
+        id: "tender_approved",
+        step: 1,
+        title: "Tender Approved & Contract Awarded",
+        subtitle: "Official GeM Contract & Letter of Award (LOA) generated to qualified L1 Bidder",
+        status: "completed",
+        approved: true,
+        approvedAt: "02 Sep 2026, 09:15 AM",
+        approvedBy: "Medical Superintendent (AIIMS New Delhi)",
+        notes: "LOA-GEM-2026-9780 issued.",
+        docRef: "LOA-GEM-2026-9780.pdf"
+      },
+      stock_supplied: {
+        id: "stock_supplied",
+        step: 2,
+        title: "Stock Supplied / Consignment Received",
+        subtitle: "Vendor dispatches stock; consignee depot verifies delivery receipt & delivery challan",
+        status: "completed",
+        approved: true,
+        approvedAt: "03 Sep 2026, 03:00 PM",
+        approvedBy: "Central Stores Officer (AIIMS)",
+        notes: "Medical gas cylinder manifolds delivered to trauma center.",
+        dispatchDetails: { challanNo: "DC-9780-M", carrier: "Specialized Cryo Transport", dispatchDate: "03 Sep 2026", trackingId: "CRYO-77812", qtyReceived: 50 }
+      },
+      inspection: {
+        id: "inspection",
+        step: 3,
+        title: "Quality Inspection & CRAC Issued",
+        subtitle: "Consignee Receipt & Acceptance Certificate (CRAC) inspection & technical BOQ verification",
+        status: "in_progress",
+        approved: false,
+        approvedAt: null,
+        approvedBy: null,
+        notes: "Pressure test & purity calibration in progress by AIIMS biomedical engineering team.",
+        cracNumber: "Pending Quality Clearance"
+      },
+      invoice: {
+        id: "invoice",
+        step: 4,
+        title: "Commercial Tax Invoice Verification",
+        subtitle: "Vendor GST commercial tax invoice submitted & validated against BOQ & CRAC audit",
+        status: "pending",
+        approved: false,
+        approvedAt: null,
+        approvedBy: null,
+        notes: "Awaiting inspection clearance before invoice verification.",
+        invoiceDetails: null
+      },
+      payment: {
+        id: "payment",
+        step: 5,
+        title: "PFMS / Treasury Payment Settlement",
+        subtitle: "10-Day statutory guaranteed digital payment disbursement released via PFMS / Treasury",
+        status: "pending",
+        approved: false,
+        approvedAt: null,
+        approvedBy: null,
+        notes: "Awaiting prior milestone approvals.",
+        disbursementRef: "Pending"
+      }
+    }
+  }
+};
 
 
