@@ -8,13 +8,15 @@ def extract_tender_fields(pages_text: List[str]) -> Dict[str, Any]:
     """
     fields = {}
     
-    # GEM/YYYY/X/NNNNNN
-    tender_id_pattern = re.compile(r'GEM/\d{4}/[A-Z]/\d{6}', re.IGNORECASE)
+    # GEM/YYYY/X/NNNNNN (allow missing slashes and alphanumeric for X due to OCR artifacts)
+    tender_id_pattern = re.compile(r'GEM/?\d{4}/?[A-Z0-9]/?\d{6}', re.IGNORECASE)
     
     tender_id_found = None
     
     for page in pages_text:
-        match = tender_id_pattern.search(page)
+        text = page["text"]
+        clean_text = re.sub(r'\s+', '', text)
+        match = tender_id_pattern.search(clean_text)
         if match:
             tender_id_found = match.group(0).strip().upper()
             break

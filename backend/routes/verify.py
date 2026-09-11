@@ -14,7 +14,33 @@ from ..services.ocr_forensics import parse_uploaded_document
 from ..services.document_processing.processor import process_document
 from ..services.document_processing.cross_checker import run_cross_document_checks
 
-router = APIRouter(prefix="/api/verify", tags=["AI Verification & Rule Engine"])
+router = APIRouter(prefix="/api", tags=["AI Verification & Rule Engine"])
+
+@router.get("/diagnostics/ocr")
+def get_ocr_diagnostics():
+    import sys
+    from ..services.document_processing.ocr_engine import HAS_TESSERACT, pytesseract, HAS_TESSERACT_PKG
+    tesseract_version = None
+    tesseract_cmd = getattr(pytesseract.pytesseract, 'tesseract_cmd', 'tesseract') if pytesseract else None
+    tesseract_exists = False
+    
+    if pytesseract:
+        try:
+            tesseract_version = pytesseract.get_tesseract_version()
+            tesseract_exists = True
+        except Exception:
+            pass
+
+    return {
+        "python_executable": sys.executable,
+        "python_version": sys.version,
+        "pytesseract_available": HAS_TESSERACT_PKG,
+        "tesseract_cmd": tesseract_cmd,
+        "tesseract_exists": tesseract_exists,
+        "tesseract_version": str(tesseract_version) if tesseract_version else None,
+        "ocr_ready": HAS_TESSERACT
+    }
+
 
 TEMP_UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "temp_uploads")
 os.makedirs(TEMP_UPLOAD_DIR, exist_ok=True)
@@ -23,6 +49,14 @@ MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
 def process_single_doc(file_id: str, expected_type: str, doc_name_label: str) -> Dict[str, Any]:
     file_path = os.path.join(TEMP_UPLOAD_DIR, file_id)
+    ext = os.path.splitext(file_id)[1]
+    
+    print(f"[DOCUMENT] fileId={file_id}")
+    print(f"[DOCUMENT] resolved_path={file_path}")
+    print(f"[DOCUMENT] exists={os.path.exists(file_path)}")
+    print(f"[DOCUMENT] size={os.path.getsize(file_path) if os.path.exists(file_path) else 0}")
+    print(f"[DOCUMENT] extension={ext}")
+    
     if not os.path.exists(file_path):
         return {"error": f"{doc_name_label} file not found."}
     
@@ -30,6 +64,18 @@ def process_single_doc(file_id: str, expected_type: str, doc_name_label: str) ->
         res = process_document(file_path, file_id)
         doc_type = res.get("classification", {}).get("document_type", "UNKNOWN")
         confidence = res.get("classification", {}).get("classification_confidence", 0)
+        text_preview = res.get("extracted_text_preview", "")
+        
+        print(f"[PROCESS_DOCUMENT]")
+        print(f"status=success")
+        print(f"classification={doc_type}")
+        print(f"fields={list(res.get('fields', {}).keys())}")
+        print(f"errors={res.get('processing', {}).get('errors', [])}")
+        
+        errors = res.get("processing", {}).get("errors", [])
+        if errors:
+            for err in errors:
+                print(f"[DOCUMENT ERROR] {file_id}: {err}")
         
         # Tag fields with source doc
         fields = res.get("fields", {})
@@ -48,21 +94,24 @@ def process_single_doc(file_id: str, expected_type: str, doc_name_label: str) ->
             "file_id": file_id
         }
     except Exception as e:
-        print(f"[!] Error processing {doc_name_label}: {e}")
-        return {"error": f"Failed to process {doc_name_label}."}
-    finally:
-        try:
-            os.remove(file_path)
-        except Exception:
-            pass
+        import traceback
+        traceback.print_exc()
+        print(f"[!] Error processing {doc_name_label}: {type(e).__name__}: {e}")
+        return {"error": f"Failed to process {doc_name_label}: {type(e).__name__}: {e}"}
 
-@router.post("/bid", response_model=BidVerifyResponse)
+@router.post("/verify/bid", response_model=BidVerifyResponse)
 def verify_bid_payload(req: BidVerifyRequest):
     doc_flags = []
     real_extracted_docs = []
     overall_confidence = []
     processing_results = {"fields": {}, "validation_results": []}
     cross_checks = None
+    
+    print(f"[VERIFY]")
+    print(f"panDocumentId={req.panDocumentId}")
+    print(f"gstDocumentId={req.gstDocumentId}")
+    print(f"tenderDocumentId={req.tenderDocumentId}")
+    print(f"udyamDocumentId={req.udyamDocumentId}")
     
     field_matches: Dict[str, FieldMatch] = {}
     
@@ -92,8 +141,6 @@ def verify_bid_payload(req: BidVerifyRequest):
                 confidence=res["confidence"],
                 details=doc_details
             ))
-            field_matches[field_key] = FieldMatch(status="EXTRACTION_FAILED", entered=expected_val)
-            return None
             
         doc_details = f"Processed {doc_type} via {res['method']}."
         processing_results["fields"].update(res["fields"])
@@ -118,15 +165,25 @@ def verify_bid_payload(req: BidVerifyRequest):
             return
             
         extracted_val = res.get("fields", {}).get(extract_key, {}).get("value")
+        
+        status = "MATCHED"
         if not extracted_val:
-            field_matches[field_key] = FieldMatch(status="EXTRACTION_FAILED", entered=entered_val)
-            return
-            
-        from ..services.document_processing.cross_checker import normalize_id
-        if normalize_id(entered_val) == normalize_id(extracted_val):
-            field_matches[field_key] = FieldMatch(status="MATCHED", entered=entered_val, extracted=extracted_val)
+            status = "EXTRACTION_FAILED"
         else:
-            field_matches[field_key] = FieldMatch(status="NOT_MATCHED", entered=entered_val, extracted=extracted_val)
+            from ..services.document_processing.cross_checker import normalize_id
+            if normalize_id(entered_val) == normalize_id(extracted_val):
+                status = "MATCHED"
+            else:
+                status = "NOT_MATCHED"
+                
+        print(f"[FIELD_MATCH]")
+        print(f"field={field_key}")
+        print(f"entered={entered_val}")
+        print(f"extracted_pan={extracted_val}")
+        print(f"status={status}")
+
+        field_matches[field_key] = FieldMatch(status=status, entered=entered_val, extracted=extracted_val)
+
 
     tender_res = check_field_match(req.tenderDocumentId, "tenderId", req.tenderId, "TENDER_DOCUMENT", "Tender Document")
     do_match(tender_res, "tenderId", req.tenderId, "tender_id")
@@ -241,8 +298,8 @@ def verify_bid_payload(req: BidVerifyRequest):
         vendorEmail=req.vendorEmail,
         fieldMatches=field_matches
     )
-@router.post("/upload")
-async def upload_and_parse_document(file: UploadFile = File(...)):
+@router.post("/verify/upload")
+def upload_verification_document(file: UploadFile = File(...)):
     """
     Securely ingests an uploaded document and returns a fileId for verification.
     """
@@ -265,6 +322,14 @@ async def upload_and_parse_document(file: UploadFile = File(...)):
     
     with open(safe_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
+        
+    print(f"[UPLOAD]")
+    print(f"fileId={file_id}")
+    print(f"filename={file.filename}")
+    print(f"extension={ext}")
+    print(f"path={safe_path}")
+    print(f"exists={os.path.exists(safe_path)}")
+    print(f"size={os.path.getsize(safe_path)}")
         
     return {
         "status": "success",

@@ -76,6 +76,8 @@ def extract_text_from_pdf(file_path: str) -> Dict[str, Any]:
                     if ocr_text:
                         result["extracted_text"] += ocr_text + "\n"
                         result["pages_text"].append({"page": page_num + 1, "text": ocr_text})
+                    else:
+                        result["errors"].append(f"OCR failed to extract text on page {page_num + 1}.")
             else:
                 result["errors"].append("OCR fallback needed but Tesseract is unavailable.")
                 

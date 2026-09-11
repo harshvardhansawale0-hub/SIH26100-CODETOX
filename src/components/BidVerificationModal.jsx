@@ -157,9 +157,13 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     if (result && result.fieldMatches && result.fieldMatches[fieldKey]) {
       const match = result.fieldMatches[fieldKey];
       if (match.status === 'MATCHED') {
-        matchStatus = <div style={{ color: '#10b981', fontSize: '0.75rem', marginTop: '0.25rem' }}>✓ Field matched: {match.extracted}</div>;
+        matchStatus = <div style={{ color: '#10b981', fontSize: '0.75rem', marginTop: '0.25rem' }}>✓ MATCHED</div>;
       } else if (match.status === 'NOT_MATCHED') {
-        matchStatus = <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>❌ Field does not match. Extracted: {match.extracted}</div>;
+        matchStatus = (
+          <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', whiteSpace: 'pre-line' }}>
+            {`❌ NOT MATCHED\nEntered: ${match.entered}\nDocument: ${match.extracted}`}
+          </div>
+        );
       } else if (match.status === 'EXTRACTION_FAILED') {
         matchStatus = <div style={{ color: '#f59e0b', fontSize: '0.75rem', marginTop: '0.25rem' }}>⚠ Extraction failed</div>;
       }

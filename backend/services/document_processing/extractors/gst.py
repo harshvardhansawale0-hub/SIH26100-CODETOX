@@ -7,10 +7,11 @@ def extract_gst_fields(pages_text: list) -> Dict[str, Any]:
     for page in pages_text:
         text = page["text"]
         page_num = page["page"]
+        clean_text = re.sub(r'\s+', '', text)
         
         # GSTIN Extraction
         if "gstin" not in fields:
-            match = re.search(r"([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1})", text)
+            match = re.search(r"([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1})", clean_text)
             if match:
                 fields["gstin"] = {
                     "value": match.group(1),
