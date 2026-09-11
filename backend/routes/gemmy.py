@@ -909,3 +909,38 @@ def get_suggested_prompts(language: str = "en"):
         ]
     }
     return {"prompts": prompts_by_lang.get(language, prompts_by_lang["en"])}
+
+
+@router.get("/tts")
+async def text_to_speech(text: str, language: str = "mr"):
+    """
+    High-fidelity Text-To-Speech endpoint supporting Marathi (mr), Hindi (hi), and English (en).
+    Generates streaming MP3 audio via gTTS so Marathi speech is guaranteed even when client OS/browser
+    lacks native Marathi voices.
+    """
+    import io
+    from fastapi.responses import Response
+
+    clean_text = text.strip()
+    if not clean_text:
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+    
+    # Strip markdown and bracketed citations
+    clean_text = re.sub(r'\[.*?\]', '', clean_text)
+    clean_text = re.sub(r'[*#_`]', '', clean_text)
+    clean_text = re.sub(r'\s+', ' ', clean_text).strip()
+    # Limit to first 450 chars for responsive streaming
+    clean_text = clean_text[:450]
+
+    lang_code = "mr" if language == "mr" else ("hi" if language == "hi" else "en")
+
+    try:
+        from gtts import gTTS
+        fp = io.BytesIO()
+        tts = gTTS(text=clean_text, lang=lang_code, slow=False)
+        tts.write_to_fp(fp)
+        fp.seek(0)
+        return Response(content=fp.read(), media_type="audio/mpeg")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TTS generation error: {str(e)}")
+

@@ -39,6 +39,26 @@ export default function AskGemmyModal({
   const messagesEndRef = useRef(null);
   const recognitionRef = useRef(null);
   const synthRef = useRef(typeof window !== 'undefined' ? window.speechSynthesis : null);
+  const audioPlayerRef = useRef(null);
+
+  const stopAllSpeech = () => {
+    if (audioPlayerRef.current) {
+      audioPlayerRef.current.pause();
+      audioPlayerRef.current.currentTime = 0;
+      audioPlayerRef.current = null;
+    }
+    if (synthRef.current && synthRef.current.speaking) {
+      synthRef.current.cancel();
+    }
+    setSpeakingMsgId(null);
+  };
+
+  // Cleanup audio/speech when component unmounts
+  useEffect(() => {
+    return () => {
+      stopAllSpeech();
+    };
+  }, []);
 
   const chatLangOptions = [
     { code: 'en', label: 'English', short: 'EN', native: 'English', flag: '🇬🇧' },
@@ -69,7 +89,7 @@ export default function AskGemmyModal({
     localStorage.setItem('gemmy_chatbot_lang', code);
     setIsLangDropdownOpen(false);
     fetchSuggestedPrompts(code);
-    if (synthRef.current?.speaking) synthRef.current.cancel();
+    stopAllSpeech();
   };
 
   // Initialize SpeechRecognition if available (using chatbot language)
@@ -129,33 +149,135 @@ export default function AskGemmyModal({
     setSuggestedPrompts(GEMMY_SUGGESTED_PROMPTS[targetLang] || GEMMY_SUGGESTED_PROMPTS.en);
   };
 
-  // Text-To-Speech SpeechSynthesis
-  const speakText = (text, msgId) => {
+  // Browser SpeechSynthesis Engine with Intelligent Devanagari Voice Matching
+  const speakWithBrowserEngine = (cleanText, msgId, langCode) => {
     if (!synthRef.current) return;
 
-    if (synthRef.current.speaking) {
-      synthRef.current.cancel();
-      if (speakingMsgId === msgId) {
-        setSpeakingMsgId(null);
-        return;
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    const voices = synthRef.current.getVoices ? synthRef.current.getVoices() : [];
+
+    if (langCode === 'mr') {
+      // 1. Check for native Marathi voice
+      const mrVoice = voices.find(v => v.lang.startsWith('mr') || (v.name && v.name.toLowerCase().includes('marathi')));
+      if (mrVoice) {
+        utterance.voice = mrVoice;
+        utterance.lang = mrVoice.lang;
+      } else {
+        // 2. Fallback to Hindi Devanagari voice (Devanagari script is phonetically shared between Hindi & Marathi)
+        const devanagariVoice = voices.find(v => 
+          v.lang.startsWith('hi') || 
+          (v.name && (
+            v.name.toLowerCase().includes('hindi') || 
+            v.name.toLowerCase().includes('kalpana') || 
+            v.name.toLowerCase().includes('swara') ||
+            v.name.toLowerCase().includes('madhur') ||
+            v.name.toLowerCase().includes('hemant')
+          ))
+        );
+        if (devanagariVoice) {
+          utterance.voice = devanagariVoice;
+          utterance.lang = devanagariVoice.lang;
+        } else {
+          utterance.lang = 'hi-IN';
+        }
+      }
+    } else if (langCode === 'hi') {
+      const hiVoice = voices.find(v => v.lang.startsWith('hi') || (v.name && v.name.toLowerCase().includes('hindi')));
+      if (hiVoice) {
+        utterance.voice = hiVoice;
+        utterance.lang = hiVoice.lang;
+      } else {
+        utterance.lang = 'hi-IN';
+      }
+    } else {
+      const enVoice = voices.find(v => v.lang.startsWith('en-IN') || v.lang.startsWith('en'));
+      if (enVoice) {
+        utterance.voice = enVoice;
+        utterance.lang = enVoice.lang;
+      } else {
+        utterance.lang = 'en-IN';
       }
     }
+
+    utterance.rate = 1.0;
+    utterance.onstart = () => setSpeakingMsgId(msgId);
+    utterance.onend = () => setSpeakingMsgId(null);
+    utterance.onerror = (e) => {
+      console.warn('Browser speech synthesis error, trying audio streaming:', e);
+      // If browser synthesis failed and language was not mr (which already tried server), try server TTS
+      if (langCode !== 'mr') {
+        try {
+          const fallbackAudio = new Audio(`/api/gemmy/tts?text=${encodeURIComponent(cleanText.slice(0, 450))}&language=${langCode}`);
+          audioPlayerRef.current = fallbackAudio;
+          fallbackAudio.onended = () => { setSpeakingMsgId(null); audioPlayerRef.current = null; };
+          fallbackAudio.play().catch(() => setSpeakingMsgId(null));
+        } catch {
+          setSpeakingMsgId(null);
+        }
+      } else {
+        setSpeakingMsgId(null);
+      }
+    };
+
+    synthRef.current.speak(utterance);
+  };
+
+  // High-Definition Text-To-Speech with Guaranteed Marathi Audio Streaming
+  const speakText = (text, msgId) => {
+    // If currently speaking this message, toggle off
+    if (speakingMsgId === msgId) {
+      stopAllSpeech();
+      return;
+    }
+
+    // Stop any existing speech
+    stopAllSpeech();
 
     // Strip markdown formatting for cleaner speech
     const cleanText = text
       .replace(/\[.*?\]/g, '')
       .replace(/[*#_`]/g, '')
-      .replace(/\n+/g, ' ');
+      .replace(/\n+/g, ' ')
+      .trim();
 
-    const utterance = new SpeechSynthesisUtterance(cleanText);
-    utterance.lang = chatLanguage === 'hi' ? 'hi-IN' : chatLanguage === 'mr' ? 'mr-IN' : 'en-IN';
-    utterance.rate = 1.0;
+    if (!cleanText) return;
 
-    utterance.onstart = () => setSpeakingMsgId(msgId);
-    utterance.onend = () => setSpeakingMsgId(null);
-    utterance.onerror = () => setSpeakingMsgId(null);
+    // For Marathi (mr): Stream high-definition Marathi MP3 audio from backend gTTS engine
+    // Guarantees authentic Marathi pronunciation even on machines with no Marathi OS voice pack!
+    if (chatLanguage === 'mr') {
+      try {
+        const audioUrl = `/api/gemmy/tts?text=${encodeURIComponent(cleanText.slice(0, 450))}&language=mr`;
+        const audio = new Audio(audioUrl);
+        audioPlayerRef.current = audio;
+        setSpeakingMsgId(msgId);
 
-    synthRef.current.speak(utterance);
+        audio.onended = () => {
+          setSpeakingMsgId(null);
+          audioPlayerRef.current = null;
+        };
+
+        audio.onerror = () => {
+          console.warn('Marathi audio stream failed, falling back to browser Devanagari voice');
+          speakWithBrowserEngine(cleanText, msgId, 'mr');
+        };
+
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+          playPromise.catch((err) => {
+            console.warn('Audio play error, falling back to browser speech:', err);
+            speakWithBrowserEngine(cleanText, msgId, 'mr');
+          });
+        }
+        return;
+      } catch (err) {
+        console.warn('Marathi audio streaming exception:', err);
+        speakWithBrowserEngine(cleanText, msgId, 'mr');
+        return;
+      }
+    }
+
+    // For Hindi (hi) and English (en)
+    speakWithBrowserEngine(cleanText, msgId, chatLanguage);
   };
 
   // Toggle Voice Input
@@ -363,7 +485,7 @@ export default function AskGemmyModal({
               className={`gemmy-control-btn ${ttsEnabled ? 'active' : ''}`}
               onClick={() => {
                 setTtsEnabled(!ttsEnabled);
-                if (synthRef.current?.speaking) synthRef.current.cancel();
+                stopAllSpeech();
               }}
               title={ttsEnabled ? chatT('gemmyVoiceOn') : chatT('gemmyVoiceOff')}
               aria-label="Toggle Text-to-Speech"
@@ -377,7 +499,7 @@ export default function AskGemmyModal({
                 className="gemmy-control-btn"
                 onClick={() => {
                   setMessages([]);
-                  if (synthRef.current?.speaking) synthRef.current.cancel();
+                  stopAllSpeech();
                 }}
                 title={chatT('gemmyClear')}
                 aria-label="Clear chat"
@@ -410,7 +532,7 @@ export default function AskGemmyModal({
             <button
               className="gemmy-control-btn close-btn"
               onClick={() => {
-                if (synthRef.current?.speaking) synthRef.current.cancel();
+                stopAllSpeech();
                 onClose();
               }}
               title={chatT('gemmyClose')}
