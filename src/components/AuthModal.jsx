@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Lock, Mail, User, ShieldCheck, Building2, Landmark, Sparkles, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { gemApi } from '../services/api';
-import { setAuthToken } from '../services/api';
+import { gemApi, setAuthToken } from '../services/api';
 
 export default function AuthModal({
   isOpen,
@@ -35,26 +34,26 @@ export default function AuthModal({
     const isGovBuyer = demoRole === 'buyer';
     const demoUser = isGovBuyer
       ? {
-          id: 101,
-          fullName: "Dir. Rajesh Verma",
-          email: "procurement.officer@nic.in",
-          organization: "Ministry of Electronics & IT (MeitY)",
-          gstin: "07AAAGM0289C1ZU",
-          role: "buyer",
-          designation: "Chief Procurement Officer",
-          isDemo: true
-        }
+        id: 101,
+        fullName: "Dir. Rajesh Verma",
+        email: "procurement.officer@nic.in",
+        organization: "Ministry of Electronics & IT (MeitY)",
+        gstin: "07AAAGM0289C1ZU",
+        role: "buyer",
+        designation: "Chief Procurement Officer",
+        isDemo: true
+      }
       : {
-          id: 202,
-          fullName: "Harshvardhan Sawale",
-          email: "vendor.contact@apextech.com",
-          organization: "Apex Technologies & Supplies Ltd.",
-          gstin: "27AABCB1234F1Z5",
-          role: "bidder",
-          category: "IT Hardware",
-          udyam: "UDYAM-MH-03-0012345",
-          isDemo: true
-        };
+        id: 202,
+        fullName: "Harshvardhan Sawale",
+        email: "vendor.contact@apextech.com",
+        organization: "Apex Technologies & Supplies Ltd.",
+        gstin: "27AABCB1234F1Z5",
+        role: "bidder",
+        category: "IT Hardware",
+        udyam: "UDYAM-MH-03-0012345",
+        isDemo: true
+      };
 
     const token = `gem_demo_jwt_${Date.now()}`;
     setAuthToken(token);

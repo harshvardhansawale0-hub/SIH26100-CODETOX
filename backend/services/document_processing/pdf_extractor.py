@@ -31,6 +31,51 @@ def extract_text_from_pdf(file_path: str) -> Dict[str, Any]:
     }
     
     if not HAS_FITZ or fitz is None:
+        # Pure-Python stream decompression fallback (standard library only)
+        try:
+            import zlib
+            import binascii
+            import re
+
+            with open(file_path, "rb") as f:
+                raw_bytes = f.read()
+
+            text_chunks = []
+            for m in re.finditer(rb'stream', raw_bytes):
+                start = m.end()
+                while start < len(raw_bytes) and raw_bytes[start:start+1] in (b'\r', b'\n'):
+                    start += 1
+                end = raw_bytes.find(rb'endstream', start)
+                if end != -1:
+                    chunk = raw_bytes[start:end].rstrip(b'\r\n')
+                    data = None
+                    try:
+                        data = zlib.decompress(chunk)
+                    except Exception:
+                        data = chunk
+                    if data:
+                        # Extract hex representations [<...>]
+                        hex_matches = re.findall(rb'<([0-9a-fA-F]+)>', data)
+                        for h in hex_matches:
+                            try:
+                                text_chunks.append(binascii.unhexlify(h).decode('latin1', errors='ignore'))
+                            except Exception:
+                                pass
+                        # Extract literal strings (...)
+                        lit_matches = re.findall(rb'\((.*?)\)', data, re.DOTALL)
+                        for lit in lit_matches:
+                            text_chunks.append(lit.decode('latin1', errors='ignore'))
+
+            extracted = " ".join(text_chunks).strip()
+            if extracted:
+                result["page_count"] = 1
+                result["extracted_text"] = extracted
+                result["extraction_method"] = "pure_python_stream"
+                result["pages_text"] = [{"page": 1, "text": extracted}]
+                return result
+        except Exception as e:
+            result["errors"].append(f"Pure python PDF parsing fallback failed: {e}")
+
         result["errors"].append("PyMuPDF (fitz) is not installed on this system.")
         return result
     

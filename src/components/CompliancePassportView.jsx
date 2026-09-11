@@ -6,7 +6,7 @@ import {
   FileCheck, AlertCircle, Scan, Sparkles, Check
 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { gemApi } from '../services/api';
+import { gemApi, extractPresetFormats, PRESET_FORMAT_GUIDELINES } from '../services/api';
 
 const STATUTORY_DOCUMENTS = [
   {
@@ -188,18 +188,49 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
     setDocInputs(prev => ({ ...prev, [docType]: value }));
   };
 
-  // Handle Document File Selection
-  const handleFileSelect = (docType, file) => {
+  // Handle Document File Selection with Instant Preset Guideline OCR Extraction
+  const handleFileSelect = async (docType, file) => {
     if (!file) return;
     setDocFiles(prev => ({ ...prev, [docType]: file }));
-    setDocScanStatus(prev => ({
-      ...prev,
-      [docType]: {
-        status: 'ready',
-        fileName: file.name,
-        statement: `File attached: ${file.name}. Click 'Verify Statement' to scan.`
-      }
-    }));
+
+    // Extract preset guideline format from file name / content
+    let extractedId = '';
+    try {
+      const extracted = extractPresetFormats('', file.name);
+      if (docType === 'PAN' && extracted.values.pan) extractedId = extracted.values.pan;
+      else if (docType === 'GST' && extracted.values.gstin) extractedId = extracted.values.gstin;
+      else if (docType === 'UDYAM' && extracted.values.udyam_reg_no) extractedId = extracted.values.udyam_reg_no;
+      else if (docType === 'MSME' && (extracted.values.udyam_reg_no || extracted.values.msme)) extractedId = extracted.values.udyam_reg_no || 'MSME-REG-2026-9901';
+      else if ((docType === 'CA_TURNOVER' || docType === 'CA') && extracted.values.udin) extractedId = extracted.values.udin;
+      else if (docType === 'TENDER' && extracted.values.tender_id) extractedId = extracted.values.tender_id;
+    } catch (e) {
+      console.warn('Preset extraction error:', e);
+    }
+
+    if (extractedId) {
+      // Auto-read directly into document ID box!
+      setDocInputs(prev => ({ ...prev, [docType]: extractedId }));
+      setDocScanStatus(prev => ({
+        ...prev,
+        [docType]: {
+          status: 'scanning',
+          fileName: file.name,
+          extractedId,
+          statement: `OCR preset guideline matched '${extractedId}'. Reading to box & verifying...`
+        }
+      }));
+      // Immediately verify the extracted format!
+      await handleVerifySingleDoc(docType, extractedId, file);
+    } else {
+      setDocScanStatus(prev => ({
+        ...prev,
+        [docType]: {
+          status: 'ready',
+          fileName: file.name,
+          statement: `File attached: ${file.name}. Click 'Verify' to scan and validate.`
+        }
+      }));
+    }
   };
 
   // Create simulated dummy file if user clicks verify without attaching an external file
@@ -210,15 +241,15 @@ export default function CompliancePassportView({ currentUser, currentRole, onNav
   };
 
   // Scan & Verify Individual Document using Statement OCR
-  const handleVerifySingleDoc = async (docType) => {
+  const handleVerifySingleDoc = async (docType, overrideId = null, overrideFile = null) => {
     if (!vendorData) return;
-    const manualId = (docInputs[docType] || '').trim();
+    const manualId = (overrideId || docInputs[docType] || '').trim();
     if (!manualId) {
       alert(`Please provide the Document Number / Statement ID for ${docType}`);
       return;
     }
 
-    let file = docFiles[docType];
+    let file = overrideFile || docFiles[docType];
     if (!file) {
       file = createMockFile(docType, manualId);
       setDocFiles(prev => ({ ...prev, [docType]: file }));

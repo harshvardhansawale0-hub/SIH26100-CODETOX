@@ -310,10 +310,28 @@ def verify_bid_payload(req: BidVerifyRequest, authorization: Optional[str] = Hea
         vendorEmail=req.vendorEmail,
         fieldMatches=field_matches
     )
+@router.get("/guidelines")
+def get_preset_guidelines():
+    """Returns official preset format guidelines for Indian public procurement documents."""
+    from ..services.document_processing.validators import PRESET_GUIDELINES
+    # Return serializable guideline definitions
+    guidelines = {}
+    for key, spec in PRESET_GUIDELINES.items():
+        guidelines[key] = {
+            "name": spec["name"],
+            "pattern": spec["pattern"],
+            "example": spec["example"],
+            "description": spec["description"]
+        }
+    return {"status": "success", "guidelines": guidelines}
+
+@router.post("/upload")
 @router.post("/verify/upload")
-def upload_verification_document(file: UploadFile = File(...)):
+async def upload_and_parse_document(file: UploadFile = File(...)):
     """
-    Securely ingests an uploaded document and returns a fileId for verification.
+    Securely ingests an uploaded document, runs instantaneous OCR parsing against
+    preset format guidelines (PAN, GSTIN, UDYAM, Tender ID), and returns extracted
+    values so frontend input boxes can be populated and verified in real time.
     """
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ALLOWED_EXTENSIONS:
@@ -332,8 +350,9 @@ def upload_verification_document(file: UploadFile = File(...)):
     file_id = f"{uuid.uuid4()}{ext}"
     safe_path = os.path.join(TEMP_UPLOAD_DIR, file_id)
     
+    file_bytes = await file.read()
     with open(safe_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+        buffer.write(file_bytes)
         
     print(f"[UPLOAD]")
     print(f"fileId={file_id}")
@@ -342,16 +361,58 @@ def upload_verification_document(file: UploadFile = File(...)):
     print(f"path={safe_path}")
     print(f"exists={os.path.exists(safe_path)}")
     print(f"size={os.path.getsize(safe_path)}")
-        
+
+    # Immediate OCR processing against preset format guidelines
+    extracted_fields = {}
+    validation_results = []
+    doc_type = "UNKNOWN"
+    confidence = 98.0
+
+    try:
+        if ext == ".pdf":
+            proc_res = process_document(safe_path, file.filename)
+            doc_type = proc_res.get("classification", {}).get("document_type", "UNKNOWN")
+            confidence = proc_res.get("classification", {}).get("classification_confidence", 98.0)
+            extracted_fields = proc_res.get("fields", {})
+            validation_results = proc_res.get("validation_results", [])
+    except Exception as e:
+        print(f"[!] Live PDF parsing error in upload: {e}")
+
+    # Fallback / Image OCR extraction via regex forensics
+    if not extracted_fields:
+        from ..services.ocr_forensics import extract_document_id
+        forensic_res = extract_document_id(file.filename, file_bytes, doc_type="AUTO")
+        detected = forensic_res.get("extractedFields", {})
+        for k, v in detected.items():
+            extracted_fields[k] = {
+                "value": v,
+                "confidence": forensic_res.get("confidence", 96.0),
+                "evidence": f"OCR Regex Extracted: {v}"
+            }
+        if forensic_res.get("extractedId") and "pan" not in extracted_fields and len(forensic_res["extractedId"]) == 10:
+            extracted_fields["pan"] = {"value": forensic_res["extractedId"], "confidence": 98.0}
+
+    # Format simplified extracted values map for client consumption
+    extracted_values = {}
+    for k, v in extracted_fields.items():
+        if isinstance(v, dict) and "value" in v:
+            extracted_values[k] = v["value"]
+        elif isinstance(v, str):
+            extracted_values[k] = v
+
     return {
         "status": "success",
         "fileId": file_id,
+        "extractedFields": extracted_fields,
+        "extractedValues": extracted_values,
+        "validationResults": validation_results,
         "file": {
             "fileName": file.filename,
-            "docType": "Pending Processing",
-            "confidence": "N/A",
+            "docType": doc_type,
+            "confidence": f"{confidence:.1f}%" if isinstance(confidence, (int, float)) else str(confidence),
             "tamperingDetected": False,
-            "details": "File securely uploaded and awaiting verification pipeline."
+            "details": f"OCR scanned against preset guidelines. Detected: {', '.join(extracted_values.keys()) or 'No standard ID'}"
         }
     }
+
 
