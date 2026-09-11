@@ -219,24 +219,25 @@ export default function AuctionsView({ currentUser, onSelectBid, onNavigateHome 
               <button 
                 onClick={onNavigateHome}
                 style={{
+                  width: '40px',
+                  height: '40px',
+                  padding: 0,
                   backgroundColor: '#ffffff',
-                  color: '#0f172a',
+                  color: '#0284c7',
                   border: '1px solid #cbd5e1',
                   borderRadius: '8px',
-                  padding: '0.65rem 1.15rem',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '0.45rem',
-                  fontWeight: '700',
-                  fontSize: '0.85rem',
+                  justifyContent: 'center',
                   cursor: 'pointer',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  flexShrink: 0
                 }}
                 title="Return to GeM Homepage"
+                aria-label="Return to GeM Homepage"
               >
-                <Home size={16} color="#0284c7" />
-                <span>🏠 Homepage</span>
+                <Home size={18} color="#0284c7" />
               </button>
             )}
             {/* Quick Stats Pill */}

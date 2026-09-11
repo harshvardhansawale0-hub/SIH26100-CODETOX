@@ -6,6 +6,7 @@ import GeMBannerShowcase from './components/GeMBannerShowcase';
 import ProcessSection from './components/ProcessSection';
 import PopularProductCategories from './components/PopularProductCategories';
 import CtaBanner from './components/CtaBanner';
+import GoogleSearchBar from './components/GoogleSearchBar';
 import Footer from './components/Footer';
 const BidVerificationModal = React.lazy(() => import('./components/BidVerificationModal'));
 import BidDetailModal from './components/BidDetailModal';
@@ -621,6 +622,17 @@ function MainApp() {
       {/* 2.1 Forward Auction / Home Overview (Public) */}
       {activeTab === 'Forward' && (
         <main>
+          {/* Long lengthy Google-type searchbar with IP popup & recent searches */}
+          <GoogleSearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            onSearch={(query) => {
+              setSearchQuery(query);
+              setActiveTab('Tenders');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          />
+
           {/* Official GeM Visual Showcase & Image Banner Carousel */}
           <GeMBannerShowcase
             onExploreTenders={(initKey) => {

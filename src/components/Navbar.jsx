@@ -58,27 +58,9 @@ export default function Navbar({
         </div>
       </div>
 
-      {/* Search Bar */}
-      <div className="nav-search-wrapper">
-        <Search className="nav-search-icon" size={15} />
-        <input
-          type="text"
-          className="nav-search-input"
-          placeholder={t('searchPlaceholder')}
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              setActiveTab('Tenders');
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-          }}
-        />
-      </div>
-
       {/* Navigation Tabs with Dropdowns */}
       <nav className="nav-menu-links">
-        {/* Dedicated Primary Homepage Tab for ALL Users */}
+        {/* Dedicated Primary Homepage Tab for ALL Users (Square-shaped, Icon Only) */}
         <button
           className={`nav-tab-btn ${activeTab === 'Forward' ? 'active' : ''}`}
           onClick={() => {
@@ -87,16 +69,25 @@ export default function Navbar({
             window.scrollTo({ top: 0, behavior: 'smooth' });
           }}
           style={{
+            width: '38px',
+            height: '38px',
+            padding: 0,
             display: 'flex',
             alignItems: 'center',
-            gap: '0.35rem',
-            color: activeTab === 'Forward' ? '#38bdf8' : 'inherit',
-            fontWeight: activeTab === 'Forward' ? '800' : '600'
+            justifyContent: 'center',
+            borderRadius: '8px',
+            backgroundColor: activeTab === 'Forward' ? '#eff6ff' : '#ffffff',
+            border: activeTab === 'Forward' ? '1px solid #0284c7' : '1px solid #cbd5e1',
+            color: activeTab === 'Forward' ? '#0284c7' : '#475569',
+            cursor: 'pointer',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+            transition: 'all 0.2s ease',
+            flexShrink: 0
           }}
           title="Return to GeM Homepage"
+          aria-label="Return to GeM Homepage"
         >
-          <Home size={15} />
-          <span>{lang === 'hi' ? 'मुख्य पृष्ठ' : (lang === 'mr' ? 'मुख्य पृष्ठ' : 'Homepage')}</span>
+          <Home size={18} color={activeTab === 'Forward' ? '#0284c7' : '#475569'} />
         </button>
         {/* 1. Forward Auction Dropdown */}
         <div className="nav-dropdown-container">
