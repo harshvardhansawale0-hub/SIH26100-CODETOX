@@ -12,7 +12,8 @@ def classify_document(extracted_text: str) -> Dict[str, Any]:
         "PAN_CARD": ["permanent account number", "income tax department", "govt of india"],
         "UDYAM_CERTIFICATE": ["udyam", "udyam registration", "msme", "ministry of micro, small and medium enterprises"],
         "CA_TURNOVER_CERTIFICATE": ["turnover", "chartered accountant", "udin", "audited balance sheet", "profit and loss"],
-        "MAKE_IN_INDIA_DECLARATION": ["make in india", "local content", "domestic value addition", "class-i local supplier", "class-ii local supplier"]
+        "MAKE_IN_INDIA_DECLARATION": ["make in india", "local content", "domestic value addition", "class-i local supplier", "class-ii local supplier"],
+        "TENDER_DOCUMENT": ["tender", "gem", "bid document", "notice inviting tender", "nit", "buyer specification", "procurement", "bill of quantity", "boq"]
     }
     
     scores = {doc_type: 0 for doc_type in signals}

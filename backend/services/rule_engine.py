@@ -108,6 +108,14 @@ def validate_bid_compliance(
             ruleId="DPIIT-MII-01", name="DPIIT MII Classification", category="DPIIT Policy",
             passed=False, details="No document provided for MII verification. Bidder declaration is not evidence.", penaltyPoints=0
         ))
+        
+        # Udyam Applicability
+        if req.msmeRegNo:
+            rule_results.append(RuleCheckResult(
+                ruleId="MSME-2012", name="Udyam/MSME Verification", category="MSE Policy 2012",
+                passed=False, details="Bidder claimed Udyam but no Udyam document provided.", penaltyPoints=20
+            ))
+            score -= 20
     else:
         # ======================================================
         # DOCUMENT-BASED VERIFICATION (existing logic)
@@ -199,6 +207,28 @@ def validate_bid_compliance(
             rule_results.append(RuleCheckResult(ruleId="DPIIT-MII-01", name="DPIIT MII Classification", category="DPIIT Policy", passed=False, details="MII percentage missing from document.", penaltyPoints=0))
 
         mii_verified_str = doc_mii if doc_mii else f"{req.miiDeclared} (Claimed)"
+
+        # 4. Udyam/MSME Verification
+        doc_udyam = extracted_fields.get("udyam_reg_no", {}).get("value")
+        if req.msmeRegNo: # Bidder claimed MSME
+            if doc_udyam:
+                rule_results.append(RuleCheckResult(
+                    ruleId="MSME-2012", name="Udyam/MSME Verification", category="MSE Policy 2012",
+                    passed=True, details=f"Document contains Udyam Registration: {doc_udyam}.", penaltyPoints=0
+                ))
+            else:
+                score -= 20
+                flags.append("Missing Udyam evidence in document despite claiming MSME status.")
+                rule_results.append(RuleCheckResult(
+                    ruleId="MSME-2012", name="Udyam/MSME Verification", category="MSE Policy 2012",
+                    passed=False, details="No Udyam found in document, but bidder claimed MSME.", penaltyPoints=20
+                ))
+        else:
+            if doc_udyam:
+                rule_results.append(RuleCheckResult(
+                    ruleId="MSME-2012", name="Udyam/MSME Verification", category="MSE Policy 2012",
+                    passed=True, details=f"Document contains Udyam Registration (not claimed): {doc_udyam}.", penaltyPoints=0
+                ))
 
         # Cross-document penalty
         if cross_checks and cross_checks.get("status") == "FAIL":

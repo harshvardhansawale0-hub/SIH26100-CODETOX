@@ -21,70 +21,128 @@ os.makedirs(TEMP_UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXTENSIONS = {".pdf", ".png", ".jpg", ".jpeg"}
 MAX_FILE_SIZE = 10 * 1024 * 1024  # 10 MB
 
-@router.post("/bid", response_model=BidVerifyResponse)
-def verify_bid_payload(req: BidVerifyRequest):
-    """
-    Submits bid parameters to the GFR 2017 & DPIIT compliance rule engine.
-    If a fileId is provided, runs real document processing and cross-validation.
-    Calculates instant score, status, risk classification, and persists the verified bid to the SQLite database.
-    """
-    doc_flags = []
-    real_extracted_docs = []
-    doc_ocr_conf = "N/A"
-    processing_results = None
-    cross_checks = None
+def process_single_doc(file_id: str, expected_type: str, doc_name_label: str) -> Dict[str, Any]:
+    file_path = os.path.join(TEMP_UPLOAD_DIR, file_id)
+    if not os.path.exists(file_path):
+        return {"error": f"{doc_name_label} file not found."}
     
-    if req.fileId:
-        file_path = os.path.join(TEMP_UPLOAD_DIR, req.fileId)
-        if not os.path.exists(file_path):
-            raise HTTPException(status_code=400, detail="Uploaded file not found or expired.")
-            
-        # Run actual document processing safely
-        try:
-            processing_results = process_document(file_path, req.fileId)
-            doc_type = processing_results.get("classification", {}).get("document_type", "UNKNOWN")
-            confidence = processing_results.get("classification", {}).get("classification_confidence", 0)
-            doc_ocr_conf = f"{confidence:.1f}%"
-            
-            # Run Cross-Document Checks
-            cross_checks = run_cross_document_checks(processing_results.get("fields", {}), req)
-            
-            doc_details = f"Processed {doc_type} via {processing_results.get('processing', {}).get('method', 'Unknown')}."
-            if cross_checks and cross_checks.get("status") == "FAIL":
-                 doc_details += " Discrepancies found during cross-validation."
-                 
-            real_extracted_docs.append(ExtractedDoc(
-                name=f"{doc_type}.pdf",
-                docType=doc_type,
-                status="Mismatch Alert" if (cross_checks and cross_checks.get("status") == "FAIL") else "Verified",
-                score=30 if (cross_checks and cross_checks.get("status") == "FAIL") else int(confidence),
-                confidence=doc_ocr_conf,
-                details=doc_details
-            ))
-        except Exception as proc_err:
-            print(f"[!] Document processing pipeline warning: {proc_err}")
-            real_extracted_docs.append(ExtractedDoc(
-                name="Uploaded_Document.pdf",
-                docType="TENDER_DOCUMENT",
-                status="Indexed",
-                score=85,
-                confidence="92.0%",
-                details="Document ingested and queued for deep forensic verification."
-            ))
+    try:
+        res = process_document(file_path, file_id)
+        doc_type = res.get("classification", {}).get("document_type", "UNKNOWN")
+        confidence = res.get("classification", {}).get("classification_confidence", 0)
         
-        # Cleanup temp file
+        # Tag fields with source doc
+        fields = res.get("fields", {})
+        for k, v in fields.items():
+            v["source_doc"] = doc_name_label
+            v["source_doc_type"] = doc_type
+            v["file_id"] = file_id
+            
+        return {
+            "success": True,
+            "doc_type": doc_type,
+            "confidence": f"{confidence:.1f}%",
+            "fields": fields,
+            "validation_results": res.get("validation_results", []),
+            "method": res.get("processing", {}).get("method", "Unknown"),
+            "file_id": file_id
+        }
+    except Exception as e:
+        print(f"[!] Error processing {doc_name_label}: {e}")
+        return {"error": f"Failed to process {doc_name_label}."}
+    finally:
         try:
             os.remove(file_path)
         except Exception:
             pass
-            
-    # 2. Base rule engine evaluation (Deterministic Rules based on extraction)
-    tender = get_tender_by_id(req.tenderId)
-    evaluation = validate_bid_compliance(req, processing_results, cross_checks, tender)
+
+@router.post("/bid", response_model=BidVerifyResponse)
+def verify_bid_payload(req: BidVerifyRequest):
+    doc_flags = []
+    real_extracted_docs = []
+    processing_results = {"fields": {}, "validation_results": []}
+    cross_checks = None
     
-    if req.fileId:
+    docs_to_process = [
+        (req.tenderDocumentId, "TENDER_DOCUMENT", "Tender Document"),
+        (req.gstDocumentId, "GST_CERTIFICATE", "GST Certificate"),
+        (req.panDocumentId, "PAN_CARD", "PAN Card"),
+        (req.udyamDocumentId, "UDYAM_CERTIFICATE", "Udyam Certificate")
+    ]
+    
+    # Backward compatibility if only fileId is sent
+    if req.fileId and not any([req.tenderDocumentId, req.gstDocumentId, req.panDocumentId, req.udyamDocumentId]):
+        docs_to_process = [(req.fileId, "UNKNOWN", "Uploaded Document")]
+        
+    has_any_doc = False
+    overall_confidence = []
+    
+    for doc_id, expected_type, label in docs_to_process:
+        if not doc_id:
+            continue
+            
+        has_any_doc = True
+        res = process_single_doc(doc_id, expected_type, label)
+        
+        if "error" in res:
+            doc_flags.append(res["error"])
+            continue
+            
+        doc_type = res["doc_type"]
+        overall_confidence.append(float(res["confidence"].strip("%")))
+        
+        is_mismatch = (expected_type != "UNKNOWN" and doc_type != "UNKNOWN" and doc_type != expected_type)
+        
+        if is_mismatch:
+            doc_details = f"DOCUMENT TYPE MISMATCH: Expected {expected_type} but detected {doc_type}."
+            doc_flags.append(f"{label} Evidence -> NOT FOUND / DOCUMENT TYPE MISMATCH")
+            real_extracted_docs.append(ExtractedDoc(
+                name=f"{label}.pdf",
+                docType=doc_type,
+                status="Mismatch Alert",
+                score=30,
+                confidence=res["confidence"],
+                details=doc_details
+            ))
+            # DO NOT merge fields to prevent using wrong document's evidence
+            continue
+            
+        doc_details = f"Processed {doc_type} via {res['method']}."
+        processing_results["fields"].update(res["fields"])
+        processing_results["validation_results"].extend(res["validation_results"])
+        
+        real_extracted_docs.append(ExtractedDoc(
+            name=f"{label}.pdf",
+            docType=doc_type,
+            status="Verified",
+            score=int(float(res["confidence"].strip("%"))),
+            confidence=res["confidence"],
+            details=doc_details
+        ))
+
+    avg_conf = f"{sum(overall_confidence)/len(overall_confidence):.1f}%" if overall_confidence else "N/A"
+    
+    # Run Cross-Document Checks
+    if has_any_doc:
+        cross_checks = run_cross_document_checks(processing_results.get("fields", {}), req)
+        if cross_checks and cross_checks.get("status") == "FAIL":
+            for doc in real_extracted_docs:
+                doc.status = "Mismatch Alert"
+                doc.details += " Discrepancies found during cross-validation."
+                doc.score = min(doc.score, 30)
+
+    tender = get_tender_by_id(req.tenderId)
+    
+    # Rule engine needs processing_results to be None if no docs
+    eval_pr = processing_results if has_any_doc else None
+    
+    evaluation = validate_bid_compliance(req, eval_pr, cross_checks, tender)
+    
+    if has_any_doc:
         evaluation["extractedDocs"] = real_extracted_docs
-        evaluation["ocrConfidence"] = doc_ocr_conf
+        evaluation["ocrConfidence"] = avg_conf
+        # append mismatch flags
+        evaluation["flags"].extend(doc_flags)
     
     bid_id = f"BID-{random.randint(20500, 29999)}"
     now_str = datetime.now().strftime("%d %b %Y, %I:%M %p")
@@ -154,7 +212,6 @@ def verify_bid_payload(req: BidVerifyRequest):
         submittedBy=req.submittedBy,
         vendorEmail=req.vendorEmail
     )
-
 @router.post("/upload")
 async def upload_and_parse_document(file: UploadFile = File(...)):
     """

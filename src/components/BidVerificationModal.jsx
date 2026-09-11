@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Upload, CheckCircle2, AlertTriangle, XCircle, FileText, Cpu, ShieldCheck, Download, RefreshCw } from 'lucide-react';
+import { X, Upload, CheckCircle2, AlertTriangle, XCircle, FileText, Cpu, ShieldCheck, Download, RefreshCw, Trash2, Check } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { samplePreloads } from '../data/bidsData';
 import { useLanguage } from '../context/LanguageContext';
@@ -9,7 +9,6 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
   if (!isOpen) return null;
 
   const { t } = useLanguage();
-  const fileInputRef = useRef(null);
   const [bidForm, setBidForm] = useState({
     vendorName: '',
     tenderId: '',
@@ -23,9 +22,21 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     msmeRegNo: '',
     experienceClaim: ''
   });
-  const [selectedFile, setSelectedFile] = useState(null);
+
+  // Independent Document States
+  const [tenderDoc, setTenderDoc] = useState({ file: null, fileId: null, status: 'idle', errorMsg: '' });
+  const [gstDoc, setGstDoc] = useState({ file: null, fileId: null, status: 'idle', errorMsg: '' });
+  const [panDoc, setPanDoc] = useState({ file: null, fileId: null, status: 'idle', errorMsg: '' });
+  const [udyamDoc, setUdyamDoc] = useState({ file: null, fileId: null, status: 'idle', errorMsg: '' });
+
+  // Refs for hidden inputs
+  const tenderInputRef = useRef(null);
+  const gstInputRef = useRef(null);
+  const panInputRef = useRef(null);
+  const udyamInputRef = useRef(null);
+
   const [isProcessing, setIsProcessing] = useState(false);
-  const [scanStep, setScanStep] = useState(0); // 0: Idle, 1: OCR, 2: Rule Engine, 3: Scored
+  const [scanStep, setScanStep] = useState(0);
   const [result, setResult] = useState(null);
 
   useEffect(() => {
@@ -45,15 +56,12 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
       }));
       setResult(null);
       setScanStep(0);
+      setTenderDoc({ file: null, fileId: null, status: 'idle', errorMsg: '' });
+      setGstDoc({ file: null, fileId: null, status: 'idle', errorMsg: '' });
+      setPanDoc({ file: null, fileId: null, status: 'idle', errorMsg: '' });
+      setUdyamDoc({ file: null, fileId: null, status: 'idle', errorMsg: '' });
     }
   }, [isOpen, selectedTender, currentUser]);
-
-  const stepsList = [
-    "Ingesting documents & running EasyOCR / Tesseract...",
-    "Extracting GSTIN, PAN, ITR Turnover & Local Content...",
-    "Validating against GFR 2017 & DPIIT Rules (210 checks)...",
-    "Running OpenCV forensics & Anomaly ML Scoring..."
-  ];
 
   const handlePreload = (type) => {
     let preloadData = null;
@@ -62,13 +70,11 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     if (type === 'fraud') preloadData = { ...samplePreloads.fraudBid };
 
     if (preloadData) {
-      // Preserve active tender being applied to
       if (selectedTender && selectedTender.id) {
         preloadData.tenderId = selectedTender.id;
         preloadData.category = selectedTender.category || preloadData.category;
         preloadData.tenderValue = selectedTender.estimatedValue || preloadData.tenderValue;
       }
-      // Preserve logged in vendor identity
       if (currentUser) {
         preloadData.vendorName = currentUser.organization || currentUser.fullName || preloadData.vendorName;
         if (currentUser.gstin) preloadData.gstin = currentUser.gstin;
@@ -80,23 +86,26 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     setScanStep(0);
   };
 
-  const handleFileChange = async (e) => {
+  const handleFileUpload = async (e, setDocState) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file);
+      setDocState({ file, fileId: null, status: 'uploading', errorMsg: '' });
       try {
         const uploadRes = await gemApi.uploadDocument(file);
         if (uploadRes && uploadRes.fileId) {
-          setBidForm(prev => ({
-            ...prev,
-            fileId: uploadRes.fileId,
-            uploadedDocNames: [file.name]
-          }));
+          setDocState({ file, fileId: uploadRes.fileId, status: 'success', errorMsg: '' });
+        } else {
+          setDocState({ file: null, fileId: null, status: 'error', errorMsg: 'Upload failed: No File ID returned' });
         }
       } catch (err) {
-        console.warn("Document direct upload fallback:", err);
+        setDocState({ file: null, fileId: null, status: 'error', errorMsg: err.message || 'Upload failed' });
       }
     }
+    e.target.value = null; // reset input
+  };
+
+  const removeDocument = (setDocState) => {
+    setDocState({ file: null, fileId: null, status: 'idle', errorMsg: '' });
   };
 
   const isValidPAN = (pan) => /^[A-Z]{5}[0-9]{4}[A-Z]$/.test(pan);
@@ -118,6 +127,24 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     return <span style={{fontSize: '0.7rem', color: '#ef4444', display: 'block', marginTop: '0.25rem'}}>✕ {invalidMsg}</span>;
   };
 
+  const renderUploadStatus = (docState, setDocState, inputRef) => {
+    if (docState.status === 'idle') return null;
+    if (docState.status === 'uploading') return <span style={{fontSize: '0.75rem', color: '#f59e0b', display: 'block', marginTop: '0.25rem'}}>⏳ Uploading {docState.file?.name}...</span>;
+    if (docState.status === 'error') return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem' }}>
+        <span style={{fontSize: '0.75rem', color: '#ef4444'}}>✕ {docState.errorMsg}</span>
+        <button onClick={() => inputRef.current?.click()} style={{ background: 'none', border: 'none', color: '#3b82f6', fontSize: '0.75rem', cursor: 'pointer', textDecoration: 'underline' }}>Retry</button>
+      </div>
+    );
+    if (docState.status === 'success') return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.25rem', fontSize: '0.75rem', color: '#10b981' }}>
+        <Check size={14} /> <span>{docState.file?.name} uploaded</span>
+        <button onClick={() => inputRef.current?.click()} style={{ background: 'none', border: 'none', color: '#3b82f6', cursor: 'pointer', textDecoration: 'underline', marginLeft: '0.25rem' }}>Replace</button>
+        <button onClick={() => removeDocument(setDocState)} style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', textDecoration: 'underline' }}>Remove</button>
+      </div>
+    );
+  };
+
   const isFormValid = bidForm.vendorName && tenderIdState === 'valid' && gstinState === 'valid' && panState === 'valid';
 
   const handleStartVerification = async () => {
@@ -133,7 +160,6 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     setScanStep(1);
     setResult(null);
 
-    // Step animations
     setTimeout(() => setScanStep(2), 600);
     setTimeout(() => setScanStep(3), 1200);
 
@@ -145,10 +171,13 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
         bidAmount: bidForm.bidAmount || '₹1.38 Cr',
         vendorName: bidForm.vendorName || currentUser?.organization || currentUser?.fullName || 'Apex Supplies Ltd.',
         submittedBy: currentUser?.email || null,
-        vendorEmail: currentUser?.email || null
+        vendorEmail: currentUser?.email || null,
+        tenderDocumentId: tenderDoc.fileId,
+        gstDocumentId: gstDoc.fileId,
+        panDocumentId: panDoc.fileId,
+        udyamDocumentId: udyamDoc.fileId
       };
 
-      // Call live FastAPI backend verification
       const evalResult = await gemApi.verifyBid(payload);
 
       setTimeout(() => {
@@ -196,7 +225,6 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content-box" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '920px' }}>
-        {/* Header */}
         <div className="modal-header">
           <div>
             <span className="section-tag" style={{ marginBottom: '0.2rem' }}>{t('verifierTag')}</span>
@@ -208,7 +236,6 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
         </div>
 
         <div className="modal-body" style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-          {/* Quick Preload Presets */}
           <div style={{ background: '#f8fafc', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
             <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '0.5rem' }}>
               {t('selectScenario')}
@@ -217,242 +244,191 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
               <button
                 type="button"
                 onClick={() => handlePreload('perfect')}
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  borderRadius: '6px',
-                  border: '1px solid #10b981',
-                  backgroundColor: '#ecfdf5',
-                  color: '#065f46',
-                  cursor: 'pointer'
-                }}
+                style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem', fontWeight: '600', borderRadius: '6px', border: '1px solid #10b981', backgroundColor: '#ecfdf5', color: '#065f46', cursor: 'pointer' }}
               >
                 {t('scenarioPerfect')}
               </button>
               <button
                 type="button"
                 onClick={() => handlePreload('flagged')}
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  borderRadius: '6px',
-                  border: '1px solid #f59e0b',
-                  backgroundColor: '#fffbeb',
-                  color: '#92400e',
-                  cursor: 'pointer'
-                }}
+                style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem', fontWeight: '600', borderRadius: '6px', border: '1px solid #f59e0b', backgroundColor: '#fffbeb', color: '#92400e', cursor: 'pointer' }}
               >
                 {t('scenarioFlagged')}
               </button>
               <button
                 type="button"
                 onClick={() => handlePreload('fraud')}
-                style={{
-                  padding: '0.35rem 0.85rem',
-                  fontSize: '0.8rem',
-                  fontWeight: '600',
-                  borderRadius: '6px',
-                  border: '1px solid #ef4444',
-                  backgroundColor: '#fef2f2',
-                  color: '#991b1b',
-                  cursor: 'pointer'
-                }}
+                style={{ padding: '0.35rem 0.85rem', fontSize: '0.8rem', fontWeight: '600', borderRadius: '6px', border: '1px solid #ef4444', backgroundColor: '#fef2f2', color: '#991b1b', cursor: 'pointer' }}
               >
                 {t('scenarioFraud')}
               </button>
             </div>
           </div>
 
-          {/* Form & Upload Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '1.5rem' }}>
-            {/* Left: Metadata Inputs */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    {t('vendorNameLabel')} <span style={{color: '#ef4444'}}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={bidForm.vendorName}
-                    onChange={(e) => setBidForm({ ...bidForm, vendorName: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    Tender ID <span style={{color: '#ef4444'}}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={bidForm.tenderId}
-                    onChange={(e) => setBidForm({ ...bidForm, tenderId: e.target.value.trim().toUpperCase() })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
-                  />
-                  {renderValidationMsg(tenderIdState, "Expected GEM/YYYY/X/NNNNNN, e.g. GEM/2026/B/891244")}
-                </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                  {t('vendorNameLabel')} <span style={{color: '#ef4444'}}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={bidForm.vendorName}
+                  onChange={(e) => setBidForm({ ...bidForm, vendorName: e.target.value })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    {t('tenderCategoryLabel')}
-                  </label>
-                  <input
-                    type="text"
-                    value={bidForm.category}
-                    onChange={(e) => setBidForm({ ...bidForm, category: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    {t('bidAmountLabel')}
-                  </label>
-                  <input
-                    type="text"
-                    value={bidForm.bidAmount}
-                    onChange={(e) => setBidForm({ ...bidForm, bidAmount: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
-                  />
-                </div>
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                  {t('tenderCategoryLabel')}
+                </label>
+                <input
+                  type="text"
+                  value={bidForm.category}
+                  onChange={(e) => setBidForm({ ...bidForm, category: e.target.value })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    {t('gstinLabel')} <span style={{color: '#ef4444'}}>*</span>
-                  </label>
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                  {t('gstinLabel')} <span style={{color: '#ef4444'}}>*</span>
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input
                     type="text"
                     value={bidForm.gstin}
                     onChange={(e) => setBidForm({ ...bidForm, gstin: e.target.value.trim().toUpperCase() })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontFamily: 'monospace' }}
+                    style={{ width: '100%', padding: '0.5rem', paddingRight: '2.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontFamily: 'monospace' }}
                   />
-                  {renderValidationMsg(gstinState, "Enter a valid 15-character GSTIN")}
+                  <button onClick={() => gstInputRef.current?.click()} style={{ position: 'absolute', right: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Upload size={18} color="#475569" />
+                  </button>
+                  <input type="file" ref={gstInputRef} onChange={(e) => handleFileUpload(e, setGstDoc)} style={{ display: 'none' }} accept=".pdf,.png,.jpg,.jpeg" />
                 </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    {t('panLabel')} <span style={{color: '#ef4444'}}>*</span>
-                  </label>
+                {renderValidationMsg(gstinState, "Enter a valid 15-character GSTIN")}
+                {renderUploadStatus(gstDoc, setGstDoc, gstInputRef)}
+              </div>
+              
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                  Udyam / MSME Registration Number
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={bidForm.msmeRegNo}
+                    onChange={(e) => setBidForm({ ...bidForm, msmeRegNo: e.target.value.trim().toUpperCase() })}
+                    style={{ width: '100%', padding: '0.5rem', paddingRight: '2.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontFamily: 'monospace' }}
+                  />
+                  <button onClick={() => udyamInputRef.current?.click()} style={{ position: 'absolute', right: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Upload size={18} color="#475569" />
+                  </button>
+                  <input type="file" ref={udyamInputRef} onChange={(e) => handleFileUpload(e, setUdyamDoc)} style={{ display: 'none' }} accept=".pdf,.png,.jpg,.jpeg" />
+                </div>
+                {renderUploadStatus(udyamDoc, setUdyamDoc, udyamInputRef)}
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                  {t('miiLabel')}
+                </label>
+                <input
+                  type="text"
+                  value={bidForm.miiDeclared}
+                  onChange={(e) => setBidForm({ ...bidForm, miiDeclared: e.target.value })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                  Tender ID <span style={{color: '#ef4444'}}>*</span>
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                  <input
+                    type="text"
+                    value={bidForm.tenderId}
+                    onChange={(e) => setBidForm({ ...bidForm, tenderId: e.target.value.trim().toUpperCase() })}
+                    style={{ width: '100%', padding: '0.5rem', paddingRight: '2.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                  />
+                  <button onClick={() => tenderInputRef.current?.click()} style={{ position: 'absolute', right: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Upload size={18} color="#475569" />
+                  </button>
+                  <input type="file" ref={tenderInputRef} onChange={(e) => handleFileUpload(e, setTenderDoc)} style={{ display: 'none' }} accept=".pdf,.png,.jpg,.jpeg" />
+                </div>
+                {renderValidationMsg(tenderIdState, "Expected GEM/YYYY/X/NNNNNN")}
+                {renderUploadStatus(tenderDoc, setTenderDoc, tenderInputRef)}
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                  {t('bidAmountLabel')}
+                </label>
+                <input
+                  type="text"
+                  value={bidForm.bidAmount}
+                  onChange={(e) => setBidForm({ ...bidForm, bidAmount: e.target.value })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
+                />
+              </div>
+
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                  {t('panLabel')} <span style={{color: '#ef4444'}}>*</span>
+                </label>
+                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
                   <input
                     type="text"
                     value={bidForm.pan}
                     onChange={(e) => setBidForm({ ...bidForm, pan: e.target.value.trim().toUpperCase() })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontFamily: 'monospace' }}
+                    style={{ width: '100%', padding: '0.5rem', paddingRight: '2.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem', fontFamily: 'monospace' }}
                   />
-                  {renderValidationMsg(panState, "Expected 5 letters, 4 digits, and 1 letter (e.g. ABCDE1234F)")}
+                  <button onClick={() => panInputRef.current?.click()} style={{ position: 'absolute', right: '0.5rem', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Upload size={18} color="#475569" />
+                  </button>
+                  <input type="file" ref={panInputRef} onChange={(e) => handleFileUpload(e, setPanDoc)} style={{ display: 'none' }} accept=".pdf,.png,.jpg,.jpeg" />
                 </div>
+                {renderValidationMsg(panState, "Expected 5 letters, 4 digits, 1 letter")}
+                {renderUploadStatus(panDoc, setPanDoc, panInputRef)}
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    {t('miiLabel')}
-                  </label>
-                  <input
-                    type="text"
-                    value={bidForm.miiDeclared}
-                    onChange={(e) => setBidForm({ ...bidForm, miiDeclared: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
-                  />
-                </div>
-                <div>
-                  <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
-                    {t('turnoverLabel')}
-                  </label>
-                  <input
-                    type="text"
-                    value={bidForm.turnoverClaim}
-                    onChange={(e) => setBidForm({ ...bidForm, turnoverClaim: e.target.value })}
-                    style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Drag & Drop Upload Zone */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569' }}>
-                {t('uploadTitle')}
-              </label>
-              <div
-                style={{
-                  border: '2px dashed #94a3b8',
-                  borderRadius: '10px',
-                  padding: '1.5rem 1rem',
-                  textAlign: 'center',
-                  backgroundColor: '#f8fafc',
-                  cursor: 'pointer',
-                  flex: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'border-color 0.2s ease'
-                }}
-                onClick={() => {
-                  if (fileInputRef.current) {
-                    fileInputRef.current.click();
-                  } else {
-                    setSelectedFile({ name: `${bidForm.vendorName.replace(/\s+/g, '_')}_Docs_Bundle.pdf`, size: "4.8 MB" });
-                  }
-                }}
-              >
+              <div>
+                <label style={{ fontSize: '0.8rem', fontWeight: '600', color: '#475569', display: 'block', marginBottom: '0.25rem' }}>
+                  {t('turnoverLabel')}
+                </label>
                 <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleFileChange}
-                  style={{ display: 'none' }}
-                  accept=".pdf,.png,.jpg,.jpeg"
+                  type="text"
+                  value={bidForm.turnoverClaim}
+                  onChange={(e) => setBidForm({ ...bidForm, turnoverClaim: e.target.value })}
+                  style={{ width: '100%', padding: '0.5rem', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '0.875rem' }}
                 />
-                <Upload size={32} color="#0f2847" style={{ marginBottom: '0.5rem' }} />
-                <span style={{ fontSize: '0.88rem', fontWeight: '600', color: '#0f172a' }}>
-                  {selectedFile ? selectedFile.name : 'Click to Upload or Drag & Drop'}
-                </span>
-                <span style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '0.25rem' }}>
-                  {t('uploadHint')}
-                </span>
               </div>
-
-              <button
-                type="button"
-                onClick={handleStartVerification}
-                disabled={isProcessing}
-                style={{
-                  padding: '0.75rem 1.5rem',
-                  borderRadius: '8px',
-                  backgroundColor: '#0b1a2d',
-                  color: '#ffffff',
-                  fontSize: '0.95rem',
-                  fontWeight: '700',
-                  border: 'none',
-                  cursor: isProcessing ? 'not-allowed' : 'pointer',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  boxShadow: '0 4px 12px rgba(11, 26, 45, 0.25)'
-                }}
-              >
-                {isProcessing ? (
-                  <>
-                    <RefreshCw className="animate-spin" size={18} />
-                    {t('analyzingText')}
-                  </>
-                ) : (
-                  <>
-                    <Cpu size={18} />
-                    {t('runVerification')}
-                  </>
-                )}
-              </button>
             </div>
           </div>
+          
+          <button
+            type="button"
+            onClick={handleStartVerification}
+            disabled={isProcessing}
+            style={{ padding: '0.75rem 1.5rem', borderRadius: '8px', backgroundColor: '#0b1a2d', color: '#ffffff', fontSize: '0.95rem', fontWeight: '700', border: 'none', cursor: isProcessing ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', boxShadow: '0 4px 12px rgba(11, 26, 45, 0.25)' }}
+          >
+            {isProcessing ? (
+              <>
+                <RefreshCw className="animate-spin" size={18} />
+                {t('analyzingText')}
+              </>
+            ) : (
+              <>
+                <Cpu size={18} />
+                {t('runVerification')}
+              </>
+            )}
+          </button>
 
-          {/* Processing Animation Step Banner */}
           {isProcessing && (
             <div style={{ backgroundColor: '#0f2238', color: '#ffffff', padding: '1rem 1.25rem', borderRadius: '8px', border: '1px solid #1e385b' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
@@ -469,7 +445,6 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
             </div>
           )}
 
-          {/* Error Message Panel */}
           {result && result.error && !isProcessing && (
             <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', padding: '1.5rem', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
               <AlertTriangle size={24} />
@@ -477,7 +452,6 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
             </div>
           )}
 
-          {/* Verification Results Panel */}
           {result && !result.error && !isProcessing && (
             <div style={{ backgroundColor: '#081729', border: '1px solid #1e385b', borderRadius: '12px', padding: '1.5rem', color: '#ffffff' }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #162c47', paddingBottom: '1rem', marginBottom: '1.25rem' }}>
@@ -506,7 +480,6 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                 </div>
               </div>
 
-              {/* Grid of Verified Parameters */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '1rem', marginBottom: '1.25rem' }}>
                 <div style={{ backgroundColor: '#0f2238', padding: '0.75rem', borderRadius: '6px', border: '1px solid #1e385b' }}>
                   <span style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block' }}>{t('localContent')}</span>
@@ -522,7 +495,6 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                 </div>
               </div>
 
-              {/* Flags / Discrepancies */}
               {result.flags.length > 0 ? (
                 <div style={{ backgroundColor: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '8px', padding: '1rem', marginBottom: '1.25rem' }}>
                   <span style={{ fontSize: '0.82rem', fontWeight: '700', color: '#f87171', display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
@@ -541,7 +513,6 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                 </div>
               )}
 
-              {/* Buyer Recommendation Banner */}
               <div
                 style={{
                   backgroundColor: result.status === 'Compliant' ? 'rgba(16, 185, 129, 0.1)' : (result.status === 'Flagged' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(239, 68, 68, 0.1)'),
@@ -560,40 +531,18 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
                 </p>
               </div>
 
-              {/* Action Buttons */}
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  style={{
-                    padding: '0.5rem 1rem',
-                    borderRadius: '6px',
-                    backgroundColor: 'transparent',
-                    border: '1px solid #1e385b',
-                    color: '#ffffff',
-                    fontSize: '0.85rem',
-                    fontWeight: '600',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.4rem'
-                  }}
+                  style={{ padding: '0.5rem 1rem', borderRadius: '6px', backgroundColor: 'transparent', border: '1px solid #1e385b', color: '#ffffff', fontSize: '0.85rem', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem' }}
                 >
                   <Download size={15} /> {t('downloadPdf')}
                 </button>
                 <button
                   type="button"
                   onClick={onClose}
-                  style={{
-                    padding: '0.5rem 1.25rem',
-                    borderRadius: '6px',
-                    backgroundColor: '#f59e0b',
-                    border: 'none',
-                    color: '#ffffff',
-                    fontSize: '0.85rem',
-                    fontWeight: '700',
-                    cursor: 'pointer'
-                  }}
+                  style={{ padding: '0.5rem 1.25rem', borderRadius: '6px', backgroundColor: '#f59e0b', border: 'none', color: '#ffffff', fontSize: '0.85rem', fontWeight: '700', cursor: 'pointer' }}
                 >
                   {t('doneClose')}
                 </button>
