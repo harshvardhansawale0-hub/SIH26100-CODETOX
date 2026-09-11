@@ -35,29 +35,49 @@ def process_document(file_path: str, original_filename: str = "") -> Dict[str, A
     extracted_fields.update(extract_tender_fields(pages_text))
 
         
-    from .validators import validate_pan_format, validate_gst_format, validate_numeric
+    from .validators import (
+        validate_pan_format,
+        validate_gst_format,
+        validate_udyam_format,
+        validate_tender_format,
+        validate_ca_udin_format,
+        validate_numeric
+    )
     
     validation_results = []
     for field_name, field_data in extracted_fields.items():
         val = field_data["value"]
         is_valid = False
+        format_spec = ""
         if field_name == "pan":
             is_valid = validate_pan_format(val)
+            format_spec = "PAN [A-Z]{5}[0-9]{4}[A-Z]"
         elif field_name == "gstin":
             is_valid = validate_gst_format(val)
+            format_spec = "GSTIN 15-char standard [0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]"
+        elif field_name == "udyam_reg_no":
+            is_valid = validate_udyam_format(val)
+            format_spec = "UDYAM format UDYAM-[A-Z]{2}-\\d{2}-\\d{5,10}"
+        elif field_name == "tender_id":
+            is_valid = validate_tender_format(val)
+            format_spec = "GeM Tender ID GEM/YYYY/X/NNNNNN"
+        elif field_name == "udin":
+            is_valid = validate_ca_udin_format(val)
+            format_spec = "ICAI CA UDIN 18-digit format"
         elif field_name in ["turnover", "local_content_percentage"]:
             is_valid = validate_numeric(val)
-        elif field_name == "tender_id":
-            is_valid = bool(val)
+            format_spec = "Numeric monetary/percentage"
         else:
-            is_valid = bool(val) # fallback for udyam or others
+            is_valid = bool(val)
+            format_spec = "Generic non-empty check"
             
         validation_results.append({
             "field": field_name,
             "value": val,
             "valid": is_valid,
-            "validation_status": "LOCAL_VALIDATION_PASSED" if is_valid else "LOCAL_VALIDATION_FAILED",
-            "checks": [f"Format validation for {field_name}"]
+            "format_spec": format_spec,
+            "validation_status": "PRESET_GUIDELINE_PASSED" if is_valid else "PRESET_GUIDELINE_FAILED",
+            "checks": [f"Preset guideline format validation for {field_name} ({format_spec})"]
         })
         
     return {

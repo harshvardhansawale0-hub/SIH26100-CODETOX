@@ -68,12 +68,14 @@ def run_direct_service_tests():
         "fields": {
             "gstin": {"value": "27AABCB1234F1Z5"},
             "pan": {"value": "AABCB1234F"},
+            "udyam_reg_no": {"value": "UDYAM-MH-03-0019284"},
             "turnover": {"value": "₹14.2 Cr"},
             "local_content_percentage": {"value": "82%"}
         },
         "validation_results": [
             {"field": "gstin", "valid": True},
             {"field": "pan", "valid": True},
+            {"field": "udyam_reg_no", "valid": True},
             {"field": "turnover", "valid": True},
             {"field": "local_content_percentage", "valid": True}
         ]
