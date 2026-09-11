@@ -36,6 +36,18 @@ async def lifespan(app: FastAPI):
     print(f"[*] Ask GeMMy AI Router Loaded (Groq model: {os.environ.get('GROQ_MODEL', 'qwen/qwen3.8-27b')}).")
     print(f"[*] Serving frontend from: {DIST_DIR}")
     print(f"[*] Frontend dist exists: {DIST_DIR.exists()}")
+    
+    import sys
+    from .services.document_processing.ocr_engine import HAS_TESSERACT, pytesseract
+    tesseract_version = pytesseract.get_tesseract_version() if pytesseract and HAS_TESSERACT else None
+    tesseract_cmd = getattr(pytesseract.pytesseract, 'tesseract_cmd', 'tesseract') if pytesseract else None
+    print("[STARTUP]")
+    print(f"Python executable: {sys.executable}")
+    print(f"Python version: {sys.version}")
+    print(f"pytesseract version: {getattr(pytesseract, '__version__', 'N/A') if pytesseract else 'N/A'}")
+    print(f"Tesseract executable: {tesseract_cmd}")
+    print(f"Tesseract version: {tesseract_version}")
+    
     yield
 
 app = FastAPI(

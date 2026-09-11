@@ -260,9 +260,17 @@ export default function BidVerificationModal({ isOpen, onClose, onAddVerifiedBid
     const matchLookup = result?.fieldMatches?.[fieldKey] || result?.fieldMatches?.[fieldKey === 'msmeRegNo' ? 'udyam' : fieldKey];
     if (matchLookup) {
       if (matchLookup.status === 'MATCHED') {
-        matchStatus = <div style={{ color: '#10b981', fontSize: '0.75rem', marginTop: '0.25rem' }}>✓ Field matched: {matchLookup.extracted}</div>;
+        matchStatus = (
+          <div style={{ color: '#10b981', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+            ✓ MATCHED (Document: {matchLookup.extracted})
+          </div>
+        );
       } else if (matchLookup.status === 'NOT_MATCHED') {
-        matchStatus = <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem' }}>❌ Field does not match. Extracted: {matchLookup.extracted}</div>;
+        matchStatus = (
+          <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '0.25rem', whiteSpace: 'pre-line' }}>
+            {`❌ NOT MATCHED\nEntered: ${matchLookup.entered || 'None'}\nDocument: ${matchLookup.extracted || 'None'}`}
+          </div>
+        );
       } else if (matchLookup.status === 'EXTRACTION_FAILED') {
         matchStatus = <div style={{ color: '#f59e0b', fontSize: '0.75rem', marginTop: '0.25rem' }}>⚠ Extraction failed</div>;
       }

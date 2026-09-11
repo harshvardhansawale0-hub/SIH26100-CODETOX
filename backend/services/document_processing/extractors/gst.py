@@ -8,10 +8,11 @@ def extract_gst_fields(pages_text: list) -> Dict[str, Any]:
         text = page.get("text", "") if isinstance(page, dict) else str(page)
         page_num = page.get("page", 1) if isinstance(page, dict) else 1
         upper_text = text.upper()
+        clean_text = re.sub(r'\s+', '', upper_text)
         
         # GSTIN Extraction (Preset Guideline: 2 digits, 5 letters, 4 digits, 1 letter, 1 alphanumeric, Z, 1 alphanumeric)
         if "gstin" not in fields:
-            match = re.search(r"\b([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z])\b", upper_text)
+            match = re.search(r"\b([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z])\b", upper_text) or re.search(r"([0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z])", clean_text)
             if match:
                 gstin_val = match.group(1)
                 fields["gstin"] = {

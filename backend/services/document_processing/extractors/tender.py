@@ -8,8 +8,8 @@ def extract_tender_fields(pages_text: List[str]) -> Dict[str, Any]:
     """
     fields = {}
     
-    # Preset Guideline Format: GEM/YYYY/X/NNNNNN (e.g. GEM/2026/B/891244)
-    tender_id_pattern = re.compile(r'\bGEM\s*/\s*(\d{4})\s*/\s*([A-Z])\s*/\s*(\d{6})\b', re.IGNORECASE)
+    # Preset Guideline Format: GEM/YYYY/X/NNNNNN (with OCR artifact flexibility)
+    tender_id_pattern = re.compile(r'\bGEM\s*/?\s*(\d{4})\s*/?\s*([A-Z0-9])\s*/?\s*(\d{6})\b', re.IGNORECASE)
     
     tender_id_found = None
     found_page = 1
@@ -19,7 +19,7 @@ def extract_tender_fields(pages_text: List[str]) -> Dict[str, Any]:
         text = page.get("text", "") if isinstance(page, dict) else str(page)
         page_num = page.get("page", 1) if isinstance(page, dict) else 1
         
-        match = tender_id_pattern.search(text)
+        match = tender_id_pattern.search(text) or tender_id_pattern.search(re.sub(r'\s+', '', text))
         if match:
             # Reconstruct standardized format GEM/YYYY/X/NNNNNN
             tender_id_found = f"GEM/{match.group(1)}/{match.group(2).upper()}/{match.group(3)}"
