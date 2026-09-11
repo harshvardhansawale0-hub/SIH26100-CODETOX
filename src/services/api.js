@@ -269,7 +269,8 @@ export const gemApi = {
   async getTenders() {
     try {
       const data = await request('/api/tenders');
-      return (data && data.length > 0) ? data : initialTenders;
+      // Return actual backend data even if empty (user may have deleted all tenders)
+      return Array.isArray(data) ? data : initialTenders;
     } catch {
       return initialTenders;
     }

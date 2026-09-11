@@ -68,14 +68,21 @@ function MainApp() {
 
   // Tenders state (Buyer creates, Bidder applies)
   const [tenders, setTenders] = useState(() => {
+    // Get list of tender IDs the user has locally deleted
+    let deletedIds = [];
+    try { deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]'); } catch {}
     try {
       const stored = localStorage.getItem('gem_stored_tenders');
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          return deletedIds.length > 0 ? parsed.filter(t => !deletedIds.includes(t.id)) : parsed;
+        }
       }
     } catch {}
-    return initialTenders || [];
+    return deletedIds.length > 0
+      ? (initialTenders || []).filter(t => !deletedIds.includes(t.id))
+      : (initialTenders || []);
   });
   const [isLoadingTenders, setIsLoadingTenders] = useState(false);
 
@@ -182,9 +189,15 @@ function MainApp() {
             mergedTenders.unshift(st);
           }
         }
-        setTenders(mergedTenders);
+        // Filter out any tenders the user has locally deleted (safety net)
+        let deletedIds = [];
+        try { deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]'); } catch {}
+        const cleanedTenders = deletedIds.length > 0
+          ? mergedTenders.filter(t => !deletedIds.includes(t.id))
+          : mergedTenders;
+        setTenders(cleanedTenders);
         try {
-          localStorage.setItem('gem_stored_tenders', JSON.stringify(mergedTenders));
+          localStorage.setItem('gem_stored_tenders', JSON.stringify(cleanedTenders));
         } catch {}
       }
       if (fetchedBids && fetchedBids.length > 0) {
@@ -376,8 +389,22 @@ function MainApp() {
       } catch {}
       return updated;
     });
+    // Track deleted tender ID so it doesn't reappear after refresh
+    try {
+      const deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]');
+      if (!deletedIds.includes(tenderId)) {
+        deletedIds.push(tenderId);
+        localStorage.setItem('gem_deleted_tenders', JSON.stringify(deletedIds));
+      }
+    } catch {}
     try {
       await gemApi.deleteTender(tenderId);
+      // Successfully deleted on server — remove from local deletion tracker
+      try {
+        const deletedIds = JSON.parse(localStorage.getItem('gem_deleted_tenders') || '[]');
+        const cleaned = deletedIds.filter(id => id !== tenderId);
+        localStorage.setItem('gem_deleted_tenders', JSON.stringify(cleaned));
+      } catch {}
     } catch (err) {
       console.warn('Failed to delete tender on server:', err);
     }
